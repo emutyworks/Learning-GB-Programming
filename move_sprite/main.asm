@@ -29,8 +29,8 @@ ENDR
 SECTION "Initialize", ROM0
 
 Start:
-  ; move DMA subroutine to HRAM
-  call CopyDMARoutine
+	; move DMA subroutine to HRAM
+	call CopyDMARoutine
 
 	; Turn off the LCD
 .waitVBlank
@@ -157,10 +157,10 @@ SetOAM:
 	cp 144 ; Check if the LCD is past VBlank
 	jr c, .waitVBlank
 
-  ; call the DMA subroutine we copied to HRAM
-  ; which then copies the bytes to the OAM and sprites begin to draw
-  ld  a, HIGH(wShadowOAM)
-  call hOAMDMA
+	; call the DMA subroutine we copied to HRAM
+	; which then copies the bytes to the OAM and sprites begin to draw
+	ld  a, HIGH(wShadowOAM)
+	call hOAMDMA
 
 	jr MainLoop
 
@@ -236,4 +236,3 @@ SECTION "OAM DMA", HRAM
 
 hOAMDMA:
 	ds DMARoutineEnd - DMARoutine ; Reserve space to copy the routine to
-	
