@@ -79,6 +79,8 @@ Start:
 	ld a, $00
 	ld [rSCY], a ; Scroll Y
 	ld [rSCX], a ; Scroll X
+	; Shut sound down
+	ld [rNR52], a
 
 	ld a, 7+8*10
 	ld [rWX], a ; Window X Position
@@ -87,9 +89,6 @@ Start:
 
 	ld a, SCROLL_WAIT
 	ld [SCROLL_X_WAIT], a
-
-	; Shut sound down
-	ld [rNR52], a
 
 	; Turn screen on, display background
 	ld a, %11110011 ; LCDCF_ON,LCDCF_WIN9C00,LCDCF_WINON,LCDCF_BG8000,LCDCF_OBJON,LCDCF_BGON
