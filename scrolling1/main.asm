@@ -7,8 +7,8 @@
 ; The Cycle-Accurate Game Boy Docs (p25: 7. Joypad)
 ; https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
 ;
-; Pan Docs: Video Display
-; https://gbdev.io/pandocs/#video-display
+; Pan Docs: Scrolling
+; https://gbdev.io/pandocs/Scrolling.html
 ;
 ; OAM DMA tutorial
 ; https://gbdev.gg8.se/wiki/articles/OAM_DMA_tutorial
