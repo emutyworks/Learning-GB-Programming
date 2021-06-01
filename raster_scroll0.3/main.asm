@@ -21,8 +21,8 @@ INCLUDE "hardware.inc"
 
 VBlankScrollStart EQU 8*5-1
 VBlankScrollEnd   EQU 8*11-1
-PlayerStartPosY   EQU 16+8*8
-PlayerStartPosX   EQU 8+8*9
+PlayerStartPosY   EQU 8*10
+PlayerStartPosX   EQU 8*10
 ScrollSpeed       EQU 3
 
 SECTION	"VBlank Handler",ROM0[$40]
