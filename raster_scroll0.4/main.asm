@@ -94,9 +94,9 @@ Start:
 
 	xor	a
 	ldh [rLCDC],a
-	ldh	[rIE],a
-	ldh	[rIF],a
-	ldh	[rSTAT],a
+	ldh [rIE],a
+	ldh [rIF],a
+	ldh [rSTAT],a
 	ldh [rNR52],a ; disable the audio
 	ldh [rSCY],a ; Scroll Y
 	ld a,ScrollXBase
