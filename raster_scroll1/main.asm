@@ -23,7 +23,7 @@ VBlankScrollStart EQU 8*12-2
 VBlankScrollEnd   EQU 8*17-2
 ScrollSpeed       EQU 1
 BgScrollStartY    EQU -8*3+1
-BgScrollTopY    	EQU BgScrollStartY+8*5
+BgScrollTopY      EQU BgScrollStartY+8*5
 BgScrollBottomY   EQU BgScrollStartY
 PlayerStartY      EQU 8*12-4 ;8*17-4
 PlayerStartX      EQU 8*10
@@ -344,7 +344,7 @@ DMARoutine:
 	ld a,40
 .wait
 	dec a
-	jr  nz,.wait
+	jr nz,.wait
 	ret
 DMARoutineEnd:
 
