@@ -118,6 +118,7 @@ Start:
 	ldh [rNR52],a ; disable the audio
 	ldh [rSCY],a ; Scroll Y
 	ldh [rSCX],a ; Scroll X
+	ld [wVBlankDone],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
