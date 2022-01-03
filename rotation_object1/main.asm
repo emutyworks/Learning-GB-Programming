@@ -148,11 +148,6 @@ DrawSprite2:
 	ld [wAngle],a
 	ret
 
-.resetWangle
-	xor a
-	ld [wAngle],a
-	ret
-
 WaitDraw:
 	ld b,5
 .waitDraw
