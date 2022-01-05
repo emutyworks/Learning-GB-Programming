@@ -81,9 +81,9 @@ MainLoop:
 	jp MainLoop
 
 DrawSprite:
-	ld a,Sprite1x
-	ld [hli],a ; Y Position
 	ld a,Sprite1y
+	ld [hli],a ; Y Position
+	ld a,Sprite1x
 	ld [hli],a ; X Position
 	ld a,Sprite1i
 	ld [hli],a ; Tile Index
