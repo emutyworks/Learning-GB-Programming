@@ -36,7 +36,7 @@ Start:
 	call CopyDMARoutine ; move DMA subroutine to HRAM
 	call WaitVBlank
 
-	xor	a
+	xor a
 	ldh [rLCDC],a
 	ldh [rIE],a
 	ldh [rIF],a
@@ -274,34 +274,34 @@ RotateTbl:
 
 SECTION "Sprite Table",ROM0
 SpriteTbl: ;Index,Range,Angle(0-63)
-	db  1,17,53,
-	db  1,10,57,
-	db  2, 7, 0,
-	db  1,11, 8,
-	db  1,18,11,
-	;
-	db  1,21,57,
-	db  1,17,60,
-	db  2,15, 0,
-	db  1,18, 5,
-	db  1,22, 8,
-	;
-	db  1, 7,49,
-	db  1,15,49,
-	db  1, 7,16,
-	db  1,15,16,
-	;
-	db  1,16,44,
-	db  1,10,40,
-	db  2, 7,31,
-	db  1,10,23,
-	db  1,17,20,
-	;
-	db  1,20,40,
-	db  1,16,36,
-	db  2,15,32,
-	db  1,17,27,
-	db  1,21,23,
+	db 1,17,53,
+	db 1,10,57,
+	db 2, 7, 0,
+	db 1,11, 8,
+	db 1,18,11,
+	
+	db 1,21,57,
+	db 1,17,60,
+	db 2,15, 0,
+	db 1,18, 5,
+	db 1,22, 8,
+	
+	db 1, 7,49,
+	db 1,15,49,
+	db 1, 7,16,
+	db 1,15,16,
+	
+	db 1,16,44,
+	db 1,10,40,
+	db 2, 7,31,
+	db 1,10,23,
+	db 1,17,20,
+	
+	db 1,20,40,
+	db 1,16,36,
+	db 2,15,32,
+	db 1,17,27,
+	db 1,21,23,
 SpriteTblEnd:
 
 SECTION "Shadow OAM",WRAM0[$C000]
