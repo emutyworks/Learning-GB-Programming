@@ -1,6 +1,9 @@
 ;
 ; I used this Website/Document as a reference to create "main.asm".
 ;
+; Lesson P21 - Sound on the Gameboy and GBC
+; https://www.chibiakumas.com/z80/platform3.php#LessonP21
+;
 ; Lesson H9- Hello World on the Gameboy and Gameboy Color
 ; https://www.chibiakumas.com/z80/helloworld.php#LessonH9
 ;
@@ -22,12 +25,9 @@ CarDataCnt        EQU 16*2
 CarSpeedMax       EQU 3
 CarTurnWait       EQU 5
 CarDirectionMax   EQU 3
-;DirectionUpMax    EQU 16+8
-;DirectionDownMax  EQU 16+144-32
-;DirectionLeftMax  EQU 8
-;DirectionRightMax EQU 8+160-24
 BGPaletteCnt      EQU 4*3
 ObjPaletteCnt     EQU 4*1
+SoundDataCnt      EQU 5
 
 SECTION "Header",ROM0[$100]
 
@@ -66,7 +66,6 @@ Start:
 	ldh [rIE],a
 	ldh [rIF],a
 	ldh [rSTAT],a
-	ldh [rNR52],a ; disable the audio
 	ldh [rSCY],a ; Scroll Y
 	ldh [rSCX],a ; Scroll X
 	ld [wJoypad],a
@@ -74,8 +73,7 @@ Start:
 	ld [wCarSpeed],a
 	ld [wCarPattern],a
 	ld [wCarDirection],a
-	ld [wCarSpeedUpWait],a
-	ld [wCarSpeedDownWait],a
+	ld [wEngineSound],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -110,6 +108,18 @@ Start:
 	ld [wCarX],a
 	ld a,CarTurnWait
 	ld [wCarTurnWait],a
+	ld a,[CarSpeedUpTbl]
+	ld [wCarSpeedUpWait],a
+	ld a,[CarSpeedDownTbl]
+	ld [wCarSpeedDownWait],a
+
+	; Set Sound
+	ld a,%00010001 ; -LLL-RRR Channel volume
+	ldh [$FF24],a
+	ld a,%11111111 ; Channel Sound output terminal
+	ldh [$FF25],a
+	ld a,%10000000 ; Sound on/off
+	ldh [$FF26],a
 
 MainLoop:
 	call ReadingJoypad
@@ -144,6 +154,8 @@ ReadingJoypad:
 	ld a,[wButton]
 	and %00000001
 	jr nz,.speedUp
+	ld a,[CarSpeedUpTbl]
+	ld [wCarSpeedUpWait],a
 	jp .speedDown
 
 .checkJoypad
@@ -154,12 +166,6 @@ ReadingJoypad:
 	ld a,c
 	and %00000010 ; Left
 	jr nz,.turnLeft
-	;
-	;and %00001000 ; Up
-	;jr nz,
-	;ld a,c
-	;and %00000100 ; Down
-	;jr nz,
 	ret
 
 .turnRight
@@ -179,7 +185,7 @@ ReadingJoypad:
 	ld [wCarDirection],a
 	ld a,CarTurnWait
 	ld [wCarTurnWait],a
-	jr SetCarPattern
+	jp SetCarPattern
 
 .turnLeft
 	ld a,[wCarTurnWait]
@@ -206,6 +212,7 @@ ReadingJoypad:
 	ret
 
 .speedUp
+	call SetEngineSound
 	ld a,[wCarSpeed]
 	cp CarSpeedMax
 	jr z,.checkJoypad
@@ -220,12 +227,13 @@ ReadingJoypad:
 	ld a,[bc]
 	ld [wCarSpeedUpWait],a
 	ld [wCarSpeedDownWait],a
-	jr .checkJoypad
+	jp .checkJoypad
 .speedUpWait
 	dec a
 	ld [wCarSpeedUpWait],a
 	jp .checkJoypad
 .speedDown
+	call SetEngineSound
 	ld a,[wCarSpeed]
 	cp 0
 	jp z,.checkJoypad
@@ -239,7 +247,7 @@ ReadingJoypad:
 	ld b,HIGH(CarSpeedDownTbl)
 	ld a,[bc]
 	ld [wCarSpeedDownWait],a
-	xor a
+	ld a,[CarSpeedUpTbl]
 	ld [wCarSpeedUpWait],a
 	jp .checkJoypad
 .speedDownWait
@@ -283,14 +291,8 @@ SetCarMove:
 	ld c,a
 	ld a,[wCarY]
 	sub a,c
-	;cp DirectionUpMax
-	;jr c,.setCarMoveUp1
 	ld [wCarY],a
 	ret
-;.setCarMoveUp1
-;	ld a,DirectionDownMax
-;	ld [wCarY],a
-;	ret
 
 .setCarMoveRight
 	ld a,[wCarSpeed]
@@ -299,14 +301,8 @@ SetCarMove:
 	ld c,a
 	ld a,[wCarX]
 	add a,c
-	;cp DirectionRightMax
-	;jr c,.setCarMoveRight1
-	;ld a,DirectionLeftMax
 	ld [wCarX],a
 	ret
-;.setCarMoveRight1
-;	ld [wCarX],a
-;	ret
 
 .setCarMoveDown
 	ld a,[wCarSpeed]
@@ -315,14 +311,8 @@ SetCarMove:
 	ld c,a
 	ld a,[wCarY]
 	add a,c
-	;cp DirectionDownMax
-	;jr c,.setCarMoveDown1
-	;ld a,DirectionUpMax
 	ld [wCarY],a
 	ret
-;.setCarMoveDown1
-;	ld [wCarY],a
-;	ret
 
 .setCarMoveLeft
 	ld a,[wCarSpeed]
@@ -331,21 +321,58 @@ SetCarMove:
 	ld c,a
 	ld a,[wCarX]
 	sub a,c
-	;cp DirectionLeftMax
-	;jr nc,.setCarMoveLeft1
 	ld [wCarX],a
 	ret
-;.setCarMoveLeft1
-;	ld a,DirectionRightMax
-;	ld [wCarX],a
-;	ret
+
+SetEngineSound:
+	ld a,[wEngineSound]
+	ld c,a
+	ld a,[wCarSpeed]
+	cp c
+	ret z
+	ld [wEngineSound],a
+	ld d,HIGH(SoundTbl)
+	ld e,0
+	cp 0
+	jp z,.setEngineSound
+	ld c,a
+.setEngineSoundLoop
+	ld a,e
+	add a,SoundDataCnt
+	ld e,a
+	dec c
+	ld a,c
+	cp 0
+	jr nz,.setEngineSoundLoop
+	ld a,e
+.setEngineSound
+	ld b,$FF
+	ld c,$10
+	ld a,[de]
+	ldh [c],a ; $FF10 Sweep register
+	inc de
+	inc c
+	ld a,[de]
+	ldh [c],a ; $FF11 Sound length/Wave pattern duty
+	inc de
+	inc c
+	ld a,[de]
+	ldh [c],a ; $FF12 Volume Envelope
+	inc de
+	inc c
+	ld a,[de]
+	ldh [c],a ; $FF13 Frequency low
+	inc de
+	inc c
+	ld a,[de]
+	ldh [c],a ; $FF14 Frequency hi
+	ret
 
 SetCarSprite:
 	ld hl,wShadowOAM
 	ld b,HIGH(CarSpriteTbl)
 	ld a,[wCarPattern]
 	ld c,a
-	;ld e,4 ; Sprite Table Count
 	ld e,8 ; Sprite Table Count
 .setCarSprite
 	ld a,[wCarY]
@@ -542,32 +569,7 @@ BgTileMap1: ; BG Map Attributes
 	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
 BgTileMapEnd1:
 
-SECTION "Color Palette",ROM0[$3000]
-BGPalette:
-	; Gameboy Color palette 0
-	dw 15134
-	dw 23391
-	dw 10840
-	dw 3472
-	; Gameboy Color palette 1
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31
-	; Gameboy Color palette 2
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 32767
-
-ObjPalette:
-	; Gameboy Color palette 0
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31
-
-SECTION "Car Sprite Table",ROM0[$3100]
+SECTION "Car Sprite Table",ROM0[$3000]
 CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	; Upward
 	db 0,0,116,%00000000
@@ -627,37 +629,68 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	db 8,0,123,%00100000
 	db 8,8,121,%00100000
 
-SECTION "Car SpeedUp Table1",ROM0[$3200]
+SECTION "Color Palette",ROM0
+BGPalette:
+	; Gameboy Color palette 0
+	dw 15134
+	dw 23391
+	dw 10840
+	dw 3472
+	; Gameboy Color palette 1
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31
+	; Gameboy Color palette 2
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 32767
+
+ObjPalette:
+	; Gameboy Color palette 0
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31
+
+SECTION "Engine Sound Table",ROM0[$3100]
+SoundTbl: ;Sweep,Wave pattern duty,Envelope,Frequency low,Hi
+	db %01111111,%00000000,%11110000,$00,%10000000
+	db %01110011,%00000000,%11110000,$00,%10000001
+	db %01110000,%00000000,%11110000,$00,%10000010
+	db %01110000,%00000000,%11110000,$FF,%10000011
+
+SECTION "Car SpeedUp Table",ROM0[$3200]
 CarSpeedUpTbl: ; Wait
 	db 0
-	db 120
-	db 80
 	db 20
-	db 80
+	db 50
+	db 20
 
-SECTION "Car SpeedDown Table1",ROM0[$3300]
+SECTION "Car SpeedDown Table",ROM0[$3300]
 CarSpeedDownTbl: ; Wait
 	db 0
-	db 120
-	db 80
+	db 30
+	db 50
 	db 20
-	db 0
 
 SECTION "Shadow OAM",WRAM0[$C000]
 wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
 
-SECTION "State",WRAM0[$C100]
+SECTION "State",WRAM0
 wJoypad: ds 1
 wButton: ds 1
 ;
 wCarY: ds 1
 wCarX: ds 1
+wCarSpeed: ds 1
 wCarPattern: ds 1
 wCarDirection: ds 1
-wCarSpeed: ds 1
 wCarSpeedUpWait: ds 1
 wCarSpeedDownWait: ds 1
 wCarTurnWait: ds 1
+wEngineSound: ds 1
 
 SECTION "HRAM Variables",HRAM
 hOAMDMA:
