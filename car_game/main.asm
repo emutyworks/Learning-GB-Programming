@@ -27,7 +27,8 @@ CarTurnWait       EQU 5
 CarDirectionMax   EQU 3
 BGPaletteCnt      EQU 4*3
 ObjPaletteCnt     EQU 4*1
-SoundDataCnt      EQU 5
+;SoundDataCnt      EQU 5 ; ver.03 Tone & Sweep
+SoundDataCnt      EQU 3 ; ver.04 Wave Output
 
 SECTION "Header",ROM0[$100]
 
@@ -121,6 +122,19 @@ Start:
 	ld a,%10000000 ; Sound on/off
 	ldh [$FF26],a
 
+	; Set Wave Data
+	ld hl,$FF30
+	ld de,WaveData
+	ld bc,WaveDataEnd - WaveData
+	call CopyData
+
+	ld a,%10000000 ; Wave Output on/off
+	ldh [$FF1A],a
+	ld a,$FF ; Sound Length
+	ldh [$FF1B],a
+	ld de,SoundTbl
+	call SetEngineSound
+
 MainLoop:
 	call ReadingJoypad
 	call SetCarMove
@@ -212,7 +226,7 @@ ReadingJoypad:
 	ret
 
 .speedUp
-	call SetEngineSound
+	call CalcEngineSound
 	ld a,[wCarSpeed]
 	cp CarSpeedMax
 	jr z,.checkJoypad
@@ -233,7 +247,7 @@ ReadingJoypad:
 	ld [wCarSpeedUpWait],a
 	jp .checkJoypad
 .speedDown
-	call SetEngineSound
+	call CalcEngineSound
 	ld a,[wCarSpeed]
 	cp 0
 	jp z,.checkJoypad
@@ -324,7 +338,7 @@ SetCarMove:
 	ld [wCarX],a
 	ret
 
-SetEngineSound:
+CalcEngineSound:
 	ld a,[wEngineSound]
 	ld c,a
 	ld a,[wCarSpeed]
@@ -334,39 +348,74 @@ SetEngineSound:
 	ld d,HIGH(SoundTbl)
 	ld e,0
 	cp 0
-	jp z,.setEngineSound
+	jp z,SetEngineSound
 	ld c,a
-.setEngineSoundLoop
+.calcEngineSound
 	ld a,e
 	add a,SoundDataCnt
 	ld e,a
 	dec c
 	ld a,c
 	cp 0
-	jr nz,.setEngineSoundLoop
-	ld a,e
-.setEngineSound
+	jr nz,.calcEngineSound
+SetEngineSound: ; ver.04 Wave Output
 	ld b,$FF
-	ld c,$10
+	ld c,$1C
 	ld a,[de]
-	ldh [c],a ; $FF10 Sweep register
-	inc de
+	ldh [c],a ; $FF1C ; Output level
+	inc e
 	inc c
 	ld a,[de]
-	ldh [c],a ; $FF11 Sound length/Wave pattern duty
-	inc de
+	ldh [c],a ; $FF1D ; Frequency low
+	inc e
 	inc c
 	ld a,[de]
-	ldh [c],a ; $FF12 Volume Envelope
-	inc de
-	inc c
-	ld a,[de]
-	ldh [c],a ; $FF13 Frequency low
-	inc de
-	inc c
-	ld a,[de]
-	ldh [c],a ; $FF14 Frequency hi
+	ldh [c],a ; $FF1E ; Frequency hi
 	ret
+
+;SetEngineSound: ; ver.03 Tone & Sweep
+;	ld a,[wEngineSound]
+;	ld c,a
+;	ld a,[wCarSpeed]
+;	cp c
+;	ret z
+;	ld [wEngineSound],a
+;	ld d,HIGH(SoundTbl)
+;	ld e,0
+;	cp 0
+;	jp z,.setEngineSound
+;	ld c,a
+;.setEngineSoundLoop
+;	ld a,e
+;	add a,SoundDataCnt
+;	ld e,a
+;	dec c
+;	ld a,c
+;	cp 0
+;	jr nz,.setEngineSoundLoop
+;	ld a,e
+;.setEngineSound
+;	ld b,$FF
+;	ld c,$10
+;	ld a,[de]
+;	ldh [c],a ; $FF10 Sweep register
+;	inc de
+;	inc c
+;	ld a,[de]
+;	ldh [c],a ; $FF11 Sound length/Wave pattern duty
+;	inc de
+;	inc c
+;	ld a,[de]
+;	ldh [c],a ; $FF12 Volume Envelope
+;	inc de
+;	inc c
+;	ld a,[de]
+;	ldh [c],a ; $FF13 Frequency low
+;	inc de
+;	inc c
+;	ld a,[de]
+;	ldh [c],a ; $FF14 Frequency hi
+;	ret
 
 SetCarSprite:
 	ld hl,wShadowOAM
@@ -655,11 +704,26 @@ ObjPalette:
 	dw 31
 
 SECTION "Engine Sound Table",ROM0[$3100]
-SoundTbl: ;Sweep,Wave pattern duty,Envelope,Frequency low,Hi
-	db %01111111,%00000000,%11110000,$00,%10000000
-	db %01110011,%00000000,%11110000,$00,%10000001
-	db %01110000,%00000000,%11110000,$00,%10000010
-	db %01110000,%00000000,%11110000,$FF,%10000011
+; ver.04 Wave Output
+SoundTbl: ; Output level,Frequency low,Hi
+	db %01000000,$60,%10000000
+	db %00100000,$A0,%10000000
+	db %00100000,$FF,%10000001
+	db %00100000,$FF,%10000010
+WaveData:
+	db $12,$56 ; 1,2,5,6
+	db $BC,$DC ; 11,12,13,12
+	db $DB,$DD ; 13,11,13,13
+  db $CE,$A9 ; 12,14,10,09
+  db $76,$65 ; 07,06,06,05
+WaveDataEnd:
+
+; ver.03 Tone & Sweep
+;SoundTbl: ;Sweep,Wave pattern duty,Envelope,Frequency low,Hi
+;	db %01111111,%00000000,%11110000,$00,%10000000
+;	db %01110011,%00000000,%11110000,$00,%10000001
+;	db %01110000,%00000000,%11110000,$00,%10000010
+;	db %01110000,%00000000,%11110000,$FF,%10000011
 
 SECTION "Car SpeedUp Table",ROM0[$3200]
 CarSpeedUpTbl: ; Wait
