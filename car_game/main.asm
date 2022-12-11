@@ -19,12 +19,12 @@
 
 INCLUDE "hardware.inc"
 
-CarStartY         EQU 16+8*16
-CarStartX         EQU 8+8*2
+CarStartY         EQU 16+8*11
+CarStartX         EQU 8+8*6
 CarDataCnt        EQU 16*2
 CarSpeedMax       EQU 3
 CarTurnWait       EQU 5
-CarDirectionMax   EQU 3
+CarDirectionMax   EQU 7
 BGPaletteCnt      EQU 4*3
 ObjPaletteCnt     EQU 4*1
 ;SoundDataCnt      EQU 5 ; ver.03 Tone & Sweep
@@ -75,7 +75,7 @@ Start:
 	ld [wCarPattern],a
 	ld [wCarDirection],a
 	ld [wEngineSound],a
-
+	
 	; Set Tiles data
 	ld hl,_VRAM8000
 	ld de,Tiles
@@ -291,11 +291,19 @@ SetCarMove:
 	cp 0
 	jr z,.setCarMoveUp
 	cp 1
-	jr z,.setCarMoveRight
+	jr z,.setCarMoveUpRight
 	cp 2
-	jr z,.setCarMoveDown
+	jr z,.setCarMoveRight
 	cp 3
+	jr z,.setCarMoveDownRight
+	cp 4
+	jr z,.setCarMoveDown
+	cp 5
+	jr z,.setCarMoveDownLeft
+	cp 6
 	jr z,.setCarMoveLeft
+	cp 7
+	jr z,.setCarMoveUpLeft
 	ret
 
 .setCarMoveUp
@@ -308,6 +316,19 @@ SetCarMove:
 	ld [wCarY],a
 	ret
 
+.setCarMoveUpRight
+	ld a,[wCarSpeed]
+	cp 0
+	ret z
+	ld c,a
+	ld a,[wCarY]
+	sub a,c
+	ld [wCarY],a
+	ld a,[wCarX]
+	add a,c
+	ld [wCarX],a
+	ret
+
 .setCarMoveRight
 	ld a,[wCarSpeed]
 	cp 0
@@ -316,6 +337,19 @@ SetCarMove:
 	ld a,[wCarX]
 	add a,c
 	ld [wCarX],a
+	ret
+
+.setCarMoveDownRight
+	ld a,[wCarSpeed]
+	cp 0
+	ret z
+	ld c,a
+	ld a,[wCarX]
+	add a,c
+	ld [wCarX],a
+	ld a,[wCarY]
+	add a,c
+	ld [wCarY],a
 	ret
 
 .setCarMoveDown
@@ -328,6 +362,19 @@ SetCarMove:
 	ld [wCarY],a
 	ret
 
+.setCarMoveDownLeft
+	ld a,[wCarSpeed]
+	cp 0
+	ret z
+	ld c,a
+	ld a,[wCarY]
+	add a,c
+	ld [wCarY],a
+	ld a,[wCarX]
+	sub a,c
+	ld [wCarX],a
+	ret
+
 .setCarMoveLeft
 	ld a,[wCarSpeed]
 	cp 0
@@ -336,6 +383,19 @@ SetCarMove:
 	ld a,[wCarX]
 	sub a,c
 	ld [wCarX],a
+	ret
+
+.setCarMoveUpLeft
+	ld a,[wCarSpeed]
+	cp 0
+	ret z
+	ld c,a
+	ld a,[wCarX]
+	sub a,c
+	ld [wCarX],a
+	ld a,[wCarY]
+	sub a,c
+	ld [wCarY],a
 	ret
 
 CalcEngineSound:
@@ -373,56 +433,12 @@ SetEngineSound: ; ver.04 Wave Output
 	ldh [c],a ; $FF1E ; Frequency hi
 	ret
 
-;SetEngineSound: ; ver.03 Tone & Sweep
-;	ld a,[wEngineSound]
-;	ld c,a
-;	ld a,[wCarSpeed]
-;	cp c
-;	ret z
-;	ld [wEngineSound],a
-;	ld d,HIGH(SoundTbl)
-;	ld e,0
-;	cp 0
-;	jp z,.setEngineSound
-;	ld c,a
-;.setEngineSoundLoop
-;	ld a,e
-;	add a,SoundDataCnt
-;	ld e,a
-;	dec c
-;	ld a,c
-;	cp 0
-;	jr nz,.setEngineSoundLoop
-;	ld a,e
-;.setEngineSound
-;	ld b,$FF
-;	ld c,$10
-;	ld a,[de]
-;	ldh [c],a ; $FF10 Sweep register
-;	inc de
-;	inc c
-;	ld a,[de]
-;	ldh [c],a ; $FF11 Sound length/Wave pattern duty
-;	inc de
-;	inc c
-;	ld a,[de]
-;	ldh [c],a ; $FF12 Volume Envelope
-;	inc de
-;	inc c
-;	ld a,[de]
-;	ldh [c],a ; $FF13 Frequency low
-;	inc de
-;	inc c
-;	ld a,[de]
-;	ldh [c],a ; $FF14 Frequency hi
-;	ret
-
 SetCarSprite:
 	ld hl,wShadowOAM
 	ld b,HIGH(CarSpriteTbl)
 	ld a,[wCarPattern]
 	ld c,a
-	ld e,8 ; Sprite Table Count
+	ld e,8 ; Sprite pattern count
 .setCarSprite
 	ld a,[wCarY]
 	ld d,a
@@ -621,14 +637,23 @@ BgTileMapEnd1:
 SECTION "Car Sprite Table",ROM0[$3000]
 CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	; Upward
-	db 0,0,116,%00000000
-	db 0,8,116,%00100000
-	db 8,0,117,%00000000
-	db 8,8,117,%00100000
+	db 0,0,122,%00000000
+	db 0,8,122,%00100000
+	db 8,0,123,%00000000
+	db 8,8,123,%00100000
 	db 0,0,126,%10000000
 	db 0,8,126,%10100000
 	db 8,0,127,%10000000
 	db 8,8,127,%10100000
+	; Upward right
+	db 0,0,115,%00000000
+	db 0,8,114,%00000000
+	db 8,0,116,%00000000
+	db 8,8,115,%01100000
+	db 0,0,118,%10000000
+	db 0,8,117,%10000000
+	db 8,0,119,%10000000
+	db 8,8,118,%11100000
 	; Rightward
 	db 0,0,120,%00000000
 	db 0,8,121,%00000000
@@ -638,15 +663,33 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	db 0,8,125,%10000000
 	db 8,0,124,%11000000
 	db 8,8,125,%11000000
+	; Downward right
+	db 0,0,116,%01000000
+	db 0,8,115,%00100000
+	db 8,0,115,%01000000
+	db 8,8,114,%01000000
+	db 0,0,119,%11000000
+	db 0,8,118,%10100000
+	db 8,0,118,%11000000
+	db 8,8,117,%11000000
 	; Downward
-	db 0,0,117,%01000000
-	db 0,8,117,%01100000
-	db 8,0,116,%01000000
-	db 8,8,116,%01100000
+	db 0,0,123,%01000000
+	db 0,8,123,%01100000
+	db 8,0,122,%01000000
+	db 8,8,122,%01100000
 	db 0,0,127,%11000000
 	db 0,8,127,%11100000
 	db 8,0,126,%11000000
 	db 8,8,126,%11100000
+	; Downward left
+	db 0,0,115,%00000000
+	db 0,8,116,%01100000
+	db 8,0,114,%01100000
+	db 8,8,115,%01100000
+	db 0,0,118,%10000000
+	db 0,8,119,%11100000
+	db 8,0,117,%11100000
+	db 8,8,118,%11100000
 	; Leftward
 	db 0,0,121,%00100000
 	db 0,8,120,%00100000
@@ -656,27 +699,15 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	db 0,8,124,%10100000
 	db 8,0,125,%11100000
 	db 8,8,124,%11100000
-
-	; Upper right
-	db 0,0,120,%00000000
-	db 0,8,122,%00000000
-	db 8,0,121,%00000000
-	db 8,8,123,%00000000
-	; lower right
-	db 0,0,121,%01000000
-	db 0,8,123,%01000000
-	db 8,0,120,%01000000
-	db 8,8,122,%01000000
-	; lower left
-	db 0,0,123,%01100000
-	db 0,8,121,%01100000
-	db 8,0,122,%01100000
-	db 8,8,120,%01100000
-	; Upper left
-	db 0,0,122,%00100000
-	db 0,8,120,%00100000
-	db 8,0,123,%00100000
-	db 8,8,121,%00100000
+	; Upward left
+	db 0,0,114,%00100000
+	db 0,8,115,%00100000
+	db 8,0,115,%01000000
+	db 8,8,116,%00100000
+	db 0,0,117,%10100000
+	db 0,8,118,%10100000
+	db 8,0,118,%11000000
+	db 8,8,119,%10100000
 
 SECTION "Color Palette",ROM0
 BGPalette:
@@ -717,13 +748,6 @@ WaveData:
   db $CE,$A9 ; 12,14,10,09
   db $76,$65 ; 07,06,06,05
 WaveDataEnd:
-
-; ver.03 Tone & Sweep
-;SoundTbl: ;Sweep,Wave pattern duty,Envelope,Frequency low,Hi
-;	db %01111111,%00000000,%11110000,$00,%10000000
-;	db %01110011,%00000000,%11110000,$00,%10000001
-;	db %01110000,%00000000,%11110000,$00,%10000010
-;	db %01110000,%00000000,%11110000,$FF,%10000011
 
 SECTION "Car SpeedUp Table",ROM0[$3200]
 CarSpeedUpTbl: ; Wait
