@@ -149,7 +149,7 @@ Start:
 	ld [wLightPalette2],a
 	ld a,0
 	ld [wLightPalette3],a
-	ld a,160
+	ld a,227
 	ld [wLightWait],a
 	ld a,HIGH(LightPalette)
 	ld [wLightPalette],a

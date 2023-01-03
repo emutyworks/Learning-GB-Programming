@@ -73,6 +73,11 @@ MusicalScaleTbl:
 	db %11011111,%111 ; B7
 
 Sound01Tbl:
+	db SF    ; Sound Off
+	db SW,NW ; SW: Wait,Note
+	db SW,NW ;
+	db SN    ; Sound On
+	db WD,%11000000 ; $FF11 Channel 1 length timer & duty cycle
 	db N2,C5 ; Note,Scale
 	         ; Note - NS: Sixteenth note
 	         ;        N8: Eighth note
@@ -89,13 +94,14 @@ Sound01Tbl:
 	db N4,E5
 	db N4,E5
 	db NW,F5
-	db SW,NW ; SW: Wait,Note
+	db SW,NW
 	db SW,N2
 	;
+	db WD,%10000000 ; $FF11 Channel 1 length timer & duty cycle
 	db NW,C5
 	db SW,NW
 	db NW,C5
 	db SW,NW
 	db NW,F5
 	db SW,NW
-	db SS ; Stop
+	db SS    ; Sound Stop

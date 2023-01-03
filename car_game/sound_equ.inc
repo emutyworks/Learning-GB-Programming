@@ -72,10 +72,14 @@ A7  EQU 140
 A#7 EQU 142
 B7  EQU 144
 ;
-NS EQU 2 ; Sixteenth note
+NS EQU 2    ; Sixteenth note
 N8 EQU NS*2 ; Eighth note
 N4 EQU N8*2 ; Quarter note
 N2 EQU N4*2 ; Half note
 NW EQU N2*2 ; Whole note
-SS EQU 0 ; Stop
-SW EQU $FF ; Wait
+;
+WD EQU $FB  ; Set $FF11 Channel 1 length timer & duty cycle
+SF EQU $FC  ; Sound Off
+SN EQU $FD  ; Sound On
+SW EQU $FE  ; Sound Wait
+SS EQU $FF  ; Sound Stop
