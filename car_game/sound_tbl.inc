@@ -73,7 +73,14 @@ MusicalScaleTbl:
 	db %11011111,%111 ; B7
 
 Sound01Tbl:
-	db N2,C5
+	db N2,C5 ; Note,Scale
+	         ; Note - NS: Sixteenth note
+	         ;        N8: Eighth note
+	         ;        N4: Quarter note
+	         ;        N2: Half note
+	         ;        NW: Whole note
+	         ; Scale - CxDxExFxGxAxBx: Musical scale
+	         ;         x=2-5: Octave
 	db N4,C5
 	db N4,C5
 	db N4,C5
@@ -82,7 +89,7 @@ Sound01Tbl:
 	db N4,E5
 	db N4,E5
 	db NW,F5
-	db SW,NW
+	db SW,NW ; SW: Wait,Note
 	db SW,N2
 	;
 	db NW,C5
@@ -91,4 +98,4 @@ Sound01Tbl:
 	db SW,NW
 	db NW,F5
 	db SW,NW
-	db SS
+	db SS ; Stop

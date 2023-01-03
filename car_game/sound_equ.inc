@@ -72,10 +72,10 @@ A7  EQU 140
 A#7 EQU 142
 B7  EQU 144
 ;
-NS EQU 2 ; sixteenth note
-N8 EQU NS*2 ; eighth note
-N4 EQU N8*2 ; quarter note
-N2 EQU N4*2 ; half note
-NW EQU N2*2 ; whole note
+NS EQU 2 ; Sixteenth note
+N8 EQU NS*2 ; Eighth note
+N4 EQU N8*2 ; Quarter note
+N2 EQU N4*2 ; Half note
+NW EQU N2*2 ; Whole note
 SS EQU 0 ; Stop
 SW EQU $FF ; Wait
