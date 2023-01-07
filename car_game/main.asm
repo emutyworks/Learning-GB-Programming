@@ -20,30 +20,7 @@
 
 INCLUDE "hardware.inc"
 INCLUDE "sound_equ.inc"
-
-Car1StartY        EQU 16+8*4
-Car1StartX        EQU 8+8*9
-Car1Palette       EQU 0
-Car2Palette       EQU 3
-Car3Palette       EQU 2
-CarDataCnt        EQU 16*1
-CarStartDirection EQU 2
-CarDirectionMax   EQU 7
-CarSpeedMax       EQU 3
-CarTurnWait       EQU 5
-BGPaletteCnt      EQU 4*2
-ObjPaletteCnt     EQU 4*5
-SoundDataCnt      EQU 3
-ScrollMaxY        EQU 16+8*12
-ScrollMaxX        EQU 8+8*11
-ScrollAreaYup     EQU 16+8*4
-ScrollAreaYdown   EQU 16+8*12
-ScrollAreaXleft   EQU 8+8*4
-ScrollAreaXright  EQU 8+8*14
-ScreenMaxY        EQU 16+8*15
-ScreenMaxX        EQU 8+8*17
-ScreenMinY        EQU 16+8
-ScreenMinX        EQU 8+8
+INCLUDE "equ.inc"
 
 SECTION "Header",ROM0[$100]
 
@@ -89,9 +66,6 @@ Start:
 	ld [wCarSpeed],a
 	ld [wCarPattern],a
 	ld [wEngineSound],a
-	ld [wSpriteY],a
-	ld [wSpriteX],a
-	ld [wSpritePallete],a
 	ld [wScrollY],a
 	ld [wScrollX],a
 	ld [wScrollYflg],a
@@ -99,6 +73,11 @@ Start:
 	ld [wSoundTbl],a
 	ld [wSoundTbl+1],a
 	ld [wSoundWait],a
+
+	ld hl,wLightPalette
+	ld [hl],HIGH(LightPalette)
+	inc hl
+	ld [hl],LOW(LightPalette)
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -128,49 +107,68 @@ Start:
 
 	; Set Car
 	ld a,Car1StartY
-	ld [wCarY],a
+	ld [wCar1Y],a
 	ld a,Car1StartX
-	ld [wCarX],a
+	ld [wCar1X],a
 	ld a,CarTurnWait
 	ld [wCarTurnWait],a
 	ld a,[CarSpeedUpTbl]
 	ld [wCarSpeedUpWait],a
 	ld a,[CarSpeedDownTbl]
 	ld [wCarSpeedDownWait],a
-	ld a,CarStartDirection
+	ld a,2
 	ld [wCarDirection],a
 	call SetCarPattern
+
+	; Init OAM Table
+	ld bc,InitOamTbl
+	ld hl,wShadowOAM
+	ld d,OamTblCnt
+.initOAMTable
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	dec d
+	jr nz,.initOAMTable
+
+	ld bc,InitOamTbl
+	ld hl,wOAMPosition
+	ld d,OamTblCnt
+.initOAMTable2
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	dec d
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	dec d
+	inc c
+	dec d
+	inc c
+	dec d
+	jr nz,.initOAMTable2
+
+	; Set Sound
+	ld hl,wSoundTbl
+	ld [hl],HIGH(Sound01Tbl)
+	inc hl
+	ld [hl],LOW(Sound01Tbl)
 	call InitSound
 
-	; init light
-	ld a,2
-	ld [wLightPalette1],a
-	ld a,1
-	ld [wLightPalette2],a
-	ld a,0
-	ld [wLightPalette3],a
-	ld a,227
-	ld [wLightWait],a
-	ld a,HIGH(LightPalette)
-	ld [wLightPalette],a
-	ld a,LOW(LightPalette)
-	ld [wLightPalette+1],a
+	; Set Loop Flg
+	ld a,LoopSound
+	ld [wLoopFlg],a
 
 MainLoop:
-	call PlaySound
+	ld a,[wLoopFlg]
+	and LoopSound
+	call nz,PlaySound
+
 	call ReadingJoypad
 	call SetCarMove
 
-	; Car1Sprite
-	ld hl,wShadowOAM
-	ld a,Car1Palette
-	ld [wSpritePallete],a
-	ld a,[wCarY]
-	ld [wSpriteY],a
-	ld a,[wCarX]
-	ld [wSpriteX],a
-
-	; adjust scroll position
+	; Adjust scroll position
 	ld a,[wScrollY]
 	cp ScrollMaxY
 	jr c,.setSCY
@@ -209,7 +207,40 @@ MainLoop:
 	ld a,[wCarPattern]
 	ld c,a
 	call SetCarSprite
-	call SetLight
+
+	; Adjust OAM Scroll Position
+	ld b,HIGH(wOAMPosition)
+	ld c,light1P
+	ld h,HIGH(wShadowOAM)
+	ld l,Light1SY
+	call .adjustOAMScrollPosition
+	ld c,light2P
+	ld l,Light2SY
+	call .adjustOAMScrollPosition
+	ld c,light3P
+	ld l,Light3SY
+	call .adjustOAMScrollPosition
+	ld c,Hone1P
+	ld l,Hone1SY
+	call .adjustOAMScrollPosition
+	ld c,Hone2P
+	ld l,Hone2SY
+	call .adjustOAMScrollPosition
+	jr .mainLoop1
+
+.adjustOAMScrollPosition
+	ldh a,[rSCY]
+	ld d,a
+	ld a,[bc]
+	sub d
+	inc c
+	ld [hli],a ; Y Position
+	ldh a,[rSCX]
+	ld d,a
+	ld a,[bc]
+	sub d
+	ld [hli],a ; X Position
+	ret
 
 .mainLoop1
 	call SetOAM
@@ -268,7 +299,7 @@ ReadingJoypad:
 	ld [wCarTurnWait],a
 	jp SetCarPattern
 .turnRight1
-	ld a,0
+	xor a
 	ld [wCarDirection],a
 	ld a,CarTurnWait
 	ld [wCarTurnWait],a
@@ -276,7 +307,7 @@ ReadingJoypad:
 
 .turnLeft
 	ld a,[wCarTurnWait]
-	cp 0
+	or a
 	jr nz,.turnWaitDec
 	ld a,[wCarDirection]
 	cp 0
@@ -305,7 +336,7 @@ ReadingJoypad:
 	jr z,.checkJoypad
 	ld c,a
 	ld a,[wCarSpeedUpWait]
-	cp 0
+	or a
 	jr nz,.speedUpWait
 	inc c
 	ld a,c
@@ -326,7 +357,7 @@ ReadingJoypad:
 	jp z,.checkJoypad
 	ld c,a
 	ld a,[wCarSpeedDownWait]
-	cp 0
+	or a
 	jr nz,.speedDownWait
 	dec c
 	ld a,c
@@ -361,7 +392,7 @@ SetCarPattern:
 
 SetCarMove:
 	ld a,[wCarDirection]
-	cp 0
+	or a
 	jp z,.setCarMoveUp
 	cp 1
 	jp z,.setCarMoveUpRight
@@ -445,11 +476,11 @@ SetCarMove:
 
 SetCarUpMove:
 	ld c,a
-	ld a,[wCarY]
+	ld a,[wCar1Y]
 	cp ScrollAreaYup
 	jr c,.setCarUpMoveScroll
 	sub a,c
-	ld [wCarY],a
+	ld [wCar1Y],a
 	ret
 
 .setCarUpMoveScroll
@@ -458,22 +489,22 @@ SetCarUpMove:
 	ld [wScrollY],a
 
 	ld a,[wScrollYflg]
-	or 0
+	or a
 	ret nz
-	ld a,[wCarY]
+	ld a,[wCar1Y]
 	cp ScreenMinY
 	ret c
 	sub a,c
-	ld [wCarY],a
+	ld [wCar1Y],a
 	ret
 
 SetCarDownMove:
 	ld c,a
-	ld a,[wCarY]
+	ld a,[wCar1Y]
 	cp ScrollAreaYdown
 	jr nc,.setCarDownMoveScroll
 	add a,c
-	ld [wCarY],a
+	ld [wCar1Y],a
 	ld a,1
 	ld [wScrollYflg],a
 	ret
@@ -484,22 +515,22 @@ SetCarDownMove:
 	ld [wScrollY],a
 
 	ld a,[wScrollYflg]
-	or 0
+	or a
 	ret nz
-	ld a,[wCarY]
+	ld a,[wCar1Y]
 	cp ScreenMaxY
 	ret nc
 	add a,c
-	ld [wCarY],a
+	ld [wCar1Y],a
 	ret
 
 SetCarRightMove:
 	ld c,a
-	ld a,[wCarX]
+	ld a,[wCar1X]
 	cp ScrollAreaXright
 	jr nc,.setCarRightMoveScroll
 	add a,c
-	ld [wCarX],a
+	ld [wCar1X],a
 	ld a,1
 	ld [wScrollXflg],a
 	ret
@@ -510,22 +541,22 @@ SetCarRightMove:
 	ld [wScrollX],a
 
 	ld a,[wScrollXflg]
-	or 0
+	or a
 	ret nz
-	ld a,[wCarX]
+	ld a,[wCar1X]
 	cp ScreenMaxX
 	ret nc
 	add a,c
-	ld [wCarX],a
+	ld [wCar1X],a
 	ret
 
 SetCarLeftMove:
 	ld c,a
-	ld a,[wCarX]
+	ld a,[wCar1X]
 	cp ScrollAreaXleft
 	jr c,.setCarLeftMoveScroll
 	sub a,c
-	ld [wCarX],a
+	ld [wCar1X],a
 	ret
 
 .setCarLeftMoveScroll
@@ -534,13 +565,13 @@ SetCarLeftMove:
 	ld [wScrollX],a
 
 	ld a,[wScrollXflg]
-	or 0
+	or a
 	ret nz
-	ld a,[wCarX]
+	ld a,[wCar1X]
 	cp ScreenMinX
 	ret c
 	sub a,c
-	ld [wCarX],a
+	ld [wCar1X],a
 	ret
 
 CalcEngineSound:
@@ -551,7 +582,7 @@ CalcEngineSound:
 	ret z
 	ld [wEngineSound],a
 	ld de,SoundTbl
-	cp 0
+	or a
 	jp z,SetEngineSound
 	ld c,a
 .calcEngineSound
@@ -560,7 +591,7 @@ CalcEngineSound:
 	ld e,a
 	dec c
 	ld a,c
-	cp 0
+	or a
 	jr nz,.calcEngineSound
 SetEngineSound: ; ver.04 Wave Output
 	ld b,$FF
@@ -578,15 +609,17 @@ SetEngineSound: ; ver.04 Wave Output
 	ret
 
 SetCarSprite:
+	ld h,HIGH(wShadowOAM)
+	ld l,Car1S
 	ld e,4 ; Sprite pattern count
 .setCarSprite
-	ld a,[wSpriteY]
+	ld a,[wCar1Y]
 	ld d,a
 	ld a,[bc]
 	add a,d
 	ld [hli],a ; Y Position
 	inc c
-	ld a,[wSpriteX]
+	ld a,[wCar1X]
 	ld d,a
 	ld a,[bc]
 	add a,d
@@ -595,98 +628,35 @@ SetCarSprite:
 	ld a,[bc]
 	ld [hli],a ; Tile Index
 	inc c
-	ld a,[wSpritePallete]
-	ld d,a
 	ld a,[bc]
-	or d ; set palette
 	ld [hli],a ; Attributes/Flags
 	inc c
 	dec e
 	jr nz,.setCarSprite
 	ret
 
-SetSprite:
-	ld a,[wSpriteY]
-	ld [hli],a ; Y Position
-	ld a,[wSpriteX]
-	ld [hli],a ; X Position
-	ld a,[wSpriteIndex]
-	ld [hli],a ; Tile Index
-	ld a,[wSpritePallete]
-	ld [hli],a ; Attributes/Flags
-	ret
-
-SetLight:
-	ld a,[wLightWait]
-	dec a
-	cp 0
-	jr nz,.setLight2
+SetLightPalette:
 	ld a,[wLightPalette]
 	ld b,a
 	ld a,[wLightPalette+1]
 	ld c,a
+	ld h,HIGH(wShadowOAM)
+	ld l,Light1SA
 	ld a,[bc]
-	cp 0
-	jr z,.setLight1
-	ld [wLightWait],a
+	ld [hl],a
 	inc bc
+	ld l,Light2SA
 	ld a,[bc]
-	ld [wLightPalette1],a
+	ld [hl],a
 	inc bc
+	ld l,Light3SA
 	ld a,[bc]
-	ld [wLightPalette2],a
+	ld [hl],a
 	inc bc
-	ld a,[bc]
-	ld [wLightPalette3],a
-	inc bc
-	ld a,b
-	ld [wLightPalette],a
-	ld a,c
-	ld [wLightPalette+1],a
-	jr .setLight3
-
-.setLight1
-	ld a,255
-.setLight2
-	ld [wLightWait],a
-.setLight3
-	ld a,16+2
-	ld [wSpriteY],a
-	ld a,8+8*13+2
-	ld [wSpriteX],a
-	ld a,26
-	ld [wSpriteIndex],a
-	ld a,1
-	ld [wSpritePallete],a
-	call SetSprite
-	ld a,25
-	ld [wSpriteIndex],a
-	ld a,[wLightPalette1]
-	ld [wSpritePallete],a
-	ld a,16+8*3+4
-	ld [wSpriteY],a
-	ld a,8+8*13+5
-	ld [wSpriteX],a
-	call SetSprite
-	ld a,[wLightPalette2]
-	ld [wSpritePallete],a
-	ld a,16+8*4+4
-	ld [wSpriteY],a
-	call SetSprite
-	ld a,[wLightPalette3]
-	ld [wSpritePallete],a
-	ld a,16+8*5+4
-	ld [wSpriteY],a
-	call SetSprite
-	ld a,16+8*8+6
-	ld [wSpriteY],a
-	ld a,8+8*13+2
-	ld [wSpriteX],a
-	ld a,26
-	ld [wSpriteIndex],a
-	ld a,%01000001
-	ld [wSpritePallete],a
-	call SetSprite
+	ld hl,wLightPalette
+	ld [hl],b
+	inc hl
+	ld [hl],c
 	ret
 
 SetPalette:
@@ -754,272 +724,5 @@ InitwShadowOAM:
 	ret
 
 INCLUDE "sound_asm.inc"
-
-Tiles:
-	INCBIN "tiles.bin"
-TilesEnd:
-
-BgTileMap0: ; Tile Indexes
-	INCBIN "map.bin"
-BgTileMapEnd0:
-
-BgTileMap1: ; BG Map Attributes
-	;0 0   1   2   3   4   5    6  7   8   9   10  11  12  13  14  15
-	db $01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	;  16  17  18  19  20  21  22  23  24  25  26  27  28  29  30  31
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;1
-	db $01,$00,$00,$01,$01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;2
-	db $00,$00,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;3
-	db $00,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;4
-	db $00,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;5
-	db $00,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;6
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;7
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;8
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;9
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,%01000001,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;10
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;11
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;12
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;13
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;14
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;15
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;16
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$01,$01,$01,$01,$01
-	db $01,$01,$01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;17
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$01,$01
-	db $01,$01,$01,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;18
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;19
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;20
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;21
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;22
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;23
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;24
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;25
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;26
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;27
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;28
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;29
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;30
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	;31
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-BgTileMapEnd1:
-
-SECTION "Car Sprite Table",ROM0[$3000]
-CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
-	; Upward
-	db 0,0,126,%10000000
-	db 0,8,126,%10100000
-	db 8,0,127,%10000000
-	db 8,8,127,%10100000
-	; Upward right
-	db 0,0,118,%10000000
-	db 0,8,117,%10000000
-	db 8,0,119,%10000000
-	db 8,8,118,%11100000
-	; Rightward
-	db 0,0,124,%10000000
-	db 0,8,125,%10000000
-	db 8,0,124,%11000000
-	db 8,8,125,%11000000
-	; Downward right
-	db 0,0,119,%11000000
-	db 0,8,118,%10100000
-	db 8,0,118,%11000000
-	db 8,8,117,%11000000
-	; Downward
-	db 0,0,127,%11000000
-	db 0,8,127,%11100000
-	db 8,0,126,%11000000
-	db 8,8,126,%11100000
-	; Downward left
-	db 0,0,118,%10000000
-	db 0,8,119,%11100000
-	db 8,0,117,%11100000
-	db 8,8,118,%11100000
-	; Leftward
-	db 0,0,125,%10100000
-	db 0,8,124,%10100000
-	db 8,0,125,%11100000
-	db 8,8,124,%11100000
-	; Upward left
-	db 0,0,117,%10100000
-	db 0,8,118,%10100000
-	db 8,0,118,%11000000
-	db 8,8,119,%10100000
-
-;SECTION "Color Palette",ROM0
-BGPalette:
-	; 0
-	dw 15134
-	dw 23391
-	dw 10840
-	dw 3472
-	; 1
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 32767
-
-ObjPalette:
-	; 0
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31
-	; 1
-	dw 15134
-	dw 0
-	dw 32767
-	dw 1023
-	; 2
-	dw 15134
-	dw 0
-	dw 32767
-	dw 512
-	; 3
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31744
-	; 4
-	dw 0
-	dw 0
-	dw 0
-	dw 32767
-
-LightPalette:
-	db 64,2,1,4
-	db 64,2,4,0
-	db 64,4,1,0
-	db 1,2,1,0
-	db 0
-
-SECTION "Engine Sound Table",ROM0[$3100]
-; ver.04 Wave Output
-SoundTbl: ; Output level,Frequency low,Hi
-	db %01000000,$60,%10000000
-	db %00100000,$A0,%10000000
-	db %00100000,$FF,%10000001
-	db %00100000,$FF,%10000010
-
-WaveData:
-	db $12,$56 ; 1,2,5,6
-	db $BC,$DC ; 11,12,13,12
-	db $DB,$DD ; 13,11,13,13
-	db $CE,$A9 ; 12,14,10,09
-	db $76,$65 ; 07,06,06,05
-WaveDataEnd:
-
-SECTION "Car SpeedUp Table",ROM0[$3200]
-CarSpeedUpTbl: ; Wait
-	db 0
-	db 20
-	db 50
-	db 20
-
-SECTION "Car SpeedDown Table",ROM0[$3300]
-CarSpeedDownTbl: ; Wait
-	db 0
-	db 30
-	db 50
-	db 20
-
-SECTION "Sound Table",ROM0[$3400]
-INCLUDE "sound_tbl.inc"
-
-SECTION "Shadow OAM",WRAM0[$C000]
-wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
-
-SECTION "State",WRAM0
-wJoypad: ds 1
-wButton: ds 1
-wCarY: ds 1
-wCarX: ds 1
-wCarSpeed: ds 1
-wCarPattern: ds 1
-wCarPalette: ds 1
-wCarDirection: ds 1
-wCarSpeedUpWait: ds 1
-wCarSpeedDownWait: ds 1
-wCarTurnWait: ds 1
-wEngineSound: ds 1
-wSpriteY: ds 1
-wSpriteX: ds 1
-wSpriteIndex: ds 1
-wSpritePallete: ds 1
-wScrollY: ds 1
-wScrollX: ds 1
-wScrollYflg: ds 1
-wScrollXflg: ds 1
-;
-wSoundTbl: ds 2
-wSoundWait: ds 1
-;
-wLightWait: ds 1
-wLightPalette: ds 2
-wLightPalette1: ds 1
-wLightPalette2: ds 1
-wLightPalette3: ds 1
-
-SECTION "HRAM Variables",HRAM
-hOAMDMA:
-	ds DMARoutineEnd - DMARoutine ; Reserve space to copy the routine to
+INCLUDE "data.inc"
+INCLUDE "wram.inc"

@@ -74,16 +74,16 @@ MusicalScaleTbl:
 
 Sound01Tbl:
 	db SF    ; Sound Off
-	db SW,NW ; SW: Wait,Note
-	db SW,NW ;
-	db SN    ; Sound On
-	db WD,%11000000 ; $FF11 Channel 1 length timer & duty cycle
-	db N2,C5 ; Note,Scale
+	db SW,NW ; Sound Wait,Note
 	         ; Note - NS: Sixteenth note
 	         ;        N8: Eighth note
 	         ;        N4: Quarter note
 	         ;        N2: Half note
 	         ;        NW: Whole note
+	db SW,NW
+	db SN    ; Sound On
+	db E12,3 ; Set Duty cycle
+	db N2,C5 ; Note,Scale
 	         ; Scale - CxDxExFxGxAxBx: Musical scale
 	         ;         x=2-5: Octave
 	db N4,C5
@@ -97,11 +97,19 @@ Sound01Tbl:
 	db SW,NW
 	db SW,N2
 	;
-	db WD,%10000000 ; $FF11 Channel 1 length timer & duty cycle
+	db E12,2
+	db JF    ; Jump function
+	dw SetLightPalette
 	db NW,C5
 	db SW,NW
+	db JF
+	dw SetLightPalette
 	db NW,C5
 	db SW,NW
+	db JF
+	dw SetLightPalette
 	db NW,F5
 	db SW,NW
+	db JF
+	dw SetLightPalette
 	db SS    ; Sound Stop

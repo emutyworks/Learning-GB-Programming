@@ -1,4 +1,4 @@
-; musical scale
+; Musical scale
 C2  EQU 0
 C#2 EQU 2
 D2  EQU 4
@@ -72,13 +72,14 @@ A7  EQU 140
 A#7 EQU 142
 B7  EQU 144
 ;
-NS EQU 2    ; Sixteenth note
-N8 EQU NS*2 ; Eighth note
-N4 EQU N8*2 ; Quarter note
-N2 EQU N4*2 ; Half note
-NW EQU N2*2 ; Whole note
+NS EQU 2    ; 2  Sixteenth note
+N8 EQU NS*2 ; 4  Eighth note
+N4 EQU N8*2 ; 8  Quarter note
+N2 EQU N4*2 ; 16 Half note
+NW EQU N2*2 ; 32 Whole note
 ;
-WD EQU $FB  ; Set $FF11 Channel 1 length timer & duty cycle
+JF EQU $FA  ; Jump function
+E12 EQU $FB ; Set Duty cycle
 SF EQU $FC  ; Sound Off
 SN EQU $FD  ; Sound On
 SW EQU $FE  ; Sound Wait
