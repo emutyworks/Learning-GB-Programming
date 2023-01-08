@@ -209,38 +209,26 @@ MainLoop:
 	call SetCarSprite
 
 	; Adjust OAM Scroll Position
-	ld b,HIGH(wOAMPosition)
-	ld c,light1P
-	ld h,HIGH(wShadowOAM)
-	ld l,Light1SY
-	call .adjustOAMScrollPosition
-	ld c,light2P
-	ld l,Light2SY
-	call .adjustOAMScrollPosition
-	ld c,light3P
-	ld l,Light3SY
-	call .adjustOAMScrollPosition
-	ld c,Hone1P
-	ld l,Hone1SY
-	call .adjustOAMScrollPosition
-	ld c,Hone2P
-	ld l,Hone2SY
-	call .adjustOAMScrollPosition
-	jr .mainLoop1
-
+	ld bc,wOAMPosition
+	ld hl,wShadowOAM
+	ld e,OAMPositionCnt
 .adjustOAMScrollPosition
 	ldh a,[rSCY]
 	ld d,a
 	ld a,[bc]
 	sub d
-	inc c
 	ld [hli],a ; Y Position
+	inc c
 	ldh a,[rSCX]
 	ld d,a
 	ld a,[bc]
 	sub d
 	ld [hli],a ; X Position
-	ret
+	inc c
+	inc l
+	inc l
+	dec e
+	jr nz,.adjustOAMScrollPosition
 
 .mainLoop1
 	call SetOAM

@@ -3,22 +3,12 @@ LoopSound        EQU %00000001
 LoopSoundBit     EQU 0 ; %00000001
 ;
 OamTblCnt        EQU 4*5
+OAMPositionCnt   EQU 5
 ; Shadow OAM
-Light1SY         EQU 0
 Light1SA         EQU 3 ; Attributes
-Light2SY         EQU 4
 Light2SA         EQU 7
-Light3SY         EQU 4*2
 Light3SA         EQU 11
-Hone1SY          EQU 4*3
-Hone2SY          EQU 4*4
 Car1S            EQU 4*5
-; OAM Position
-light1P          EQU 0
-light2P          EQU 2
-light3P          EQU 2*2
-Hone1P           EQU 2*3
-Hone2P           EQU 2*4
 ;
 SBY              EQU 16 ; Screen Base Y
 SBX              EQU 8 ; ScreenBaseX
