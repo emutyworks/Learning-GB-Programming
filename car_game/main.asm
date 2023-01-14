@@ -61,18 +61,15 @@ Start:
 	ldh [rSTAT],a
 	ldh [rSCY],a
 	ldh [rSCX],a
+	ld [wNextSCY],a
+	ld [wNextSCX],a
 	ld [wJoypad],a
 	ld [wButton],a
 	ld [wCarSpeed],a
 	ld [wCarPattern],a
 	ld [wEngineSound],a
-	ld [wScrollY],a
-	ld [wScrollX],a
-	ld [wScrollYflg],a
-	ld [wScrollXflg],a
 	ld [wSoundTbl],a
 	ld [wSoundTbl+1],a
-	ld [wSoundWait],a
 
 	ld hl,wLightPalette
 	ld [hl],HIGH(LightPalette)
@@ -107,9 +104,11 @@ Start:
 
 	; Set Car
 	ld a,Car1StartY
-	ld [wCar1Y],a
+	ld [wPosY],a
+	ld [wNextPosY],a
 	ld a,Car1StartX
-	ld [wCar1X],a
+	ld [wPosX],a
+	ld [wNextPosX],a
 	ld a,CarTurnWait
 	ld [wCarTurnWait],a
 	ld a,[CarSpeedUpTbl]
@@ -167,41 +166,7 @@ MainLoop:
 
 	call ReadingJoypad
 	call SetCarMove
-
-	; Adjust scroll position
-	ld a,[wScrollY]
-	cp ScrollMaxY
-	jr c,.setSCY
-	cp ScrollMaxY+8
-	jr nc,.resetWScrollY
-	xor a
-	ld [wScrollYflg],a
-	ld a,ScrollMaxY
-	ld [wScrollY],a
-	jr .setSCY
-.resetWScrollY
-	xor a
-	ld [wScrollY],a
-	ld [wScrollYflg],a
-.setSCY
-	ldh [rSCY],a
-
-	ld a,[wScrollX]
-	cp ScrollMaxX
-	jr c,.setSCX
-	cp ScrollMaxX+8
-	jr nc,.resetWScrollX
-	xor a
-	ld [wScrollXflg],a
-	ld a,ScrollMaxX
-	ld [wScrollX],a
-	jr .setSCX
-.resetWScrollX
-	xor a
-	ld [wScrollX],a
-	ld [wScrollXflg],a
-.setSCX
-	ldh [rSCX],a
+	call CheckCollisionMap
 
 	ld b,HIGH(CarSpriteTbl)
 	ld a,[wCarPattern]
@@ -379,9 +344,9 @@ SetCarPattern:
 	ret
 
 SetCarMove:
-	ld a,[wCarDirection]
-	or a
-	jp z,.setCarMoveUp
+	ld a,[wCarDirection] ; 701
+	or a                 ; 6 2
+	jp z,.setCarMoveUp   ; 543
 	cp 1
 	jp z,.setCarMoveUpRight
 	cp 2
@@ -464,102 +429,362 @@ SetCarMove:
 
 SetCarUpMove:
 	ld c,a
-	ld a,[wCar1Y]
+	ld a,[wPosY]
 	cp ScrollAreaYup
 	jr c,.setCarUpMoveScroll
 	sub a,c
-	ld [wCar1Y],a
+	ld [wNextPosY],a
 	ret
 
 .setCarUpMoveScroll
-	ld a,[wScrollY]
+	ldh a,[rSCY]
 	sub a,c
-	ld [wScrollY],a
+	ld [wNextSCY],a
 
-	ld a,[wScrollYflg]
-	or a
-	ret nz
-	ld a,[wCar1Y]
+	ld a,[wPosY]
 	cp ScreenMinY
 	ret c
 	sub a,c
-	ld [wCar1Y],a
+	ld [wNextPosY],a
 	ret
 
 SetCarDownMove:
 	ld c,a
-	ld a,[wCar1Y]
+	ld a,[wPosY]
 	cp ScrollAreaYdown
 	jr nc,.setCarDownMoveScroll
 	add a,c
-	ld [wCar1Y],a
-	ld a,1
-	ld [wScrollYflg],a
+	ld [wNextPosY],a
 	ret
 
 .setCarDownMoveScroll
-	ld a,[wScrollY]
+	ldh a,[rSCY]
 	add a,c
-	ld [wScrollY],a
+	ld [wNextSCY],a
 
-	ld a,[wScrollYflg]
-	or a
-	ret nz
-	ld a,[wCar1Y]
+	ld a,[wPosY]
 	cp ScreenMaxY
 	ret nc
 	add a,c
-	ld [wCar1Y],a
+	ld [wNextPosY],a
 	ret
 
 SetCarRightMove:
 	ld c,a
-	ld a,[wCar1X]
+	ld a,[wPosX]
 	cp ScrollAreaXright
 	jr nc,.setCarRightMoveScroll
 	add a,c
-	ld [wCar1X],a
-	ld a,1
-	ld [wScrollXflg],a
+	ld [wNextPosX],a
 	ret
 
 .setCarRightMoveScroll
-	ld a,[wScrollX]
+	ldh a,[rSCX]
 	add a,c
-	ld [wScrollX],a
+	ld [wNextSCX],a
 
-	ld a,[wScrollXflg]
-	or a
-	ret nz
-	ld a,[wCar1X]
+	ld a,[wPosX]
 	cp ScreenMaxX
 	ret nc
 	add a,c
-	ld [wCar1X],a
+	ld [wNextPosX],a
 	ret
 
 SetCarLeftMove:
 	ld c,a
-	ld a,[wCar1X]
+	ld a,[wPosX]
 	cp ScrollAreaXleft
 	jr c,.setCarLeftMoveScroll
 	sub a,c
-	ld [wCar1X],a
+	ld [wNextPosX],a
 	ret
 
 .setCarLeftMoveScroll
-	ld a,[wScrollX]
+	ldh a,[rSCX]
 	sub a,c
-	ld [wScrollX],a
+	ld [wNextSCX],a
 
-	ld a,[wScrollXflg]
-	or a
-	ret nz
-	ld a,[wCar1X]
+	ld a,[wPosX]
 	cp ScreenMinX
 	ret c
 	sub a,c
-	ld [wCar1X],a
+	ld [wNextPosX],a
+	ret
+
+CheckCollisionMap:
+	ld a,[wCarDirection]     ; 701
+	or a                     ; 6 2
+	jp z,.checkCollisionMap0 ; 543
+	cp 1
+	jp z,.checkCollisionMap1
+	cp 2
+	jp z,.checkCollisionMap2
+	cp 3
+	jp z,.checkCollisionMap3
+	cp 4
+	jp z,.checkCollisionMap4
+	cp 5
+	jp z,.checkCollisionMap5
+	cp 6
+	jp z,.checkCollisionMap6
+	cp 7
+	jp z,.checkCollisionMap7
+	ret
+
+.calcCollisionMap
+	and %11111000
+	rrca
+	rrca
+	ld d,a
+	and %11110000
+	swap a
+	add a,HIGH(CollisionMap)
+	ld h,a
+	ld a,d
+	and %00001111
+	swap a
+	ld l,a
+	;
+	ld a,[wCollisionX]
+	and %11111000
+	rrca
+	rrca
+	rrca
+	add a,l
+	ld l,a
+	ld a,[hl]
+	ret
+
+.checkCollisionMap0
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap01
+	ld a,[wCollisionX]
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wCollisionY]
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap01
+	ld a,[wNextPosY]
+	add CarCollision
+	ld [wNextPosY],a
+	jp .checkCollisionMap
+
+.checkCollisionMap1
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap11
+	ld a,[wCollisionY]
+	add a,CarCollisionAdd
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap11
+	ld a,[wNextPosY]
+	add CarCollision
+	ld [wNextPosY],a
+	ld a,[wNextPosX]
+	sub CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap2
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap21
+	ld a,[wCollisionY]
+	add a,CarCollisionAdd
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap21
+	ld a,[wNextPosX]
+	sub CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap3
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap31
+	ld a,[wNextPosY]
+	sub CarCollision
+	ld [wNextPosY],a
+	ld a,[wNextPosX]
+	sub CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap4
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap41
+	ld a,[wCollisionX]
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wCollisionY]
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap41
+	ld a,[wNextPosY]
+	sub CarCollision
+	ld [wNextPosY],a
+	jp .checkCollisionMap
+
+.checkCollisionMap5
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	add a,CarCollisionAdd
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap51
+	ld a,[wCollisionX]
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wCollisionY]
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap51
+	ld a,[wNextPosY]
+	sub CarCollision
+	ld [wNextPosY],a
+	ld a,[wNextPosX]
+	add CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap6
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap61
+	ld a,[wCollisionY]
+	add a,CarCollisionAdd
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap61
+	ld a,[wNextPosX]
+	add CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap7
+	ld a,[wNextPosX]
+	ld d,a
+	ld a,[wNextSCX]
+	add a,d
+	ld [wCollisionX],a
+	ld a,[wNextSCY]
+	ld d,a
+	ld a,[wNextPosY]
+	add a,d
+	ld [wCollisionY],a
+	call .calcCollisionMap
+	or a
+	jp nz,.checkCollisionMap71
+	ld a,[wCollisionX]
+	add a,CarCollisionAdd
+	ld [wCollisionX],a
+	ld a,[wCollisionY]
+	call .calcCollisionMap
+	or a
+	jp z,.checkCollisionMap
+.checkCollisionMap71
+	ld a,[wNextPosY]
+	add CarCollision
+	ld [wNextPosY],a
+	ld a,[wNextPosX]
+	add CarCollision
+	ld [wNextPosX],a
+	jp .checkCollisionMap
+
+.checkCollisionMap
+	ld a,[wNextPosY]
+	ld [wPosY],a
+	ld a,[wNextPosX]
+	ld [wPosX],a
+	ld a,[wNextSCY]
+	ldh [rSCY],a
+	ld a,[wNextSCX]
+	ldh [rSCX],a
 	ret
 
 CalcEngineSound:
@@ -601,13 +826,13 @@ SetCarSprite:
 	ld l,Car1S
 	ld e,4 ; Sprite pattern count
 .setCarSprite
-	ld a,[wCar1Y]
+	ld a,[wPosY]
 	ld d,a
 	ld a,[bc]
 	add a,d
 	ld [hli],a ; Y Position
 	inc c
-	ld a,[wCar1X]
+	ld a,[wPosX]
 	ld d,a
 	ld a,[bc]
 	add a,d
