@@ -72,6 +72,15 @@ Start:
 	ld bc,BgTileMapEnd0 - BgTileMap0
 	call CopyData
 
+	; Reset Map Indexes/Attributes Table
+	ld hl,wMapIndexesTbl
+	ld e,MapTblSize*2
+	xor a
+.resetMapLoop
+	ld [hli],a
+	dec e
+	jr nz,.resetMapLoop
+
 	; Turn screen on, display background
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
 	ldh [rLCDC],a
@@ -98,8 +107,6 @@ Start:
 	ldh [rSCY],a
 	ldh [rSCX],a
 	ld [wMapTblPos],a
-	ld a,20
-
 	ld a,20
 	ld [wMapVramPos],a
 	ld a,MapPosCnt
@@ -133,50 +140,70 @@ SetScroll:
 	ret
 
 SetMapTbl:
-	call SetMapVram
 	call CalcMapTbl
+	ld hl,wMapIndexesTbl
+	ld d,MapTblSize
+.loop
+	ld a,[bc] ;8
+	and %00011111 ;8
+	ld [hl],a ;8
 
-	ld a,[wMapTbl0]
-	ld b,a
-	ld a,[wMapTbl0+1]
-	ld c,a
+	ld a,l ;4
+	add a,MapTblSize ;8
+	ld l,a ;4
+
+	ld a,[bc] ;8
+	and %00100000 ;8
+	ld e,a ;4 Horizontal Flip
+	ld a,[bc]
+	and %11000000 ;8
+	swap a ;8
+	rrca ;4
+	rrca ;4
+	or e ;4
+	ld [hl],a ;8
+
+	ld a,l ;4
+	sub a,MapTblSize ;8
+	ld l,a ;4
+	inc l ;4
+	inc bc ;8
+	dec d ;4
+	jr nz,.loop
+
+	call SetMapVram
+	ld a,[wMapVram]
+	ld h,a
+	ld a,[wMapVram+1]
+	ld l,a
+	ld e,MapTblSize
+
+	call WaitVBlank
+	xor a
+	ldh [rVBK],a ; Tile Indexes
+	ld bc,wMapIndexesTbl
+.indexesLoop
+	ld a,[bc]
+	ld [hli],a
+	inc bc
+	dec e
+	jr nz,.indexesLoop
 
 	ld a,[wMapVram]
 	ld h,a
 	ld a,[wMapVram+1]
 	ld l,a
-
 	ld e,MapTblSize
-
-	xor a
-	ldh [rVBK],a ; Tile Indexes
-.loop0
-	ld a,[bc]
-	ld [hli],a
-	inc bc
-	dec e
-	jr nz,.loop0
 
 	ld a,1
 	ldh [rVBK],a ; Attributes
-
-	ld a,[wMapTbl1]
-	ld b,a
-	ld a,[wMapTbl1+1]
-	ld c,a
-
-	ld a,[wMapVram]
-	ld h,a
-	ld a,[wMapVram+1]
-	ld l,a
-
-	ld e,MapTblSize
-.loop1
+	ld bc,wMapAttributesTbl
+.attributesLoop
 	ld a,[bc]
 	ld [hli],a
 	inc bc
 	dec e
-	jr nz,.loop1
+	jr nz,.attributesLoop
 
 	ld a,[wWaitCnt2]
 	or a
@@ -195,7 +222,6 @@ SetMapTblPos:
 	inc a
 	ld [wMapTblPos],a
 	ret
-
 .reset
 	xor a
 	ld [wMapTblPos],a
@@ -206,42 +232,18 @@ CalcMapTbl:
 	or a
 	jr z,.skip
 
-	ld hl,MapTbl0
+	ld hl,MapTbl
 	ld bc,MapTblSize
-.loop0
+.loop
 	add hl,bc
 	dec a
-	jr nz,.loop0
+	jr nz,.loop
 
-	ld a,h
-	ld [wMapTbl0],a
-	ld a,l
-	ld [wMapTbl0+1],a
-
-	ld a,[wMapTblPos]
-	ld hl,MapTbl1
-	ld bc,MapTblSize
-.loop1
-	add hl,bc
-	dec a
-	jr nz,.loop1
-
-	ld a,h
-	ld [wMapTbl1],a
-	ld a,l
-	ld [wMapTbl1+1],a
+	ld b,h
+	ld c,l
 	ret
-
 .skip
-	ld a,HIGH(MapTbl0)
-	ld [wMapTbl0],a
-	ld a,LOW(MapTbl0)
-	ld [wMapTbl0+1],a
-
-	ld a,HIGH(MapTbl1)
-	ld [wMapTbl1],a
-	ld a,LOW(MapTbl1)
-	ld [wMapTbl1+1],a
+	ld bc,MapTbl
 	ret
 
 SetMapVram:

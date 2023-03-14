@@ -1,7 +1,7 @@
 WaitCnt       EQU 3
 WaitCnt2      EQU 0
-MapTblSize    EQU $20
-MapTblMax     EQU 22
+MapTblSize    EQU 20
+MapTblMax     EQU 68
 MapPosCnt     EQU 8
 MapVramPosMax EQU 31
 ;
