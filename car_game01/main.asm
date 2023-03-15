@@ -14,6 +14,18 @@
 INCLUDE "hardware.inc"
 INCLUDE "equ.inc"
 
+MACRO mSetMapWorkTbl
+	ld a,[hli]
+	add a
+	ld c,a
+	ld a,[bc]
+	ld [de],a
+	inc c
+	inc e
+	ld a,[bc]
+	ld [de],a
+ENDM
+
 SECTION "Header",ROM0[$100]
 
 EntryPoint:
@@ -74,7 +86,7 @@ Start:
 
 	; Reset Map Indexes/Attributes Table
 	ld hl,wMapIndexesTbl
-	ld e,MapTblSize*2
+	ld e,MapSize*2
 	xor a
 .resetMapLoop
 	ld [hli],a
@@ -140,16 +152,17 @@ SetScroll:
 	ret
 
 SetMapTbl:
-	call CalcMapTbl
+	call SetMapWorkTbl
 	ld hl,wMapIndexesTbl
-	ld d,MapTblSize
+	ld bc,wMapWorkTbl
+	ld d,MapSize
 .loop
 	ld a,[bc] ;8
 	and %00011111 ;8
 	ld [hl],a ;8
 
 	ld a,l ;4
-	add a,MapTblSize ;8
+	add a,MapSize ;8
 	ld l,a ;4
 
 	ld a,[bc] ;8
@@ -164,7 +177,7 @@ SetMapTbl:
 	ld [hl],a ;8
 
 	ld a,l ;4
-	sub a,MapTblSize ;8
+	sub a,MapSize ;8
 	ld l,a ;4
 	inc l ;4
 	inc bc ;8
@@ -176,7 +189,7 @@ SetMapTbl:
 	ld h,a
 	ld a,[wMapVram+1]
 	ld l,a
-	ld e,MapTblSize
+	ld e,MapSize
 
 	call WaitVBlank
 	xor a
@@ -193,7 +206,7 @@ SetMapTbl:
 	ld h,a
 	ld a,[wMapVram+1]
 	ld l,a
-	ld e,MapTblSize
+	ld e,MapSize
 
 	ld a,1
 	ldh [rVBK],a ; Attributes
@@ -227,23 +240,42 @@ SetMapTblPos:
 	ld [wMapTblPos],a
 	ret
 
-CalcMapTbl:
+SetMapWorkTbl:
 	ld a,[wMapTblPos]
 	or a
 	jr z,.skip
-
 	ld hl,MapTbl
 	ld bc,MapTblSize
 .loop
 	add hl,bc
 	dec a
 	jr nz,.loop
-
-	ld b,h
-	ld c,l
-	ret
+	jr .setTbl
 .skip
-	ld bc,MapTbl
+	ld hl,MapTbl
+.setTbl
+	ld de,wMapWorkTbl
+	ld b,HIGH(MapPartTbl)
+	;
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
+	inc e
+	mSetMapWorkTbl
 	ret
 
 SetMapVram:
