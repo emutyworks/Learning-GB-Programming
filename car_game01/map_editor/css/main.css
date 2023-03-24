@@ -1,0 +1,84 @@
+body, input, select, textarea, button, span, tr, td{
+  z-index: 5;
+  font-family: sans-serif;
+  font-size: 8pt;
+  padding: 0px 0px 0px 0px;
+  cursor: default;
+}
+
+.canvas_base{
+  position: absolute;
+  top: 85px;
+  left: 8px;
+}
+#base{
+  z-index: 0;
+}
+#view{
+  z-index: 1;
+}
+#grid{
+  z-index: 2;
+}
+#win{
+  z-index: 3;
+}
+#cursor{
+  z-index: 4;
+}
+
+#map_table_title{
+  position: absolute;
+  top: 63px;
+  left: 8px;
+}
+#show_grid{
+  position: relative;
+  top: 2px;
+}
+
+#bg_tiles_title{
+  position: absolute;
+  top: 68px;
+  left: 344px;
+}
+#bg_palette_title{
+  position: absolute;
+  top: 68px;
+  left: 496px;
+}
+#map_part_title{
+  position: absolute;
+  top: 157px;
+  left: 344px;
+}
+
+#help_mes{
+  position: relative;
+  top: 5px;
+  background-color: #ffff80;
+  width: 601px;
+}
+
+#win_mappart{
+  display: none;
+  position: absolute;
+  top: 144px;
+  left: 40px;
+}
+table, td, th{
+  border-collapse: collapse;
+  border: 1px #c0c0c0 solid;
+  padding: 0px 2px;
+}
+input[type="radio"]{
+  position: relative;
+  top: 2px;
+}
+
+#map_table{
+  position: absolute;
+  top: 630px;
+  left: 8px;
+}
+
