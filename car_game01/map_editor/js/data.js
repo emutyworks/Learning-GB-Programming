@@ -74,6 +74,17 @@ function loadInitData(load_array){
   var map_array = [];
   var map_array_cnt = 0;
 
+  for(var i=0; i<MAPPART_MAX_X*MAPPART_MAX_Y*2; i++){
+      map_part[i] = "00000000";
+  }
+  var map_tmp = [];
+  for(var i=0; i<Math.trunc(MAP_MAX_X/2); i++){
+    map_tmp[i] = 0;
+  }
+  for(var i=0; i<MAPPART_MAX_Y; i++){
+    map_table[i] = map_tmp.concat();
+  }
+
   for(var i=0; i<load_array.length; i++){
     var row = load_array[i].replace(/\s+/g,'');
 
