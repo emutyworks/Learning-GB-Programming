@@ -73,6 +73,7 @@ function loadInitData(load_array){
   var map_part_data = "";
   var map_array = [];
   var map_array_cnt = 0;
+  var up_d = [];
 
   for(var i=0; i<MAPPART_MAX_X*MAPPART_MAX_Y*2; i++){
       map_part[i] = "00000000";
@@ -91,14 +92,19 @@ function loadInitData(load_array){
     if(row.charAt(0)=='#'){
       if(row.trim()=='#[BGPalette]'){
         bg_palette_data_start = true;
-      }
+      }else
       if(row.trim()=='#[MapPartTbl]'){
         bg_palette_data_ended = true;
         map_part_data_start = true;
-      }
+      }else
       if(row.trim()=='#[MapTbl]'){
         map_part_data_ended = true;
         map_data_start = true;
+      }else
+      if(row.indexOf('[') != -1){
+        var comment = row.split(']');
+        var key = comment[0].substr(comment[0].indexOf('[') + 1);
+        up_d[key] = comment[1].toLowerCase();
       }
     }else if(row.charAt(0)=='d' || row.charAt(0)=='0'){
       if(bg_palette_data_start && !bg_palette_data_ended){
@@ -116,6 +122,16 @@ function loadInitData(load_array){
     }
   }
 
+  if('FileName' in up_d){
+    $("input[name='download_file']").val(up_d['FileName']);
+  }
+  if('ReverseMapTableOrder' in up_d){
+    if(up_d['ReverseMapTableOrder']=="true"){
+      $('input:checkbox[name="reverse_map"]').prop('checked',true);
+      reverse_map = true;
+    }
+  }
+
   var map_part_array = map_part_data.split(',');
   var map_part_cnt = 0;
   for(var i=0; i<map_part_array.length; i++){
@@ -126,27 +142,49 @@ function loadInitData(load_array){
   }
 
   var map_table_cnt = 0;
-  for(var i=0; i<map_array.length; i++){
-    var row_array = map_array[i].split(',');
-    var map_row = [];
-    var map_row_cnt = 0;
-    for(var j=0; j<row_array.length; j++){
-      if(row_array[j]!=""){
-        map_row[map_row_cnt] = hex2dec(row_array[j]);
-        map_row_cnt++;
+  if(reverse_map==false){
+    for(var i=0; i<map_array.length; i++){
+      var row_array = map_array[i].split(',');
+      var map_row = [];
+      var map_row_cnt = 0;
+      for(var j=0; j<row_array.length; j++){
+        if(row_array[j]!=""){
+          map_row[map_row_cnt] = hex2dec(row_array[j]);
+          map_row_cnt++;
+        }
+      }
+      if(map_row.length==Math.trunc(MAP_MAX_X/2)){
+        map_table[map_table_cnt] = map_row.concat();
+        map_table_cnt++;
       }
     }
-    if(map_row.length==10){
-      map_table[map_table_cnt] = map_row.concat();
-      map_table_cnt++;
+  }else{
+    for(var i=(map_array.length-1); i>=0; i--){
+      var row_array = map_array[i].split(',');
+      var map_row = [];
+      var map_row_cnt = 0;
+      for(var j=0; j<row_array.length; j++){
+        if(row_array[j]!=""){
+          map_row[map_row_cnt] = hex2dec(row_array[j]);
+          map_row_cnt++;
+        }
+      }
+      if(map_row.length==Math.trunc(MAP_MAX_X/2)){
+        map_table[map_table_cnt] = map_row.concat();
+        map_table_cnt++;
+      }
     }
   }
 }
 
 function map_download(){
   var dt = new Date();
-  var filename = $("input[name='download_file']").val()+'.txt';
-  $('#map_download').attr('download',filename);
+  var filename = $("input[name='download_file']").val();
+
+  $('#map_download').attr('download',filename+'.txt');
+  if($('input:checkbox[name="reverse_map"]:checked').val()=="1"){
+    reverse_map = true;
+  }
 
   var data = "";
   data += '# [Create] '+dt.toString()+'\n';
@@ -177,15 +215,31 @@ function map_download(){
     }
   }
  
-  data += '\n\n# [MapTbl]';
+  data += '\n';
+  data += '\n# [MapTbl]';
+  data += '\n# [ReverseMapTableOrder] ' + reverse_map;
   var cnt = 0;
-  for(var i=0; i<map_table.length; i++){
-    var rows = map_table[i];
-    for(var j=0; j<rows.length; j++){
-      if(j==0){
-        data += '\ndb $'+dec2hex(rows[j]);
-      }else{
-        data += ',$'+dec2hex(rows[j]);
+
+  if(reverse_map==false){
+    for(var i=0; i<map_table.length; i++){
+      var rows = map_table[i];
+      for(var j=0; j<rows.length; j++){
+        if(j==0){
+          data += '\ndb $'+dec2hex(rows[j]);
+        }else{
+          data += ',$'+dec2hex(rows[j]);
+        }
+      }
+    }
+  }else{
+    for(var i=(map_table.length-1); i>=0; i--){
+      var rows = map_table[i];
+      for(var j=0; j<rows.length; j++){
+        if(j==0){
+          data += '\ndb $'+dec2hex(rows[j]);
+        }else{
+          data += ',$'+dec2hex(rows[j]);
+        }
       }
     }
   }
@@ -193,7 +247,7 @@ function map_download(){
   var blob = new Blob([data], {type:'text/plain'});
   
   if(window.navigator.msSaveBlob){
-    window.navigator.msSaveBlob(blob,filename); 
+    window.navigator.msSaveBlob(blob,filename+'.txt');
   }else{
     document.getElementById('map_download').href = window.URL.createObjectURL(blob);
   }

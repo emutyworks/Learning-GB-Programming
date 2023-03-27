@@ -16,7 +16,7 @@
 </head>
 <body>
 Upload tiles.bin (GBTD export file/All-purpose binary):<input type="file" name="bin_upload" accept="*/*"><br>
-<a href="#" id="map_download" onClick="map_download()">Download:</a> <input type="text" name="download_file" size="12"> Upload:<input type="file" name="map_upload" accept="*/*"><br>
+<a href="#" id="map_download" onClick="map_download()">Download:</a> <input type="text" name="download_file" size="12"><input type="checkbox" name="reverse_map" value="1">Download in reverse Map Table order | Upload:<input type="file" name="map_upload" accept="*/*"><br>
 <div id="help_mes"></div>
 <span id="map_table_title">Map Table: <input type="checkbox" name="show_grid" id="show_grid" onClick="showGrid()" value="">Show Grid</span>
 <span id="bg_tiles_title">BG Tiles:</span>
@@ -50,6 +50,14 @@ Upload tiles.bin (GBTD export file/All-purpose binary):<input type="file" name="
 <tr><td colspan="3" style="text-align: right"><a href="#" onClick="updateMapPart('save')">[Save]</a></td>
 </table>
 </span>
+
+<div id="hr">
+<hr>
+<a href="https://github.com/emutyworks/Learning-GB-Programming/wiki/Car-Game" target="_blank">https://github.com/emutyworks/Learning-GB-Programming/wiki/Car-Game</a><br>
+Sample data:<br>
+<a href="https://emutyworks.github.io/Learning-GB-Programming/map_editor/tiles.bin">tiles.bin</a><br>
+<a href="https://emutyworks.github.io/Learning-GB-Programming/map_editor/map_editor.txt">map_editor.txt</a><br>
+</div>
 
 </body>
 </html>

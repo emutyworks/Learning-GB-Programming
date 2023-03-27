@@ -13,7 +13,7 @@ var MAPPART_MAX_Y = 32;
 var MAP_MAX_X = 20;
 var MAP_MAX_Y = 32;
 var OFFSET_X = 8;
-var OFFSET_Y = 85;
+var OFFSET_Y = 87;
 var BGTILES_START_X = BGTILES_SIZE*MAP_MAX_X+16;
 var BGTILES_START_Y = 0;
 var PALETTE_START_X = BGTILES_START_X+BGTILES_SIZE*8+8+16;
@@ -48,6 +48,7 @@ var mouse_down = false;
 var help_flag = false;
 var edit_flag = false;
 var bin_upload = false;
+var reverse_map = false;
 
 var bg_tiles = [];
 var bg_palette = [];

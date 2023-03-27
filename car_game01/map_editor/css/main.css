@@ -1,4 +1,4 @@
-body, input, select, textarea, button, span, tr, td{
+body, input, select, textarea, button, span, tr, td, div{
   z-index: 5;
   font-family: sans-serif;
   font-size: 8pt;
@@ -8,7 +8,7 @@ body, input, select, textarea, button, span, tr, td{
 
 .canvas_base{
   position: absolute;
-  top: 85px;
+  top: 87px;
   left: 8px;
 }
 #base{
@@ -29,27 +29,23 @@ body, input, select, textarea, button, span, tr, td{
 
 #map_table_title{
   position: absolute;
-  top: 63px;
+  top: 67px;
   left: 8px;
-}
-#show_grid{
-  position: relative;
-  top: 2px;
 }
 
 #bg_tiles_title{
   position: absolute;
-  top: 68px;
+  top: 73px;
   left: 344px;
 }
 #bg_palette_title{
   position: absolute;
-  top: 68px;
+  top: 73px;
   left: 496px;
 }
 #map_part_title{
   position: absolute;
-  top: 157px;
+  top: 159px;
   left: 344px;
 }
 
@@ -71,14 +67,19 @@ table, td, th{
   border: 1px #c0c0c0 solid;
   padding: 0px 2px;
 }
-input[type="radio"]{
+input[type="radio"], input[type="checkbox"]{
   position: relative;
-  top: 2px;
+  top: 3px;
 }
 
 #map_table{
   position: absolute;
   top: 630px;
   left: 8px;
+}
+
+#hr{
+  position: relative;
+  top: 670px;
 }
 
