@@ -77,7 +77,7 @@ function drawBgTiles(){
   var yy = BGTILES_START_Y;
 
   var index = 0;
-  var p = 1;
+  var p = 0;
 
   for(var x=0; x<BGTILES_MAX_X; x++){
     for(var y=0; y<BGTILES_MAX_Y; y++){

@@ -88,6 +88,9 @@ window.onload = function(){
           setMes('edit_maptable');
           resetMapTableCursor();
           setMapTableCursor();
+          if(mouse_down){
+            editMapTable();
+          }
       }else
       if(checkWinArea() && edit_flag=='edit_mappart'){
         setMes('edit_mappart');
