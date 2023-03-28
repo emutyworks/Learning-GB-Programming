@@ -32,9 +32,7 @@ $(function(){
           break;
         }
       }
-      //drawBgTiles();
-      //drawMapParts();
-      //drawMap();
+      $("input:file[name='bin_upload']").val('');
       bin_upload = true;
       setMapSize();
     }
