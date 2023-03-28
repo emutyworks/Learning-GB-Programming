@@ -97,10 +97,10 @@ function drawPallette(){
     for(var i=0; i<4; i++){
       vctx.fillStyle = gbc2htmlc(bg_palette[i+l*4]);
       vctx.fillRect(xx+x+1,yy+y+1,PALETTE_DOT,PALETTE_DOT);
-      x += PALETTE_DOT;
+      x += PALETTE_DOT+1;
     }
     y += PALETTE_DOT+1;
-    bdrawText(xx+PALETTE_DOT*4+3,y-3,7,l);
+    bdrawText(xx+PALETTE_DOT*4+7,y-3,7,l);
   }
 }
 
@@ -304,8 +304,8 @@ function setBgTablesCursor(){
 function resetMapTableCursor(){
   var x = MAP_START_X;
   var y = MAP_START_Y;
-  var w = MAP_SIZE*MAP_MAX_X+1;
-  var h = MAP_SIZE*MAP_MAX_Y+1;
+  var w = MAP_SIZE*map_max_x+1;
+  var h = MAP_SIZE*map_max_y+1;
   cctx.clearRect(x,y,w,h);
 }
 
@@ -332,8 +332,8 @@ function setChangeMapPartCursor(){
 function checkMapTableArea(){
   if(cur_info['x']>MAP_START_X
     && cur_info['y']>MAP_START_Y
-    && cur_info['x']<MAP_START_X+MAP_SIZE*MAP_MAX_X
-    && cur_info['y']< MAP_START_Y+MAP_SIZE*MAP_MAX_Y
+    && cur_info['x']<MAP_START_X+MAP_SIZE*map_max_x
+    && cur_info['y']< MAP_START_Y+MAP_SIZE*map_max_y
     ){
     return true;
   }
@@ -388,14 +388,14 @@ function showGrid(){
   if($('#show_grid').prop('checked')){
     gctx.fillStyle = EDITOR_LINE;
     gctx.globalAlpha = 0.2;
-    for(var y=1; y<MAP_MAX_Y; y++){
-      gctx.fillRect(MAP_START_X+1,MAP_START_Y+y*MAP_SIZE,MAP_SIZE*MAP_MAX_X,1);
+    for(var y=1; y<map_max_y; y++){
+      gctx.fillRect(MAP_START_X+1,MAP_START_Y+y*MAP_SIZE,MAP_SIZE*map_max_x,1);
     }
-    for(var x=2; x<MAP_MAX_X; x+=2){
+    for(var x=2; x<map_max_x; x+=2){
       gctx.fillRect(MAP_START_X+MAP_SIZE*x+1,MAP_START_Y+1,1,MAP_SIZE*MAPPART_MAX_Y);
     }
     gctx.globalAlpha = 1.0;
   }else{
-    gctx.clearRect(MAP_START_X+1,MAP_START_Y,MAP_SIZE*MAP_MAX_X,MAP_SIZE*MAP_MAX_Y);
+    gctx.clearRect(MAP_START_X+1,MAP_START_Y,MAP_SIZE*map_max_x,MAP_SIZE*map_max_y);
   }
 }

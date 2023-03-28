@@ -155,8 +155,8 @@ window.onload = function(){
     var mx = 0;
     var my = 0;
     if(x>MAP_START_X && y>MAP_START_Y
-    && x<MAP_START_X+MAP_SIZE*MAP_MAX_X
-    && y<MAP_START_Y+MAP_SIZE*MAP_MAX_Y
+    && x<MAP_START_X+MAP_SIZE*map_max_x
+    && y<MAP_START_Y+MAP_SIZE*map_max_y
     ){
       mx = Math.trunc((x-MAP_START_X)/(MAP_SIZE*2));
       my = Math.trunc((y-MAP_START_Y)/MAP_SIZE);

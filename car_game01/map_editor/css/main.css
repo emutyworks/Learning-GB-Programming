@@ -8,7 +8,7 @@ body, input, select, textarea, button, span, tr, td, div{
 
 .canvas_base{
   position: absolute;
-  top: 87px;
+  top: 94px;
   left: 8px;
 }
 #base{
@@ -29,23 +29,23 @@ body, input, select, textarea, button, span, tr, td, div{
 
 #map_table_title{
   position: absolute;
-  top: 67px;
+  top: 73px;
   left: 8px;
 }
 
 #bg_tiles_title{
   position: absolute;
-  top: 73px;
+  top: 80px;
   left: 344px;
 }
 #bg_palette_title{
   position: absolute;
-  top: 73px;
+  top: 80px;
   left: 496px;
 }
 #map_part_title{
   position: absolute;
-  top: 159px;
+  top: 166px;
   left: 344px;
 }
 
@@ -62,14 +62,20 @@ body, input, select, textarea, button, span, tr, td, div{
   top: 144px;
   left: 40px;
 }
+
 table, td, th{
   border-collapse: collapse;
   border: 1px #c0c0c0 solid;
   padding: 0px 2px;
 }
+
 input[type="radio"], input[type="checkbox"]{
   position: relative;
   top: 3px;
+}
+select{
+  position: relative;
+  top: -3px; 
 }
 
 #map_table{

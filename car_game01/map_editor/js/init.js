@@ -10,27 +10,30 @@ var BGTILES_MAX_Y = 4;
 var BGTILES_MAX = 32;
 var MAPPART_MAX_X = 8;
 var MAPPART_MAX_Y = 32;
-var MAP_MAX_X = 20;
-var MAP_MAX_Y = 32;
 var OFFSET_X = 8;
-var OFFSET_Y = 87;
-var BGTILES_START_X = BGTILES_SIZE*MAP_MAX_X+16;
-var BGTILES_START_Y = 0;
-var PALETTE_START_X = BGTILES_START_X+BGTILES_SIZE*8+8+16;
-var PALETTE_START_Y = BGTILES_START_Y;
-var MAPPART_START_X = BGTILES_START_X;
-var MAPPART_START_Y = BGTILES_START_Y+BGTILES_SIZE*4+4+20;
+var OFFSET_Y = 94;
 var MAP_START_X = 0;
 var MAP_START_Y = 0;
+
+var map_max_x = 20;
+var map_max_y = 32;
+var right_start = BGTILES_SIZE*map_max_x+16;
+
+var BGTILES_START_X = right_start;
+var BGTILES_START_Y = 0;
+var PALETTE_START_X = right_start+BGTILES_SIZE*8+8+16;
+var PALETTE_START_Y = BGTILES_START_Y;
+var MAPPART_START_X = right_start;
+var MAPPART_START_Y = BGTILES_START_Y+BGTILES_SIZE*4+4+20;
 var WIN_START_X = MAP_START_X+MAP_SIZE+1;
 var WIN_START_Y = MAP_START_X+MAP_SIZE+1;
-var WIN_WIDTH_X = MAP_SIZE*(MAP_MAX_X-2)-1;
+var WIN_WIDTH_X = MAP_SIZE*(map_max_x-2)-1;
 var WIN_HEIGHT_Y = MAP_SIZE*9;
 var EDITOR_LINE = '#ff0000';
 var EDITOR_BOX = '#ff0000';
 var EDITOR_BOX2 = '#0000ff';
 
-var VIEW_MAX_X = 650;
+var VIEW_MAX_X = 800;
 var VIEW_MAX_Y = 700;
 
 var base = null;
@@ -49,6 +52,7 @@ var help_flag = false;
 var edit_flag = false;
 var bin_upload = false;
 var reverse_map = false;
+var flag = false;
 
 var bg_tiles = [];
 var bg_palette = [];
@@ -86,6 +90,56 @@ var help_mes = {
   reset: '[LM] = Left Mouse click. '+help_cancel,
 };
 
+function setMapSize(m){
+  if(!bin_upload){ return; }
+
+  if(m=="confirm"){
+    flag = edit_confirm_alert('The data being edited will be reset. Resize Map Table?');
+  }else{
+    flag = true;
+  }
+  if(flag){
+    map_max_x = $('[name="map_size"]:selected').val();
+  }else{
+    $('[name="map_size"]').val(map_max_x).prop('selected',true);
+  }
+
+  var x = 0;
+  var y = 0;
+  var w = VIEW_MAX_X;
+  var h = VIEW_MAX_Y;
+  bctx.clearRect(x,y,w,h);
+  vctx.clearRect(x,y,w,h);
+  gctx.clearRect(x,y,w,h);
+  wctx.clearRect(x,y,w,h);
+
+  right_start = BGTILES_SIZE*map_max_x+16;
+  BGTILES_START_X = right_start;
+  PALETTE_START_X = right_start+BGTILES_SIZE*8+8+16;
+  MAPPART_START_X = right_start;
+  WIN_WIDTH_X = MAP_SIZE*(map_max_x-2)-1;
+
+  $('#bg_tiles_title').css({
+    'left': (right_start+8)+'px'
+  });
+  $('#bg_palette_title').css({
+    'left': (right_start+160)+'px'
+  });
+  $('#map_part_title').css({
+    'left': (right_start+8)+'px'
+  });
+  $('#help_mes').css({
+    'width': (right_start+265)+'px'
+  });
+
+  refill_map_table();
+  initView();
+  drawPallette();
+  drawBgTiles();
+  drawMapParts();
+  drawMap();
+}
+
 function initView(){
   $('#base').attr({
     width: VIEW_MAX_X+'px',
@@ -120,7 +174,7 @@ function drawBase(){
   //BG Palette
   var xx = PALETTE_START_X;
   var yy = PALETTE_START_Y;
-  bdrowBox(xx,yy,PALETTE_DOT*4+1,PALETTE_DOT*4+4,EDITOR_BOX);
+  bdrowBox(xx,yy,PALETTE_DOT*4+4,PALETTE_DOT*4+4,EDITOR_BOX);
 
   //BG Tiles
   xx = BGTILES_START_X;
@@ -135,7 +189,7 @@ function drawBase(){
   // Map Table
   xx = MAP_START_X;
   yy = MAP_START_Y;
-  bdrowBox(xx,yy,MAP_SIZE*MAP_MAX_X+1,MAP_SIZE*MAP_MAX_Y+1,EDITOR_BOX);
+  bdrowBox(xx,yy,MAP_SIZE*map_max_x+1,MAP_SIZE*map_max_y+1,EDITOR_BOX);
 }
 
 function bdrowBox(x,y,w,h,c){
@@ -216,4 +270,8 @@ function bin2dec(v){
 
 function hex2dec(v){
   return parseInt(v,16);
+}
+
+function edit_confirm_alert(mes){
+  return window.confirm(mes);
 }

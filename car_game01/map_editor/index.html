@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<title></title>
+<title>Compress Map Editor (prototype)</title>
 <meta http-equiv="content-type" content="text/html; charset=utf-8" />
 <meta http-equiv="content-language" content="ja" />
 <meta http-equiv="Content-Script-Type" content="text/javascript" />
@@ -18,7 +18,10 @@
 Upload tiles.bin (GBTD export file/All-purpose binary):<input type="file" name="bin_upload" accept="*/*"><br>
 <a href="#" id="map_download" onClick="map_download()">Download:</a> <input type="text" name="download_file" size="12"><input type="checkbox" name="reverse_map" value="1">Download in reverse Map Table order | Upload:<input type="file" name="map_upload" accept="*/*"><br>
 <div id="help_mes"></div>
-<span id="map_table_title">Map Table: <input type="checkbox" name="show_grid" id="show_grid" onClick="showGrid()" value="">Show Grid</span>
+<span id="map_table_title">Map Table: edit <select name="map_size" onchange="setMapSize('confirm')">
+<option value="20">20</option>
+<option value="32">32</option>
+</select> tiles <input type="checkbox" name="show_grid" id="show_grid" onClick="showGrid()" value="">Show Grid</span>
 <span id="bg_tiles_title">BG Tiles:</span>
 <span id="bg_palette_title">BG Palette:</span>
 <span id="map_part_title">Map Part:</span>

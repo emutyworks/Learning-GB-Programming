@@ -32,10 +32,11 @@ $(function(){
           break;
         }
       }
-      drawBgTiles();
-      drawMapParts();
-      drawMap();
+      //drawBgTiles();
+      //drawMapParts();
+      //drawMap();
       bin_upload = true;
+      setMapSize();
     }
     reader.readAsArrayBuffer(file);
   });
@@ -55,10 +56,11 @@ $(function(){
       loadInitData(up_text.split('\n'));
       $("input:file[name='map_upload']").val('');
 
-      drawPallette();
-      drawBgTiles();
-      drawMapParts();
-      drawMap();
+      setMapSize();
+      //drawPallette();
+      //drawBgTiles();
+      //drawMapParts();
+      //drawMap();
     }
   });
 })
@@ -78,14 +80,6 @@ function loadInitData(load_array){
   for(var i=0; i<MAPPART_MAX_X*MAPPART_MAX_Y*2; i++){
       map_part[i] = "00000000";
   }
-  var map_tmp = [];
-  for(var i=0; i<Math.trunc(MAP_MAX_X/2); i++){
-    map_tmp[i] = 0;
-  }
-  for(var i=0; i<MAPPART_MAX_Y; i++){
-    map_table[i] = map_tmp.concat();
-  }
-
   for(var i=0; i<load_array.length; i++){
     var row = load_array[i].replace(/\s+/g,'');
 
@@ -131,6 +125,11 @@ function loadInitData(load_array){
       reverse_map = true;
     }
   }
+  map_max_x = 20;
+  if('MapSize' in up_d && up_d['MapSize']==32){
+      map_max_x = 32;
+  }
+  $('[name="map_size"]').val(map_max_x).prop('selected',true);
 
   var map_part_array = map_part_data.split(',');
   var map_part_cnt = 0;
@@ -153,10 +152,8 @@ function loadInitData(load_array){
           map_row_cnt++;
         }
       }
-      if(map_row.length==Math.trunc(MAP_MAX_X/2)){
-        map_table[map_table_cnt] = map_row.concat();
-        map_table_cnt++;
-      }
+      map_table[map_table_cnt] = map_row.concat();
+      map_table_cnt++;
     }
   }else{
     for(var i=(map_array.length-1); i>=0; i--){
@@ -169,10 +166,38 @@ function loadInitData(load_array){
           map_row_cnt++;
         }
       }
-      if(map_row.length==Math.trunc(MAP_MAX_X/2)){
-        map_table[map_table_cnt] = map_row.concat();
-        map_table_cnt++;
+      map_table[map_table_cnt] = map_row.concat();
+      map_table_cnt++;
+    }
+  }
+}
+
+function refill_map_table(){
+  var bak_map_table = map_table.concat();
+  var map_tmp = [];
+  for(var i=0; i<Math.trunc(map_max_x/2); i++){
+    map_tmp[i] = 0;
+  }
+  for(var i=0; i<map_max_y; i++){
+    map_table[i] = map_tmp.concat();
+  }
+
+  for(var i=0; i<map_table.length; i++){
+    var row = map_table[i];
+    var bak_row = bak_map_table[i];
+    //console.log(bak_row);
+
+    if(bak_row!==undefined){
+      if(map_max_x==32){
+        for(var j=0; j<bak_row.length; j++){
+          row[j] = bak_row[j];
+        }
+      }else{
+        for(var j=0; j<row.length; j++){
+          row[j] = bak_row[j];
+        }
       }
+      map_table[i] = row.concat();
     }
   }
 }
@@ -217,7 +242,8 @@ function map_download(){
  
   data += '\n';
   data += '\n# [MapTbl]';
-  data += '\n# [ReverseMapTableOrder] ' + reverse_map;
+  data += '\n# [MapSize] '+map_max_x;
+  data += '\n# [ReverseMapTableOrder] '+reverse_map;
   var cnt = 0;
 
   if(reverse_map==false){
