@@ -55,10 +55,6 @@ $(function(){
       $("input:file[name='map_upload']").val('');
 
       setMapSize();
-      //drawPallette();
-      //drawBgTiles();
-      //drawMapParts();
-      //drawMap();
     }
   });
 })
@@ -183,7 +179,6 @@ function refill_map_table(){
   for(var i=0; i<map_table.length; i++){
     var row = map_table[i];
     var bak_row = bak_map_table[i];
-    //console.log(bak_row);
 
     if(bak_row!==undefined){
       if(map_max_x==32){

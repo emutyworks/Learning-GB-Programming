@@ -65,29 +65,32 @@ var cur_info = {
   org_y: 0,
   x: 0,
   y: 0,
+  cx: 0,
+  cy: 0,
   //bg tiles
   bx: 0,
   by: 0,
   //map part
   px: 0,
   py: 0,
-  psel: null,
   wx: 0,
   wy: 0,
+  psel: null,
   wsel: null,
   //map table
   mx: 0,
   my: 0,
 };
 
-var help_cancel = '[ESC] Cancel/Close.';
+var help_cancel = '[ESC or RM] Cancel';
 var help_mes = {
-  change_mappart: '[LM] Click to change Map Part. '+help_cancel,
-  edit_maptable: '[LM] Click to set Map Table. '+help_cancel,
-  select_mappart: '[LM] Click to edit Map Table. [Shift + LM] Click to edit Map Part. ',
-  edit_mappart: ''+help_cancel,
+  change_mappart: '[LM] Click to change Map Part '+help_cancel,
+  edit_maptable: '[LM] Click to set Map Table '+help_cancel,
+  select_mappart: '[LM] Click to edit Map Table [Shift + LM] Click to edit Map Part [Ctrl + LM] Click to copy Map Part ',
+  edit_mappart: '[ESC] Cancel/Close',
+  copy_mappart: '[LM] Click to paste Map Part '+help_cancel,
   start: 'Please Upload tiles.bin and map_editor.txt',
-  reset: '[LM] = Left Mouse click. '+help_cancel,
+  reset: '[LM] Left Mouse click [RM] Right Mouse click ',
 };
 
 function setMapSize(m){
@@ -134,10 +137,10 @@ function setMapSize(m){
 
   refill_map_table();
   initView();
-  drawPallette();
   drawBgTiles();
   drawMapParts();
   drawMap();
+  edit_flag = false;
 }
 
 function initView(){

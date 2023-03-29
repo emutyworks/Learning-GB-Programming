@@ -59,7 +59,7 @@ body, input, select, textarea, button, span, tr, td, div{
 #win_mappart{
   display: none;
   position: absolute;
-  top: 144px;
+  top: 156px;
   left: 40px;
 }
 

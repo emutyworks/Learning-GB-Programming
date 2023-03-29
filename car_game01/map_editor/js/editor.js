@@ -157,10 +157,8 @@ function changeMapPart(){
   cctx.globalAlpha = 1.0;
 }
 
-function selectMapPart(){
+function selectMapPart(m){
   if(!edit_flag){
-    edit_flag = 'edit_mappart';
-    setMes(edit_flag);
     cur_info['psel'] = cur_info['px']+MAPPART_MAX_X*cur_info['py'];
     
     var xx = MAPPART_START_X+cur_info['px']*(MAPPART_SIZE*2+1);
@@ -170,8 +168,26 @@ function selectMapPart(){
     cctx.fillRect(xx,yy,MAPPART_SIZE*2+1,MAPPART_SIZE+1);
     cctx.globalAlpha = 1.0;
 
-    editMapPart();
+    if(m=='edit'){
+      edit_flag = 'edit_mappart';
+      setMes(edit_flag);
+      editMapPart();
+    }else{
+      cur_info['cx'] = cur_info['px'];
+      cur_info['cy'] = cur_info['py'];
+      edit_flag = 'copy_mappart';
+      setMes(edit_flag);
+    }
   }
+}
+
+function copyMapPart(){
+  var i = cur_info['psel'];
+  var ci =  cur_info['px']+MAPPART_MAX_X*cur_info['py'];
+  map_part[ci*2] = map_part[i*2].concat();
+  map_part[ci*2+1] = map_part[i*2+1].concat();
+  drawMapParts();
+  drawMap();
 }
 
 function updateMapPart(m){
@@ -243,6 +259,7 @@ function showWin(){
   wctx.globalAlpha = 1.0;
   wdrowBox(xx,yy,WIN_WIDTH_X,WIN_HEIGHT_Y,EDITOR_LINE);
   $('#win_mappart').show();
+  $("input[name='download_file']").focus();
 }
 
 function resetWin(){
@@ -285,6 +302,15 @@ function setMapPartCursor(){
   var xx = MAPPART_START_X+cur_info['px']*(MAPPART_SIZE*2+1);
   var yy = MAPPART_START_Y+cur_info['py']*(MAPPART_SIZE+1);
   cdrowBox(xx,yy,MAPPART_SIZE*2+1,MAPPART_SIZE+1,EDITOR_LINE);
+
+  if(edit_flag=='copy_mappart'){
+    xx = MAPPART_START_X+cur_info['cx']*(MAPPART_SIZE*2+1);
+    yy = MAPPART_START_Y+cur_info['cy']*(MAPPART_SIZE+1);
+    cctx.globalAlpha = 0.2;
+    cctx.fillStyle = EDITOR_BOX;
+    cctx.fillRect(xx,yy,MAPPART_SIZE*2+1,MAPPART_SIZE+1);
+    cctx.globalAlpha = 1.0;
+  }
 }
 
 function resetBgTablesCursor(){

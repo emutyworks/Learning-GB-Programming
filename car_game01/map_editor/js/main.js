@@ -30,6 +30,9 @@ window.onload = function(){
     }
   });
 
+  $(document).on('contextmenu',function(e){
+    return false;
+  });
   function onMouseUp(e){
     mouse_down = false;
     mousePos(e);
@@ -38,19 +41,33 @@ window.onload = function(){
     mouse_down = true;
     mousePos(e);
 
+    if(e.which==3){
+      if(edit_flag=='change_mappart'){
+        changeMapPartCancel();
+      }else{
+        editCancel();
+      }
+      return false;
+    }
+
     if(bin_upload){
       if(checkMapPartArea() && !edit_flag){
         setMes('select_mappart');
         resetMapPartCursor();
         setMapPartCursor();
 
-        if(mouse_down){
-          if(e.shiftKey){
-            selectMapPart();
-          }else{
-            selectMapTable();
-          }
+        if(e.shiftKey){
+          selectMapPart('edit');
+        }else
+        if(e.ctrlKey){
+          selectMapPart('copy');
+        } 
+        else{
+          selectMapTable();
         }
+      }else
+      if(checkMapPartArea() && edit_flag=='copy_mappart'){
+        copyMapPart();
       }else
       if(checkMapTableArea() && edit_flag=='edit_maptable'){
         setMes('edit_maptable');
@@ -81,6 +98,10 @@ window.onload = function(){
     if(bin_upload){
       if(checkMapPartArea() && !edit_flag){
         setMes('select_mappart');
+        resetMapPartCursor();
+        setMapPartCursor();
+      }else
+      if(checkMapPartArea() && edit_flag=='copy_mappart'){
         resetMapPartCursor();
         setMapPartCursor();
       }else
@@ -167,15 +188,17 @@ window.onload = function(){
       org_y: org_y,
       x: x,
       y: y,
+      cx: cur_info['cx'],
+      cy: cur_info['cy'],
       //bg tiles
       bx: bx,
       by: by,
       //map part
       px: px,
       py: py,
-      psel: cur_info['psel'],
       wx: wx,
       wy: wy,
+      psel: cur_info['psel'],
       wsel: cur_info['wsel'],
       //map table
       mx: mx,
