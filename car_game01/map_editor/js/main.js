@@ -145,31 +145,32 @@ window.onload = function(){
 
     var bx = 0;
     var by = 0;
-    if(x>BGTILES_START_X && y>BGTILES_START_Y
-    && x<BGTILES_START_X+(BGTILES_SIZE+1)*BGTILES_MAX_X
+    if(x>bgtiles_start_x && y>BGTILES_START_Y
+    && x<bgtiles_start_x+(BGTILES_SIZE+1)*BGTILES_MAX_X
     && y<BGTILES_START_Y+(BGTILES_SIZE+1)*BGTILES_MAX_Y
     ){
-      bx = Math.trunc((x-BGTILES_START_X)/(BGTILES_SIZE+1));
+      bx = Math.trunc((x-bgtiles_start_x)/(BGTILES_SIZE+1));
       by = Math.trunc((y-BGTILES_START_Y)/(BGTILES_SIZE+1));
     }
 
     var px = 0;
     var py = 0;
-    if(x > MAPPART_START_X && y > MAPPART_START_Y
-      && x < MAPPART_START_X+(MAPPART_SIZE*2+1)*MAPPART_MAX_X
+    if(x > mappart_start_x && y > MAPPART_START_Y
+      && x < mappart_start_x+(MAPPART_SIZE*2+1)*MAPPART_MAX_X
       && y < MAPPART_START_Y+(MAPPART_SIZE+1)*MAPPART_MAX_Y
     ){
-      px = Math.trunc((x-MAPPART_START_X)/(MAPPART_SIZE*2+1));
+      px = Math.trunc((x-mappart_start_x)/(MAPPART_SIZE*2+1));
       py = Math.trunc((y-MAPPART_START_Y)/(MAPPART_SIZE+1));
     }
 
     var wx = 0;
     var wy = 0;
-    if(x > WIN_START_X+MAPPART_SIZE && y > WIN_START_Y+MAPPART_SIZE
-      && x < WIN_START_X+MAPPART_SIZE+MAPPART_SIZE*2
+    if(x > win_start_x+MAPPART_SIZE*15-3
+      && y > WIN_START_Y+MAPPART_SIZE
+      && x < win_start_x+MAPPART_SIZE+MAPPART_SIZE*16-3
       && y < WIN_START_Y+MAPPART_SIZE+MAPPART_SIZE
     ){
-      wx = Math.trunc((x-(WIN_START_X+MAPPART_SIZE))/MAPPART_SIZE);
+      wx = Math.trunc((x-(win_start_x+MAPPART_SIZE*15-3))/MAPPART_SIZE);
       wy = 0;
     }
 

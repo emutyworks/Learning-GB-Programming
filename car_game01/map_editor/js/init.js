@@ -19,15 +19,15 @@ var map_max_x = 20;
 var map_max_y = 32;
 var right_start = BGTILES_SIZE*map_max_x+16;
 
-var BGTILES_START_X = right_start;
+var bgtiles_start_x = right_start;
 var BGTILES_START_Y = 0;
-var PALETTE_START_X = right_start+BGTILES_SIZE*8+8+16;
+var palette_start_x = right_start+BGTILES_SIZE*8+8+16;
 var PALETTE_START_Y = BGTILES_START_Y;
-var MAPPART_START_X = right_start;
+var mappart_start_x = right_start;
 var MAPPART_START_Y = BGTILES_START_Y+BGTILES_SIZE*4+4+20;
-var WIN_START_X = MAP_START_X+MAP_SIZE+1;
-var WIN_START_Y = MAP_START_X+MAP_SIZE+1;
-var WIN_WIDTH_X = MAP_SIZE*(map_max_x-2)-1;
+var win_start_x = MAP_START_X+MAP_SIZE*(map_max_x-19)+1
+var WIN_START_Y = MAP_START_Y+MAP_SIZE+1;
+var WIN_WIDTH_X = MAP_SIZE*18-1;
 var WIN_HEIGHT_Y = MAP_SIZE*9;
 var EDITOR_LINE = '#ff0000';
 var EDITOR_BOX = '#ff0000';
@@ -53,6 +53,7 @@ var edit_flag = false;
 var bin_upload = false;
 var reverse_map = false;
 var flag = false;
+var show_grid = false;
 
 var bg_tiles = [];
 var bg_palette = [];
@@ -117,10 +118,10 @@ function setMapSize(m){
   wctx.clearRect(x,y,w,h);
 
   right_start = BGTILES_SIZE*map_max_x+16;
-  BGTILES_START_X = right_start;
-  PALETTE_START_X = right_start+BGTILES_SIZE*8+8+16;
-  MAPPART_START_X = right_start;
-  WIN_WIDTH_X = MAP_SIZE*(map_max_x-2)-1;
+  bgtiles_start_x = right_start;
+  palette_start_x = right_start+BGTILES_SIZE*8+8+16;
+  mappart_start_x = right_start;
+  win_start_x = MAP_START_X+MAP_SIZE*(map_max_x-19)+1;
 
   $('#bg_tiles_title').css({
     'left': (right_start+8)+'px'
@@ -135,11 +136,16 @@ function setMapSize(m){
     'width': (right_start+265)+'px'
   });
 
+  $('#win_mappart').css({
+    'width': (MAP_SIZE*(map_max_x-2))+'px'
+  });
+
   refill_map_table();
   initView();
   drawBgTiles();
   drawMapParts();
   drawMap();
+  showGrid();
   edit_flag = false;
 }
 
@@ -175,17 +181,17 @@ function initView(){
 function drawBase(){
 
   //BG Palette
-  var xx = PALETTE_START_X;
+  var xx = palette_start_x;
   var yy = PALETTE_START_Y;
   bdrowBox(xx,yy,PALETTE_DOT*4+4,PALETTE_DOT*4+4,EDITOR_BOX);
 
   //BG Tiles
-  xx = BGTILES_START_X;
+  xx = bgtiles_start_x;
   yy = BGTILES_START_Y;
   bdrowBox(xx,yy,BGTILES_SIZE*BGTILES_MAX_X+BGTILES_MAX_X,BGTILES_SIZE*BGTILES_MAX_Y+BGTILES_MAX_Y,EDITOR_BOX);
 
   // Map Part
-  xx = MAPPART_START_X;
+  xx = mappart_start_x;
   yy = MAPPART_START_Y;
   bdrowBox(xx,yy,MAPPART_SIZE*MAPPART_MAX_X*2+MAPPART_MAX_X,MAPPART_SIZE*MAPPART_MAX_Y+MAPPART_MAX_Y,EDITOR_BOX);
 

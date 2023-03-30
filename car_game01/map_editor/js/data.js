@@ -113,17 +113,22 @@ function loadInitData(load_array){
   if('FileName' in up_d){
     $("input[name='download_file']").val(up_d['FileName']);
   }
-  if('ReverseMapTableOrder' in up_d){
-    if(up_d['ReverseMapTableOrder']=="true"){
-      $('input:checkbox[name="reverse_map"]').prop('checked',true);
-      reverse_map = true;
-    }
+  if('ReverseMapTableOrder' in up_d && up_d['ReverseMapTableOrder']=="true"){
+    $('input:checkbox[name="reverse_map"]').prop('checked',true);
+    reverse_map = true;
   }
+
   map_max_x = 20;
   if('MapSize' in up_d && up_d['MapSize']==32){
       map_max_x = 32;
   }
   $('[name="map_size"]').val(map_max_x).prop('selected',true);
+
+  show_grid = false;
+  if('ShowGrid' in up_d && up_d['ShowGrid']=="true"){
+    show_grid = true;
+    $('input:checkbox[name="show_grid"]').prop('checked',true);
+  }
 
   var map_part_array = map_part_data.split(',');
   var map_part_cnt = 0;
@@ -236,6 +241,7 @@ function map_download(){
   data += '\n';
   data += '\n# [MapTbl]';
   data += '\n# [MapSize] '+map_max_x;
+  data += '\n# [ShowGrid] '+show_grid;
   data += '\n# [ReverseMapTableOrder] '+reverse_map;
   var cnt = 0;
 

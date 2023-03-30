@@ -60,7 +60,11 @@ body, input, select, textarea, button, span, tr, td, div{
   display: none;
   position: absolute;
   top: 156px;
-  left: 40px;
+}
+
+#win_table{
+  float: right;
+  border: none;
 }
 
 table, td, th{

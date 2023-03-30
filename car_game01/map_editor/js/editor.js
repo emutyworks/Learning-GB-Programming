@@ -17,7 +17,7 @@ function drawMap(){
 }
 
 function drawMapParts(){
-  var xx = MAPPART_START_X+1;
+  var xx = mappart_start_x+1;
   var yy = MAPPART_START_Y+1;
   var max_index = Math.trunc(map_part.length/2);
   var index = 0;
@@ -34,7 +34,7 @@ function drawMapParts(){
         break lp;
       }
     }
-    xx = MAPPART_START_X+1;
+    xx = mappart_start_x+1;
     yy += MAPPART_SIZE+1;
   }while(index<map_part.length);
 }
@@ -73,7 +73,7 @@ function drawTile(xx,yy,index,p,dot_size,flip,m){
 }
 
 function drawBgTiles(){
-  var xx = BGTILES_START_X;
+  var xx = bgtiles_start_x;
   var yy = BGTILES_START_Y;
 
   var index = 0;
@@ -88,7 +88,7 @@ function drawBgTiles(){
 }
 
 function drawPallette(){
-  var xx = PALETTE_START_X;
+  var xx = palette_start_x;
   var yy = PALETTE_START_Y;
   var loop = Math.trunc(bg_palette.length/4);
   var y = 0;
@@ -127,7 +127,7 @@ function selectMapTable(){
     setMes(edit_flag);
     cur_info['psel'] = cur_info['px']+MAPPART_MAX_X*cur_info['py'];
     
-    var xx = MAPPART_START_X+cur_info['px']*(MAPPART_SIZE*2+1);
+    var xx = mappart_start_x+cur_info['px']*(MAPPART_SIZE*2+1);
     var yy = MAPPART_START_Y+cur_info['py']*(MAPPART_SIZE+1);
     cctx.globalAlpha = 0.2;
     cctx.fillStyle = EDITOR_BOX;
@@ -149,7 +149,7 @@ function changeMapPart(){
   setMes(edit_flag);
   cur_info['wsel'] = cur_info['wx'];
     
-  var xx = WIN_START_X+MAPPART_SIZE+cur_info['wx']*MAPPART_SIZE;
+  var xx = win_start_x+(MAPPART_SIZE*15-3)+cur_info['wx']*MAPPART_SIZE;
   var yy = WIN_START_Y+MAPPART_SIZE;
   cctx.globalAlpha = 0.2;
   cctx.fillStyle = EDITOR_BOX;
@@ -161,7 +161,7 @@ function selectMapPart(m){
   if(!edit_flag){
     cur_info['psel'] = cur_info['px']+MAPPART_MAX_X*cur_info['py'];
     
-    var xx = MAPPART_START_X+cur_info['px']*(MAPPART_SIZE*2+1);
+    var xx = mappart_start_x+cur_info['px']*(MAPPART_SIZE*2+1);
     var yy = MAPPART_START_Y+cur_info['py']*(MAPPART_SIZE+1);
     cctx.globalAlpha = 0.2;
     cctx.fillStyle = EDITOR_BOX;
@@ -191,7 +191,7 @@ function copyMapPart(){
 }
 
 function updateMapPart(m){
-  var xx = WIN_START_X+MAPPART_SIZE;
+  var xx = win_start_x+MAPPART_SIZE*15-3;
   var yy = WIN_START_Y+MAPPART_SIZE;
 
   var i = cur_info['psel'];
@@ -224,7 +224,7 @@ function updateMapPart(m){
 }
 
 function editMapPart(m){
-  var xx = WIN_START_X+MAPPART_SIZE;
+  var xx = win_start_x+MAPPART_SIZE*15-3;
   var yy = WIN_START_Y+MAPPART_SIZE;
   var i = cur_info['psel'];
 
@@ -251,19 +251,18 @@ function editMapPart(m){
 }
 
 function showWin(){
-  var xx = WIN_START_X;
+  var xx = win_start_x;
   var yy = WIN_START_Y;
   wctx.fillStyle = "#ffffff";
   wctx.globalAlpha = 0.7;
   wctx.fillRect(xx,yy,WIN_WIDTH_X,WIN_HEIGHT_Y);
   wctx.globalAlpha = 1.0;
-  wdrowBox(xx,yy,WIN_WIDTH_X,WIN_HEIGHT_Y,EDITOR_LINE);
   $('#win_mappart').show();
   $("input[name='download_file']").focus();
 }
 
 function resetWin(){
-  var x = WIN_START_X;
+  var x = win_start_x;
   var y = WIN_START_Y;
   var w = WIN_WIDTH_X+1;
   var h = WIN_HEIGHT_Y+1;
@@ -291,7 +290,7 @@ function editCancel(){
 }
 
 function resetMapPartCursor(){
-  var x = MAPPART_START_X;
+  var x = mappart_start_x;
   var y = MAPPART_START_Y;
   var w = (MAPPART_SIZE*2+1)*MAPPART_MAX_X;
   var h = (MAPPART_SIZE+1)*MAPPART_MAX_Y;
@@ -299,12 +298,12 @@ function resetMapPartCursor(){
 }
 
 function setMapPartCursor(){
-  var xx = MAPPART_START_X+cur_info['px']*(MAPPART_SIZE*2+1);
+  var xx = mappart_start_x+cur_info['px']*(MAPPART_SIZE*2+1);
   var yy = MAPPART_START_Y+cur_info['py']*(MAPPART_SIZE+1);
   cdrowBox(xx,yy,MAPPART_SIZE*2+1,MAPPART_SIZE+1,EDITOR_LINE);
 
   if(edit_flag=='copy_mappart'){
-    xx = MAPPART_START_X+cur_info['cx']*(MAPPART_SIZE*2+1);
+    xx = mappart_start_x+cur_info['cx']*(MAPPART_SIZE*2+1);
     yy = MAPPART_START_Y+cur_info['cy']*(MAPPART_SIZE+1);
     cctx.globalAlpha = 0.2;
     cctx.fillStyle = EDITOR_BOX;
@@ -314,7 +313,7 @@ function setMapPartCursor(){
 }
 
 function resetBgTablesCursor(){
-  var x = BGTILES_START_X;
+  var x = bgtiles_start_x;
   var y = BGTILES_START_Y;
   var w = BGTILES_MAX_X*(BGTILES_SIZE+1);
   var h = BGTILES_MAX_Y*(BGTILES_SIZE+1);
@@ -322,7 +321,7 @@ function resetBgTablesCursor(){
 }
 
 function setBgTablesCursor(){
-  var xx = BGTILES_START_X+cur_info['bx']*(BGTILES_SIZE+1);
+  var xx = bgtiles_start_x+cur_info['bx']*(BGTILES_SIZE+1);
   var yy = BGTILES_START_Y+cur_info['by']*(BGTILES_SIZE+1);
   cdrowBox(xx,yy,BGTILES_SIZE+1,BGTILES_SIZE+1,EDITOR_LINE);
 }
@@ -342,15 +341,15 @@ function setMapTableCursor(){
 }
 
 function resetChangeMapPartCursor(){
-  var x = WIN_START_X+MAPPART_SIZE;
-  var y = WIN_START_Y+MAPPART_SIZE;
-  var w = WIN_START_X+MAPPART_SIZE+MAPPART_SIZE*2;
-  var h = WIN_START_Y+MAPPART_SIZE+MAPPART_SIZE;
+  var x = win_start_x+MAPPART_SIZE+MAPPART_SIZE*14-3;
+  var y = WIN_START_Y+MAPPART_SIZE-1;
+  var w = MAPPART_SIZE*2+2;
+  var h = MAPPART_SIZE+2;
   cctx.clearRect(x,y,w,h);
 }
 
 function setChangeMapPartCursor(){
-  var xx = WIN_START_X+MAPPART_SIZE+cur_info['wx']*MAPPART_SIZE;
+  var xx = win_start_x+(MAPPART_SIZE*15-3)+cur_info['wx']*MAPPART_SIZE;
   var yy = WIN_START_Y+MAPPART_SIZE;
   cdrowBox(xx,yy,MAPPART_SIZE,MAPPART_SIZE,EDITOR_LINE);
 }
@@ -367,9 +366,9 @@ function checkMapTableArea(){
 }
 
 function checkMapPartArea(){
-  if(cur_info['x']>MAPPART_START_X
+  if(cur_info['x']>mappart_start_x
     && cur_info['y']>MAPPART_START_Y
-    && cur_info['x']<MAPPART_START_X+(MAPPART_SIZE*2+1)*MAPPART_MAX_X
+    && cur_info['x']<mappart_start_x+(MAPPART_SIZE*2+1)*MAPPART_MAX_X
     && cur_info['y']<MAPPART_START_Y+(MAPPART_SIZE+1)*MAPPART_MAX_Y
     ){
     return true;
@@ -378,9 +377,9 @@ function checkMapPartArea(){
 }
 
 function checkWinArea(){
-  if(cur_info['x']>WIN_START_X
+  if(cur_info['x']>win_start_x
     && cur_info['y']>WIN_START_Y
-    && cur_info['x']<WIN_START_X+WIN_WIDTH_X
+    && cur_info['x']<win_start_x+WIN_WIDTH_X
     && cur_info['y']<WIN_START_Y+WIN_HEIGHT_Y
     ){
     return true;
@@ -389,9 +388,9 @@ function checkWinArea(){
 }
 
 function checkChangeMapPartArea(){
-  if(cur_info['x']>WIN_START_X+MAPPART_SIZE
+  if(cur_info['x']>win_start_x+MAPPART_SIZE*15-3
     && cur_info['y']>WIN_START_Y+MAPPART_SIZE
-    && cur_info['x']<WIN_START_X+MAPPART_SIZE+MAPPART_SIZE*2
+    && cur_info['x']<win_start_x+MAPPART_SIZE+MAPPART_SIZE*16-3
     && cur_info['y']<WIN_START_Y+MAPPART_SIZE+MAPPART_SIZE
     ){
     return true;
@@ -400,9 +399,9 @@ function checkChangeMapPartArea(){
 }
 
 function checkBgTilesArea(){
-  if(cur_info['x']>BGTILES_START_X
+  if(cur_info['x']>bgtiles_start_x
     && cur_info['y']>BGTILES_START_Y
-    && cur_info['x']<BGTILES_START_X+(BGTILES_SIZE+1)*BGTILES_MAX_X
+    && cur_info['x']<bgtiles_start_x+(BGTILES_SIZE+1)*BGTILES_MAX_X
     && cur_info['y']<BGTILES_START_Y+(BGTILES_SIZE+1)*BGTILES_MAX_Y
     ){
     return true;
@@ -412,6 +411,7 @@ function checkBgTilesArea(){
 
 function showGrid(){
   if($('#show_grid').prop('checked')){
+    show_grid = true;
     gctx.fillStyle = EDITOR_LINE;
     gctx.globalAlpha = 0.2;
     for(var y=1; y<map_max_y; y++){
@@ -422,6 +422,7 @@ function showGrid(){
     }
     gctx.globalAlpha = 1.0;
   }else{
+    show_grid = false;
     gctx.clearRect(MAP_START_X+1,MAP_START_Y,MAP_SIZE*map_max_x,MAP_SIZE*map_max_y);
   }
 }
