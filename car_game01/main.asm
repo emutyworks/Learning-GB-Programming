@@ -70,20 +70,6 @@ Start:
 	ld bc,TilesEnd - Tiles
 	call CopyData
 
-	; Set Map data
-	ld a,1
-	ldh [rVBK],a ; Attributes
-	ld hl,_SCRN0
-	ld de,BgTileMap1
-	ld bc,BgTileMapEnd1 - BgTileMap1
-	call CopyData
-	xor a
-	ldh [rVBK],a ; Tile Indexes
-	ld hl,_SCRN0
-	ld de,BgTileMap0
-	ld bc,BgTileMapEnd0 - BgTileMap0
-	call CopyData
-
 	; Reset Map Indexes/Attributes Table
 	ld hl,wMapIndexesTbl
 	ld e,MapSize*2
@@ -93,7 +79,33 @@ Start:
 	dec e
 	jr nz,.resetMapLoop
 
-	; Turn screen on, display background
+	; Set Map data
+	ld a,31
+	ld [wMapVramPos],a
+	ld a,HIGH(InitMapTbl)
+	ld [wMapTbl],a
+	ld a,LOW(InitMapTbl)
+	ld [wMapTbl+1],a
+
+	ld e,32
+.initMapData
+	push de
+	call SetMapTbl
+	call setVram
+	pop de
+	ld bc,MapTblSize
+	ld a,[wMapTbl]
+	ld h,a
+	ld a,[wMapTbl+1]
+	ld l,a
+	add hl,bc
+	ld a,h
+	ld [wMapTbl],a
+	ld a,l
+	ld [wMapTbl+1],a
+	dec e
+	jr nz,.initMapData
+
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
 	ldh [rLCDC],a
 
@@ -118,11 +130,16 @@ Start:
 	xor a
 	ldh [rSCY],a
 	ldh [rSCX],a
-	ld [wMapTblPos],a
 	ld a,20
 	ld [wMapVramPos],a
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
+
+	;set wMapTbl
+	ld a,HIGH(MapTbl)
+	ld [wMapTbl],a
+	ld a,LOW(MapTbl)
+	ld [wMapTbl+1],a
 
 MainLoop:
 	call WaitVBlank
@@ -149,6 +166,9 @@ SetScroll:
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
 	call SetMapTbl
+	call WaitVBlank
+	call setVram
+	call calcMapTbl
 	ret
 
 SetMapTbl:
@@ -157,41 +177,41 @@ SetMapTbl:
 	ld bc,wMapWorkTbl
 	ld d,MapSize
 .loop
-	ld a,[bc] ;8
-	and %00011111 ;8
-	ld [hl],a ;8
-
-	ld a,l ;4
-	add a,MapSize ;8
-	ld l,a ;4
-
-	ld a,[bc] ;8
-	and %00100000 ;8
-	ld e,a ;4 Horizontal Flip
 	ld a,[bc]
-	and %11000000 ;8
-	swap a ;8
-	rrca ;4
-	rrca ;4
-	or e ;4
-	ld [hl],a ;8
+	and %00011111
+	ld [hl],a
 
-	ld a,l ;4
-	sub a,MapSize ;8
-	ld l,a ;4
-	inc l ;4
-	inc bc ;8
-	dec d ;4
+	ld a,l
+	add a,MapSize
+	ld l,a
+
+	ld a,[bc]
+	and %00100000
+	ld e,a ; Horizontal Flip
+	ld a,[bc]
+	and %11000000
+	swap a
+	rrca
+	rrca
+	or e
+	ld [hl],a
+
+	ld a,l
+	sub a,MapSize
+	ld l,a
+	inc l
+	inc bc
+	dec d
 	jr nz,.loop
+	ret
 
+setVram:
 	call SetMapVram
 	ld a,[wMapVram]
 	ld h,a
 	ld a,[wMapVram+1]
 	ld l,a
 	ld e,MapSize
-
-	call WaitVBlank
 	xor a
 	ldh [rVBK],a ; Tile Indexes
 	ld bc,wMapIndexesTbl
@@ -217,43 +237,53 @@ SetMapTbl:
 	inc bc
 	dec e
 	jr nz,.attributesLoop
+	ret
 
+calcMapTbl:
 	ld a,[wWaitCnt2]
 	or a
-	jr z,SetMapTblPos
+	jr z,.calc
 	dec a
 	ld [wWaitCnt2],a
 	ret
-
-SetMapTblPos:
+.calc
 	ld a,WaitCnt2
 	ld [wWaitCnt2],a
 
-	ld a,[wMapTblPos]
-	cp MapTblMax
-	jr z,.reset
-	inc a
-	ld [wMapTblPos],a
+	ld a,[wMapTbl]
+	ld h,a
+	ld a,[wMapTbl+1]
+	ld l,a
+	ld bc,MapTblEnd-MapTblSize
+
+	ld a,l
+	cp c
+	jr nz,.next
+	ld a,h
+	cp b
+	jr nz,.next
+
+	ld a,HIGH(MapTbl)
+	ld [wMapTbl],a
+	ld a,LOW(MapTbl)
+	ld [wMapTbl+1],a
 	ret
-.reset
-	xor a
-	ld [wMapTblPos],a
+
+.next
+	ld bc,MapTblSize
+	add hl,bc
+	ld a,h
+	ld [wMapTbl],a
+	ld a,l
+	ld [wMapTbl+1],a
 	ret
 
 SetMapWorkTbl:
-	ld a,[wMapTblPos]
-	or a
-	jr z,.skip
-	ld hl,MapTbl
-	ld bc,MapTblSize
-.loop
-	add hl,bc
-	dec a
-	jr nz,.loop
-	jr .setTbl
-.skip
-	ld hl,MapTbl
-.setTbl
+	ld a,[wMapTbl]
+	ld h,a
+	ld a,[wMapTbl+1]
+	ld l,a
+
 	ld de,wMapWorkTbl
 	ld b,HIGH(MapPartTbl)
 	;
@@ -335,7 +365,6 @@ SetPalette:
 	ret
 
 SetOAM:
-	;call WaitVBlank
 	; call the DMA subroutine we copied to HRAM
 	; which then copies the bytes to the OAM and sprites begin to draw
 	ld a,HIGH(wShadowOAM)
