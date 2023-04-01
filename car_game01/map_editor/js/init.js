@@ -2,9 +2,11 @@ var PALETTE_DOT = 14;
 var BGTILES_DOT = 2;
 var MAPPART_DOT = 2;
 var MAP_DOT = 2;
+var MAPVIEW_DOT = 1;
 var BGTILES_SIZE = BGTILES_DOT*8;
 var MAPPART_SIZE = MAPPART_DOT*8;
 var MAP_SIZE = MAP_DOT*8;
+var MAPVIEW_SIZE = MAPVIEW_DOT*8;
 var BGTILES_MAX_X = 8;
 var BGTILES_MAX_Y = 4;
 var BGTILES_MAX = 32;
@@ -25,6 +27,8 @@ var palette_start_x = right_start+BGTILES_SIZE*8+8+16;
 var PALETTE_START_Y = BGTILES_START_Y;
 var mappart_start_x = right_start;
 var MAPPART_START_Y = BGTILES_START_Y+BGTILES_SIZE*4+4+20;
+var mapview_start_x = right_start+MAPPART_SIZE*2*MAPPART_MAX_X+8+16
+var MAPVIEW_START_Y = BGTILES_START_Y;
 var win_start_x = MAP_START_X+MAP_SIZE*(map_max_x-19)+1
 var WIN_START_Y = MAP_START_Y+MAP_SIZE+1;
 var WIN_WIDTH_X = MAP_SIZE*18-1;
@@ -33,7 +37,7 @@ var EDITOR_LINE = '#ff0000';
 var EDITOR_BOX = '#ff0000';
 var EDITOR_BOX2 = '#0000ff';
 
-var VIEW_MAX_X = 800;
+var VIEW_MAX_X = 1350;
 var VIEW_MAX_Y = 700;
 
 var base = null;
@@ -54,6 +58,7 @@ var bin_upload = false;
 var reverse_map = false;
 var flag = false;
 var show_grid = false;
+var select_view = 0;
 
 var bg_tiles = [];
 var bg_palette = [];
@@ -81,6 +86,10 @@ var cur_info = {
   //map table
   mx: 0,
   my: 0,
+  //map view
+  vx: 0,
+  vy: 0,
+  vsel: null
 };
 
 var help_cancel = '[ESC or RM] Cancel';
@@ -121,31 +130,22 @@ function setMapSize(m){
   bgtiles_start_x = right_start;
   palette_start_x = right_start+BGTILES_SIZE*8+8+16;
   mappart_start_x = right_start;
+  mapview_start_x = right_start+MAPPART_SIZE*2*MAPPART_MAX_X+8+16
   win_start_x = MAP_START_X+MAP_SIZE*(map_max_x-19)+1;
 
-  $('#bg_tiles_title').css({
-    'left': (right_start+8)+'px'
-  });
-  $('#bg_palette_title').css({
-    'left': (right_start+160)+'px'
-  });
-  $('#map_part_title').css({
-    'left': (right_start+8)+'px'
-  });
-  $('#help_mes').css({
-    'width': (right_start+265)+'px'
-  });
-
-  $('#win_mappart').css({
-    'width': (MAP_SIZE*(map_max_x-2))+'px'
-  });
+  $('#bg_tiles_title').css({ 'left': (right_start+8)+'px' });
+  $('#bg_palette_title').css({ 'left': (right_start+160)+'px' });
+  $('#map_view_title').css({ 'left': (right_start+288)+'px' });
+  $('#map_part_title').css({ 'left': (right_start+8)+'px' });
+  $('#help_mes').css({ 'width': (right_start+MAPVIEW_SIZE*map_max_x*2+282)+'px' });
+  $('#win_mappart').css({ 'width': (MAP_SIZE*(map_max_x-2))+'px' });
 
   refill_map_table();
   initView();
   drawBgTiles();
   drawMapParts();
-  drawMap();
   showGrid();
+  selectMapView();
   edit_flag = false;
 }
 
@@ -199,6 +199,17 @@ function drawBase(){
   xx = MAP_START_X;
   yy = MAP_START_Y;
   bdrowBox(xx,yy,MAP_SIZE*map_max_x+1,MAP_SIZE*map_max_y+1,EDITOR_BOX);
+
+  // Map View
+  xx = mapview_start_x;
+  yy = MAPVIEW_START_Y;
+  bdrowBox(xx,yy,MAPVIEW_SIZE*map_max_x*2+1,MAPVIEW_SIZE*map_max_y*2+1,EDITOR_BOX);
+
+  gctx.fillStyle = EDITOR_LINE;
+  gctx.globalAlpha = 0.2;
+  gctx.fillRect(xx+MAPVIEW_SIZE*map_max_x,yy,1,MAPVIEW_SIZE*map_max_y*2+1);
+  gctx.fillRect(xx,yy+MAPVIEW_SIZE*map_max_y,MAPVIEW_SIZE*map_max_x*2+1,1);
+  gctx.globalAlpha = 1.0;
 }
 
 function bdrowBox(x,y,w,h,c){

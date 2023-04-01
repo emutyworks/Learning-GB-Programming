@@ -177,7 +177,7 @@ function refill_map_table(){
   for(var i=0; i<Math.trunc(map_max_x/2); i++){
     map_tmp[i] = 0;
   }
-  for(var i=0; i<map_max_y; i++){
+  for(var i=0; i<map_max_y*4; i++){
     map_table[i] = map_tmp.concat();
   }
 
@@ -256,6 +256,11 @@ function map_download(){
           data += ',$'+dec2hex(rows[j]);
         }
       }
+      cnt++;
+      if(cnt==map_max_y){
+        data += '\n';
+        cnt = 0;
+      }
     }
   }else{
     for(var i=(map_table.length-1); i>=0; i--){
@@ -266,6 +271,11 @@ function map_download(){
         }else{
           data += ',$'+dec2hex(rows[j]);
         }
+      }
+      cnt++;
+      if(cnt==map_max_y){
+        data += '\n';
+        cnt = 0;
       }
     }
   }

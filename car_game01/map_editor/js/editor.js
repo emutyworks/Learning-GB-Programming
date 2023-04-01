@@ -1,9 +1,9 @@
-function drawMap(){
+function drawMap(m){
   var xx = MAP_START_X;
   var yy = MAP_START_Y;
 
-  for(var i=0; i<map_table.length; i++){
-    var row = map_table[i];
+  for(var i=0; i<map_max_y; i++){
+    var row = map_table[i+map_max_y*select_view];
     for(var j=0; j<row.length; j++){
       var data = [];
       data[0] = map_part[row[j]*2];
@@ -13,6 +13,50 @@ function drawMap(){
     }
     xx = MAP_START_X;
     yy += MAP_SIZE;
+  }
+  drawMapView(m);
+}
+
+function drawMapView(m){
+  if(m=='edit'){
+    _drawMapView(select_view);
+  }else{
+    for(var i=0; i<4; i++){
+      _drawMapView(i);
+    }
+  }
+}
+function _drawMapView(s){
+  var x = mapview_start_x;
+  var y = MAPVIEW_START_Y;
+  var add_index = map_max_y*s;
+
+  if(s==1){
+    y += MAPVIEW_SIZE*map_max_y;
+  }else
+  if(s==2){
+    x += MAPVIEW_SIZE*map_max_x;
+  }else
+  if(s==3){
+    x += MAPVIEW_SIZE*map_max_x;
+    y += MAPVIEW_SIZE*map_max_y;
+  }else{
+    //
+  }
+  var xx = x;
+  var yy = y;
+
+  for(var i=0; i<map_max_y; i++){
+    var row = map_table[i+add_index];
+    for(var j=0; j<row.length; j++){
+      var data = [];
+      data[0] = map_part[row[j]*2];
+      data[1] = map_part[row[j]*2+1];
+      drawMapPart(xx+1,yy+1,data,MAPVIEW_DOT,"v");
+      xx += MAPVIEW_SIZE*2;
+    }
+    xx = x;
+    yy += MAPVIEW_SIZE;
   }
 }
 
@@ -117,8 +161,8 @@ function flipHorizontalTile(v){
 function editMapTable(){
   var mx = cur_info['mx'];
   var my = cur_info['my'];
-  map_table[my][mx] = cur_info['psel'];
-  drawMap();
+  map_table[my+map_max_y*select_view][mx] = cur_info['psel'];
+  drawMap('edit');
 }
 
 function selectMapTable(){
@@ -187,7 +231,7 @@ function copyMapPart(){
   map_part[ci*2] = map_part[i*2].concat();
   map_part[ci*2+1] = map_part[i*2+1].concat();
   drawMapParts();
-  drawMap();
+  drawMap('edit');
 }
 
 function updateMapPart(m){
@@ -217,7 +261,7 @@ function updateMapPart(m){
     map_part[i*2] = cmap_part[0].concat();
     map_part[i*2+1] = cmap_part[1].concat();
     drawMapParts();
-    drawMap();
+    drawMap('edit');
   }else{
     drawMapPart(xx,yy,cmap_part,MAPPART_DOT,"w");
   }
@@ -407,6 +451,50 @@ function checkBgTilesArea(){
     return true;
   }
   return false;
+}
+
+function checkMapViewArea(){
+  if(cur_info['x']>mapview_start_x
+    && cur_info['y']>MAPVIEW_START_Y
+    && cur_info['x']<mapview_start_x+MAPVIEW_SIZE*map_max_x*2
+    && cur_info['y']<MAPVIEW_START_Y+MAPVIEW_SIZE*map_max_y*2
+    ){
+    return true;
+  }
+  return false;
+}
+
+function resetMapViewCursor(){
+  var x = mapview_start_x;
+  var y = MAPVIEW_START_Y;
+  var w = MAPVIEW_SIZE*map_max_x*2+1;
+  var h = MAPVIEW_SIZE*map_max_y*2+1;
+  cctx.clearRect(x,y,w,h);
+}
+
+function setMapViewCursor(){
+  var xx = mapview_start_x+cur_info['vx']*(MAPVIEW_SIZE*map_max_x);
+  var yy = MAPVIEW_START_Y+cur_info['vy']*(MAPVIEW_SIZE*map_max_y);
+  cdrowBox(xx,yy,MAPVIEW_SIZE*map_max_x,MAPVIEW_SIZE*map_max_y,EDITOR_LINE);
+}
+
+function selectMapView(){
+  cur_info['vsel'] = cur_info['vx']*2+cur_info['vy'];
+  select_view = cur_info['vsel'];
+    
+  var xx = mapview_start_x;
+  var yy = MAPVIEW_START_Y;
+  gctx.clearRect(xx,yy,MAPVIEW_SIZE*map_max_x*2+1,MAPVIEW_SIZE*map_max_y*2+1);
+  gctx.fillStyle = EDITOR_LINE;
+  gctx.globalAlpha = 0.2;
+  gctx.fillRect(xx+MAPVIEW_SIZE*map_max_x,yy,1,MAPVIEW_SIZE*map_max_y*2+1);
+  gctx.fillRect(xx,yy+MAPVIEW_SIZE*map_max_y,MAPVIEW_SIZE*map_max_x*2+1,1);
+
+  xx = mapview_start_x+MAPVIEW_SIZE*map_max_x*cur_info['vx'];
+  yy = MAPVIEW_START_Y+MAPVIEW_SIZE*map_max_y*cur_info['vy'];
+  gctx.fillRect(xx,yy,MAPVIEW_SIZE*map_max_x,MAPVIEW_SIZE*map_max_y);
+  gctx.globalAlpha = 1.0;
+  drawMap();
 }
 
 function showGrid(){

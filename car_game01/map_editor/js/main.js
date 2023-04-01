@@ -51,6 +51,11 @@ window.onload = function(){
     }
 
     if(bin_upload){
+      if(checkMapViewArea()){
+          resetMapViewCursor();
+          setMapViewCursor();
+          selectMapView();
+      }else
       if(checkMapPartArea() && !edit_flag){
         setMes('select_mappart');
         resetMapPartCursor();
@@ -96,6 +101,10 @@ window.onload = function(){
     help_flag = false;
 
     if(bin_upload){
+      if(checkMapViewArea()){
+        resetMapViewCursor();
+        setMapViewCursor();
+      }else
       if(checkMapPartArea() && !edit_flag){
         setMes('select_mappart');
         resetMapPartCursor();
@@ -184,6 +193,16 @@ window.onload = function(){
       my = Math.trunc((y-MAP_START_Y)/MAP_SIZE);
     }
 
+    var vx = 0;
+    var vy = 0;
+    if(x>mapview_start_x && y>MAPVIEW_START_Y
+    && x<mapview_start_x+MAPVIEW_SIZE*map_max_x*2
+    && y<MAPVIEW_START_Y+MAPVIEW_SIZE*map_max_y*2
+    ){
+      vx = Math.trunc((x-mapview_start_x)/(MAPVIEW_SIZE*map_max_x));
+      vy = Math.trunc((y-MAPVIEW_START_Y)/(MAPVIEW_SIZE*map_max_y));
+    }
+
     cur_info = {
       org_x: org_x,
       org_y: org_y,
@@ -204,6 +223,10 @@ window.onload = function(){
       //map table
       mx: mx,
       my: my,
+      //map view
+      vx: vx,
+      vy: vy,
+      vsel: cur_info['vsel']
     };
   }
 }

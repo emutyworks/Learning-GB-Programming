@@ -43,6 +43,11 @@ body, input, select, textarea, button, span, tr, td, div{
   top: 80px;
   left: 496px;
 }
+#map_view_title{
+  position: absolute;
+  top: 80px;
+  left: 624px;
+}
 #map_part_title{
   position: absolute;
   top: 166px;
@@ -53,7 +58,7 @@ body, input, select, textarea, button, span, tr, td, div{
   position: relative;
   top: 5px;
   background-color: #ffff80;
-  width: 601px;
+  width: 939px;
 }
 
 #win_mappart{
