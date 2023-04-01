@@ -262,6 +262,7 @@ function updateMapPart(m){
     map_part[i*2+1] = cmap_part[1].concat();
     drawMapParts();
     drawMap('edit');
+    drawMapView();
   }else{
     drawMapPart(xx,yy,cmap_part,MAPPART_DOT,"w");
   }
