@@ -205,6 +205,7 @@ function map_download(){
   var filename = $("input[name='download_file']").val();
 
   $('#map_download').attr('download',filename+'.txt');
+  reverse_map = false;
   if($('input:checkbox[name="reverse_map"]:checked').val()=="1"){
     reverse_map = true;
   }
