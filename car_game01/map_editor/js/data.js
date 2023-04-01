@@ -219,7 +219,7 @@ function map_download(){
   var cnt = 0;
   for(var j=0; j<Math.trunc(bg_palette.length/4); j++){
     for(var i=0; i<4; i++){
-      data += 'dw '+bg_palette[cnt]+'\n';
+      data += '\tdw '+bg_palette[cnt]+'\n';
       cnt++;
     }
     data += '\n';
@@ -229,7 +229,7 @@ function map_download(){
   var cnt = 0;
   for(var i=0; i<map_part.length; i++){
     if(cnt==0){
-      data += '\ndb $'+bin2hex(map_part[i]);
+      data += '\n\tdb $'+bin2hex(map_part[i]);
     }else{
       data += ',$'+bin2hex(map_part[i]);
     }
@@ -251,7 +251,7 @@ function map_download(){
       var rows = map_table[i];
       for(var j=0; j<rows.length; j++){
         if(j==0){
-          data += '\ndb $'+dec2hex(rows[j]);
+          data += '\n\tdb $'+dec2hex(rows[j]);
         }else{
           data += ',$'+dec2hex(rows[j]);
         }
@@ -267,7 +267,7 @@ function map_download(){
       var rows = map_table[i];
       for(var j=0; j<rows.length; j++){
         if(j==0){
-          data += '\ndb $'+dec2hex(rows[j]);
+          data += '\n\tdb $'+dec2hex(rows[j]);
         }else{
           data += ',$'+dec2hex(rows[j]);
         }
