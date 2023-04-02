@@ -1,5 +1,4 @@
-WaitCnt       EQU 3
-WaitCnt2      EQU 0
+WaitCnt       EQU 1
 MapTblSize    EQU 10
 MapSize       EQU 20
 MapPosCnt     EQU 8
@@ -10,5 +9,5 @@ SBX           EQU 8 ; Screen Base X
 CarStartY     EQU SBY+8*11
 CarStartX     EQU SBX+8*9
 
-BGPaletteCnt  EQU 4*2
+BGPaletteCnt  EQU 4*3
 ObjPaletteCnt EQU 4*1

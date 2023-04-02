@@ -123,8 +123,6 @@ Start:
 
 	ld a,WaitCnt
 	ld [wWaitCnt],a
-	ld a,WaitCnt2
-	ld [wWaitCnt2],a
 
 	;Set Scroll Potition
 	xor a
@@ -240,16 +238,6 @@ setVram:
 	ret
 
 calcMapTbl:
-	ld a,[wWaitCnt2]
-	or a
-	jr z,.calc
-	dec a
-	ld [wWaitCnt2],a
-	ret
-.calc
-	ld a,WaitCnt2
-	ld [wWaitCnt2],a
-
 	ld a,[wMapTbl]
 	ld h,a
 	ld a,[wMapTbl+1]
