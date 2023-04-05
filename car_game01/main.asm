@@ -14,23 +14,11 @@
 INCLUDE "hardware.inc"
 INCLUDE "equ.inc"
 
-MACRO mSetMapWorkTbl
-	ld a,[hli]
-	add a
-	ld c,a
-	ld a,[bc]
-	ld [de],a
-	inc c
-	inc e
-	ld a,[bc]
-	ld [de],a
-ENDM
-
 SECTION "Header",ROM0[$100]
 
 EntryPoint:
 	di
-	jp Start
+	jr Start
 
 REPT $150 - $104
 	db 0
@@ -63,12 +51,15 @@ Start:
 	ldh [rIE],a
 	ldh [rIF],a
 	ldh [rSTAT],a
+	ldh [rSVBK],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
 	ld de,Tiles
 	ld bc,TilesEnd - Tiles
 	call CopyData
+
+	call SetMapPartTbl
 
 	; Reset Map Indexes/Attributes Table
 	ld hl,wMapIndexesTbl
@@ -80,19 +71,18 @@ Start:
 	jr nz,.resetMapLoop
 
 	; Set Map data
-	ld a,31
-	ld [wMapVramPos],a
+	ld a,HIGH(MapVramX31)
+	ld [wMapVram],a
+	ld a,LOW(MapVramX31)
+	ld [wMapVram+1],a
 	ld a,HIGH(InitMapTbl)
 	ld [wMapTbl],a
 	ld a,LOW(InitMapTbl)
 	ld [wMapTbl+1],a
 
-	ld e,32
 .initMapData
-	push de
 	call SetMapTbl
 	call setVram
-	pop de
 	ld bc,MapTblSize
 	ld a,[wMapTbl]
 	ld h,a
@@ -103,7 +93,24 @@ Start:
 	ld [wMapTbl],a
 	ld a,l
 	ld [wMapTbl+1],a
-	dec e
+
+	ld bc,MapVramDec
+	ld a,[wMapVram]
+	ld h,a
+	ld a,[wMapVram+1]
+	ld l,a
+	add hl,bc
+	ld a,h
+	ld [wMapVram],a
+	ld a,l
+	ld [wMapVram+1],a
+
+	ld bc,MapVramMin
+	ld a,l
+	cp c
+	jr nz,.initMapData
+	ld a,h
+	cp b
 	jr nz,.initMapData
 
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
@@ -128,10 +135,12 @@ Start:
 	xor a
 	ldh [rSCY],a
 	ldh [rSCX],a
-	ld a,20
-	ld [wMapVramPos],a
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
+	ld a,HIGH(MapVramX20)
+	ld [wMapVram],a
+	ld a,LOW(MapVramX20)
+	ld [wMapVram+1],a
 
 	;set wMapTbl
 	ld a,HIGH(MapTbl)
@@ -142,7 +151,7 @@ Start:
 MainLoop:
 	call WaitVBlank
 	call SetScroll
-	jp MainLoop
+	jr MainLoop
 
 SetScroll:
 	ld a,[wWaitCnt]
@@ -165,46 +174,52 @@ SetScroll:
 	ld [wScrollCnt],a
 	call SetMapTbl
 	call WaitVBlank
+	call DecMapVram
 	call setVram
 	call calcMapTbl
 	ret
 
 SetMapTbl:
-	call SetMapWorkTbl
-	ld hl,wMapIndexesTbl
-	ld bc,wMapWorkTbl
-	ld d,MapSize
+	ld a,[wMapTbl] ;16
+	ld h,a ;4
+	ld a,[wMapTbl+1] ;16
+	ld l,a ;4
+	ld bc,wMapIndexesTbl ;12
+	ld e,MapSize/2 ;8 = 60
 .loop
-	ld a,[bc]
-	and %00011111
-	ld [hl],a
+	ld a,[hli] ;8 hl=wMapTbl
+	push hl ;16
+	ld h,0 ;8
+	ld l,a ;4
+	add hl,hl ;8
+	add hl,hl ;8
+	push de ;16
+	ld de,wMapPartTbl ;12
+	add hl,de ;8
+	pop de ;12
+	ld a,[hli] ;8 wMapPartTbl 1
+	ld [bc],a ;8 wMapIndexesTbl 1
+	inc bc ;8
+	ld a,[hli] ;8 wMapPartTbl 2
+	ld [bc],a ;8 wMapIndexesTbl 2
+	ld a,c ;4
+	add a,MapSize-1 ;8 bc+19
+	ld c,a ;4
+	ld a,[hli] ;8 wMapPartTbl 3
+	ld [bc],a ;8 wMapAttributesTbl 1
+	inc bc ;8
+	ld a,[hli] ;8 wMapPartTbl 4
+	ld [bc],a ;8 wMapAttributesTbl 2
+	ld a,c ;4
+	sub MapSize-1 ;8 bc-19
+	ld c,a ;4
 
-	ld a,l
-	add a,MapSize
-	ld l,a
-
-	ld a,[bc]
-	and %00100000
-	ld e,a ; Horizontal Flip
-	ld a,[bc]
-	and %11000000
-	swap a
-	rrca
-	rrca
-	or e
-	ld [hl],a
-
-	ld a,l
-	sub a,MapSize
-	ld l,a
-	inc l
-	inc bc
-	dec d
-	jr nz,.loop
-	ret
+	pop hl ;12
+	dec e ;4
+	jr nz,.loop ;12 = 240*10 = 2400
+	ret ;12 = 2412
 
 setVram:
-	call SetMapVram
 	ld a,[wMapVram]
 	ld h,a
 	ld a,[wMapVram+1]
@@ -266,56 +281,56 @@ calcMapTbl:
 	ld [wMapTbl+1],a
 	ret
 
-SetMapWorkTbl:
-	ld a,[wMapTbl]
-	ld h,a
-	ld a,[wMapTbl+1]
-	ld l,a
+DecMapVram:
+	ld bc,$FFE0 ;12
+	ld a,[wMapVram] ;16
+	ld h,a ;4
+	ld a,[wMapVram+1] ;16
+	ld l,a ;4
+	add hl,bc ;8 = 60
 
-	ld de,wMapWorkTbl
-	ld b,HIGH(MapPartTbl)
-	;
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
-	inc e
-	mSetMapWorkTbl
+	ld bc,$97E0 ;12
+	ld a,l ;4
+	cp c ;4
+	jr nz,.next ;12 = 32+60 = 92
+	ld a,h ;4
+	cp b ;4
+	jr nz,.next ;12 = 20+32+60 = 112
+
+	ld a,$9B ;8
+	ld [wMapVram],a ;16
+	ld a,$E0 ;8
+	ld [wMapVram+1],a ;16 = 48+112=160
 	ret
 
-SetMapVram:
-	ld h,HIGH(MapVramTbl)
-	ld a,[wMapVramPos]
-	add a
-	ld l,a
-	ld a,[hli]
-	ld [wMapVram+1],a
-	ld a,[hl]
-	ld [wMapVram],a
-
-	ld a,[wMapVramPos]
-	cp 0
-	jr z,.next
-	dec a
-	ld [wMapVramPos],a
-	ret
 .next
-	ld a,MapVramPosMax
-	ld [wMapVramPos],a
+	ld a,h ;4
+	ld [wMapVram],a ;16
+	ld a,l ;4
+	ld [wMapVram+1],a ;16 = 40+92=132, 40+112=152
 	ret
+
+
+;SetMapVram:
+;	ld h,HIGH(MapVramTbl) ;8
+;	ld a,[wMapVramPos] ;16
+;	add a,a ;4
+;	ld l,a ;4
+;	ld a,[hli] ;8
+;	ld [wMapVram+1],a ;16
+;	ld a,[hl] ;8
+;	ld [wMapVram],a ;16 = 80
+;
+;	ld a,[wMapVramPos] ;16
+;	cp 0 ;4
+;	jr z,.next ;12
+;	dec a ;4
+;	ld [wMapVramPos],a ;16 = 52+80 = 132
+;	ret
+;.next
+;	ld a,MapVramPosMax ;8
+;	ld [wMapVramPos],a ;16 = 24+52+80 = 156
+;	ret
 
 SetSprite:
 	ld hl,wShadowOAM
@@ -342,6 +357,75 @@ SetSprite:
 	dec e
 	jr nz,.loop
 	ret
+
+SetMapPartTbl:
+	ld hl,wMapPartTbl
+	ld bc,MapPartTblSize
+.reset
+	xor a
+	ld [hli],a
+	dec bc
+	ld a,b
+	or c
+	jr nz,.reset
+
+	ld bc,MapPartTbl
+	ld hl,wMapPartTbl
+.loop
+	ld e,0
+	ld a,[bc]
+	ld d,a
+	and %00011111
+	ld [hli],a
+	cp BGPriorityTile
+	jr c,.skip1
+	ld e,%10000000 ; BG-to-OAM Priority
+.skip1
+	ld a,d
+	and %00100000 ; Horizontal Flip
+	or e
+	ld e,a
+	ld a,d
+	and %11000000
+	swap a
+	rrca
+	rrca
+	or e
+	inc hl
+	ld [hld],a
+	inc bc
+
+	ld e,0
+	ld a,[bc]
+	ld d,a
+	and %00011111
+	ld [hli],a
+	cp BGPriorityTile
+	jr c,.skip2
+	ld e,%10000000 ; BG-to-OAM Priority
+.skip2
+	ld a,d
+	and %00100000 ; Horizontal Flip
+	or e
+	ld e,a
+	ld a,d
+	and %11000000
+	swap a
+	rrca
+	rrca
+	or e
+	inc hl
+	ld [hli],a
+	inc bc
+
+	ld de,MapPartTblEnd
+	ld a,c
+	cp e
+	jr nz,.loop
+	ld a,b
+	cp d
+	jr nz,.loop
+  ret
 
 SetPalette:
 	ld a,[hli]

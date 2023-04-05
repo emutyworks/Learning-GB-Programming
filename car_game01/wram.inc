@@ -1,10 +1,7 @@
 SECTION "Shadow OAM",WRAM0[$C000]
 wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
 
-SECTION "Map Work Table",WRAM0[$C0A0]
-wMapWorkTbl: ds MapSize
-
-SECTION "Map Indexes/Attributes Table",WRAM0[$C0B4]
+SECTION "Map Indexes/Attributes Table",WRAM0[$C0A0]
 wMapIndexesTbl: ds MapSize
 wMapAttributesTbl: ds MapSize
 
@@ -12,13 +9,14 @@ wMapAttributesTbl: ds MapSize
 SECTION "State",WRAM0[$C100];debug
 wMapTbl: ds 2
 wMapVram: ds 2
-wMapVramPos: ds 1
+;wMapVramPos: ds 1
 wWaitCnt: ds 1
-wWaitCnt2: ds 1
 wScrollCnt: ds 1
-;
 wPosY: ds 1
 wPosX: ds 1
+
+SECTION "Map Part Table",WRAMX[$D000]
+wMapPartTbl: ds MapPartTblSize
 
 SECTION "HRAM Variables",HRAM
 hOAMDMA:
