@@ -19,3 +19,7 @@ MapVramX31     EQU $9BE0 ; $9800+$20*31
 MapVramX20     EQU $9A80 ; $9800+$20*20
 MapVramDec     EQU $FFE0
 MapVramMin     EQU $97E0 ; $9800-$20
+
+SetMapTblEnd      EQU LOW($C0A0+MapSize*2-1) ; $C0A0 = wMapIndexesTbl
+WMapIndexesEnd    EQU LOW($C0A0+MapSize)
+WMapAttributesEnd EQU LOW($C0A0+MapSize*2)

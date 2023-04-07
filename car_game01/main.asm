@@ -13,6 +13,7 @@
 
 INCLUDE "hardware.inc"
 INCLUDE "equ.inc"
+INCLUDE "macro.inc"
 
 SECTION "Header",ROM0[$100]
 
@@ -28,23 +29,23 @@ SECTION "Start",ROM0[$150]
 
 Start:
 	call CopyDMARoutine ; move DMA subroutine to HRAM
-	call WaitVBlank
+	mWaitVBlank
 
 	; Set BG Palette
 	ld a,%10000000 ; Palette 0, Auto increment after writing
-	ld [rBCPS],a
+	ldh [rBCPS],a
 	ld c,BGPaletteCnt
 	ld hl,BGPalette
 	ld de,rBCPD
-	call SetPalette
+	mSetPalette
 
 	; Set Object Palette
 	ld a,%10000000
-	ld [rOCPS],a
+	ldh [rOCPS],a
 	ld c,ObjPaletteCnt
 	ld hl,ObjPalette
 	ld de,rOCPD
-	call SetPalette
+	mSetPalette
 
 	xor a
 	ldh [rLCDC],a
@@ -58,7 +59,6 @@ Start:
 	ld de,Tiles
 	ld bc,TilesEnd - Tiles
 	call CopyData
-
 	call SetMapPartTbl
 
 	; Reset Map Indexes/Attributes Table
@@ -81,8 +81,8 @@ Start:
 	ld [wMapTbl+1],a
 
 .initMapData
-	call SetMapTbl
-	call setVram
+	mSetMapTbl
+	mSetVram
 	ld bc,MapTblSize
 	ld a,[wMapTbl]
 	ld h,a
@@ -108,10 +108,10 @@ Start:
 	ld bc,MapVramMin
 	ld a,l
 	cp c
-	jr nz,.initMapData
+	jp nz,.initMapData
 	ld a,h
 	cp b
-	jr nz,.initMapData
+	jp nz,.initMapData
 
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
 	ldh [rLCDC],a
@@ -124,9 +124,9 @@ Start:
 	ld a,CarStartX
 	ld [wPosX],a
 	ld bc,CarSpriteTbl
-	call SetSprite
-	call WaitVBlank
-	call SetOAM
+	mSetSprite
+	mWaitVBlank
+	mSetOAM
 
 	ld a,WaitCnt
 	ld [wWaitCnt],a
@@ -149,15 +149,12 @@ Start:
 	ld [wMapTbl+1],a
 
 MainLoop:
-	call WaitVBlank
-	call SetScroll
-	jr MainLoop
+	mWaitVBlank
 
-SetScroll:
 	ld a,[wWaitCnt]
 	dec a
 	ld [wWaitCnt],a
-	ret nz
+	jr nz,MainLoop
 
 	ld a,WaitCnt
 	ld [wWaitCnt],a
@@ -169,194 +166,17 @@ SetScroll:
 	dec a
 	ld [wScrollCnt],a
 	or a
-	ret nz
+	jr nz,MainLoop
+
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
-	call SetMapTbl
-	call WaitVBlank
-	call DecMapVram
-	call setVram
-	call calcMapTbl
-	ret
+	mSetMapTbl
+	mWaitVBlank
+	mDecMapVram
+	mSetVram
+	mCalcMapTbl
 
-SetMapTbl:
-	ld a,[wMapTbl] ;16
-	ld h,a ;4
-	ld a,[wMapTbl+1] ;16
-	ld l,a ;4
-	ld bc,wMapIndexesTbl ;12
-	ld e,MapSize/2 ;8 = 60
-.loop
-	ld a,[hli] ;8 hl=wMapTbl
-	push hl ;16
-	ld h,0 ;8
-	ld l,a ;4
-	add hl,hl ;8
-	add hl,hl ;8
-	push de ;16
-	ld de,wMapPartTbl ;12
-	add hl,de ;8
-	pop de ;12
-	ld a,[hli] ;8 wMapPartTbl 1
-	ld [bc],a ;8 wMapIndexesTbl 1
-	inc bc ;8
-	ld a,[hli] ;8 wMapPartTbl 2
-	ld [bc],a ;8 wMapIndexesTbl 2
-	ld a,c ;4
-	add a,MapSize-1 ;8 bc+19
-	ld c,a ;4
-	ld a,[hli] ;8 wMapPartTbl 3
-	ld [bc],a ;8 wMapAttributesTbl 1
-	inc bc ;8
-	ld a,[hli] ;8 wMapPartTbl 4
-	ld [bc],a ;8 wMapAttributesTbl 2
-	ld a,c ;4
-	sub MapSize-1 ;8 bc-19
-	ld c,a ;4
-
-	pop hl ;12
-	dec e ;4
-	jr nz,.loop ;12 = 240*10 = 2400
-	ret ;12 = 2412
-
-setVram:
-	ld a,[wMapVram]
-	ld h,a
-	ld a,[wMapVram+1]
-	ld l,a
-	ld e,MapSize
-	xor a
-	ldh [rVBK],a ; Tile Indexes
-	ld bc,wMapIndexesTbl
-.indexesLoop
-	ld a,[bc]
-	ld [hli],a
-	inc bc
-	dec e
-	jr nz,.indexesLoop
-
-	ld a,[wMapVram]
-	ld h,a
-	ld a,[wMapVram+1]
-	ld l,a
-	ld e,MapSize
-
-	ld a,1
-	ldh [rVBK],a ; Attributes
-	ld bc,wMapAttributesTbl
-.attributesLoop
-	ld a,[bc]
-	ld [hli],a
-	inc bc
-	dec e
-	jr nz,.attributesLoop
-	ret
-
-calcMapTbl:
-	ld a,[wMapTbl]
-	ld h,a
-	ld a,[wMapTbl+1]
-	ld l,a
-	ld bc,MapTblEnd-MapTblSize
-
-	ld a,l
-	cp c
-	jr nz,.next
-	ld a,h
-	cp b
-	jr nz,.next
-
-	ld a,HIGH(MapTbl)
-	ld [wMapTbl],a
-	ld a,LOW(MapTbl)
-	ld [wMapTbl+1],a
-	ret
-
-.next
-	ld bc,MapTblSize
-	add hl,bc
-	ld a,h
-	ld [wMapTbl],a
-	ld a,l
-	ld [wMapTbl+1],a
-	ret
-
-DecMapVram:
-	ld bc,$FFE0 ;12
-	ld a,[wMapVram] ;16
-	ld h,a ;4
-	ld a,[wMapVram+1] ;16
-	ld l,a ;4
-	add hl,bc ;8 = 60
-
-	ld bc,$97E0 ;12
-	ld a,l ;4
-	cp c ;4
-	jr nz,.next ;12 = 32+60 = 92
-	ld a,h ;4
-	cp b ;4
-	jr nz,.next ;12 = 20+32+60 = 112
-
-	ld a,$9B ;8
-	ld [wMapVram],a ;16
-	ld a,$E0 ;8
-	ld [wMapVram+1],a ;16 = 48+112=160
-	ret
-
-.next
-	ld a,h ;4
-	ld [wMapVram],a ;16
-	ld a,l ;4
-	ld [wMapVram+1],a ;16 = 40+92=132, 40+112=152
-	ret
-
-
-;SetMapVram:
-;	ld h,HIGH(MapVramTbl) ;8
-;	ld a,[wMapVramPos] ;16
-;	add a,a ;4
-;	ld l,a ;4
-;	ld a,[hli] ;8
-;	ld [wMapVram+1],a ;16
-;	ld a,[hl] ;8
-;	ld [wMapVram],a ;16 = 80
-;
-;	ld a,[wMapVramPos] ;16
-;	cp 0 ;4
-;	jr z,.next ;12
-;	dec a ;4
-;	ld [wMapVramPos],a ;16 = 52+80 = 132
-;	ret
-;.next
-;	ld a,MapVramPosMax ;8
-;	ld [wMapVramPos],a ;16 = 24+52+80 = 156
-;	ret
-
-SetSprite:
-	ld hl,wShadowOAM
-	ld e,4 ; Sprite pattern count
-.loop
-	ld a,[wPosY]
-	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; Y Position
-	inc c
-	ld a,[wPosX]
-	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; X Position
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Tile Index
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Attributes/Flags
-	inc c
-	dec e
-	jr nz,.loop
-	ret
+	jp MainLoop
 
 SetMapPartTbl:
 	ld hl,wMapPartTbl
@@ -426,28 +246,6 @@ SetMapPartTbl:
 	cp d
 	jr nz,.loop
   ret
-
-SetPalette:
-	ld a,[hli]
-	ld [de],a
-	ld a,[hli]
-	ld [de],a
-	dec c
-	jr nz,SetPalette
-	ret
-
-SetOAM:
-	; call the DMA subroutine we copied to HRAM
-	; which then copies the bytes to the OAM and sprites begin to draw
-	ld a,HIGH(wShadowOAM)
-	call hOAMDMA
-	ret
-
-WaitVBlank:
-	ldh a,[rLY]
-	cp SCRN_Y ; 144 ; Check if the LCD is past VBlank
-	jr nz,WaitVBlank
-	ret
 
 CopyData:
 	ld a,[de] ; Grab 1 byte from the source
