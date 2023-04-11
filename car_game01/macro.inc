@@ -1,27 +1,134 @@
-MACRO mSetSprite
-	ld hl,wShadowOAM
-	ld e,4 ; Sprite pattern count
-.loop\@
-	ld a,[wPosY]
+MACRO mGetCarCollision
+;call mGetCarCollision ;24cycles
+	rrca ;1byte
+	rrca ;1
+	rrca ;1
+	and %00011111 ;2
+	add a,l ;1
+	ld l,a ;1
+	xor a ;1
+	ldh [rVBK],a ;2
+	ld a,[hl] ;1 = 11bytes
+;ret ;16cycles = 40cycles
+ENDM
+
+MACRO mGetCarColSubTbl
+	ld hl,CarColSubTbl
+	add a,l
+	ld l,a
+	ld c,[hl]
+ENDM
+
+MACRO mCheckCollision
+	ld a,[wCarPosVram]
+	ld h,a
+	ld a,[wCarPosVram+1]
+	ld l,a
+	push hl
+
+	; Check Upper left
+	ld a,[wNewPosX]
+	ld e,a
+	sub 7 ; wNewPosX-7 Upper left
 	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; Y Position
-	inc c
-	ld a,[wPosX]
+	mGetCarCollision
+	cp BGDontColTile
+	jr c,.upperRight\@
+	
+	mGetCarColSubTbl
+	ld a,d
+	add c
+	pop hl
+	push hl
+	mGetCarCollision
+	cp BGDontColTile
+	jr c,.upperRight\@
+
+	ld a,[wNewPosX]
+	add CarVibration
+	ld [wNewPosX],a
+	jr .update\@
+
+.upperRight\@
+	; Check Upper Right
+	pop hl
+	push hl
+	ld a,e
+	add a,6 ; wNewPosX+7 Upper Right
 	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; X Position
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Tile Index
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Attributes/Flags
-	inc c
-	dec e
-	jr nz,.loop\@
+	mGetCarCollision
+	cp BGDontColTile
+	jr c,.update\@
+
+	mGetCarColSubTbl
+	ld a,d
+	sub c
+	pop hl
+	push hl
+	mGetCarCollision
+	cp BGDontColTile
+	jr c,.update\@
+	
+	ld a,[wNewPosX]
+	sub CarVibration
+	ld [wNewPosX],a
+	jr .update\@
+
+.update\@
+	ld a,[wNewPosX]
+	ld [wPosX],a
+	pop hl
+ENDM
+
+MACRO mSetCarPosVram
+	ldh a,[rSCY]
+	add a,CarBaseY
+	rrca
+	rrca
+	rrca
+	and %00011111
+	ld hl,MapVramTbl
+	add a,a
+	ld l,a
+	ld a,[hli]
+	ld [wCarPosVram+1],a
+	ld a,[hl]
+	ld [wCarPosVram],a
+ENDM
+
+MACRO mCheckJoypad
+	;%76543210
+	; |||||||+ Right
+	; ||||||+- Left
+	; |||||+-- Up
+	; ||||+--- Down
+	; |||+---- A
+	; ||+----- B
+	; |+------ Select
+	; +------- Start
+	ld a,P1F_4
+	ldh [rP1],a ; Select P14
+	ldh a,[rP1]
+	ldh a,[rP1] ; Wait a few cycles
+	cpl ; Complement A
+	and %00001111 ; Get only first 4 bits
+	ld [wButton],a
+	;swap a
+	;ld b,a
+	ld a,P1F_5
+	ldh [rP1],a ; Select P15
+	ldh a,[rP1]
+	ldh a,[rP1]
+	ldh a,[rP1]
+	ldh a,[rP1]
+	ldh a,[rP1]
+	ldh a,[rP1] ; Wait a few MORE cycles
+	cpl
+	and %00001111
+	;or a,b ; Put A and B together
+	ld [wJoypad],a
+	ld a,P1F_4|P1F_5 ; Deselect P14 and P15.
+	ldh [rP1],a
 ENDM
 
 MACRO mSetMapTbl

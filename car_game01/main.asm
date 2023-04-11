@@ -10,6 +10,9 @@
 ; OAM DMA tutorial
 ; https://gbdev.gg8.se/wiki/articles/OAM_DMA_tutorial
 ;
+; The Cycle-Accurate Game Boy Docs (p25: 7. Joypad)
+; https://github.com/AntonioND/giibiiadvance/blob/master/docs/TCAGBD.pdf
+;
 
 INCLUDE "hardware.inc"
 INCLUDE "equ.inc"
@@ -53,6 +56,11 @@ Start:
 	ldh [rIF],a
 	ldh [rSTAT],a
 	ldh [rSVBK],a
+	ld [wJoypad],a
+	ld [wButton],a
+	ld [wDebug1],a
+	ld [wDebug2],a
+	ld [wDebug3],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -123,15 +131,13 @@ Start:
 	ld [wPosY],a
 	ld a,CarStartX
 	ld [wPosX],a
+	ld [wNewPosX],a
 	ld bc,CarSpriteTbl
-	mSetSprite
+	call SetSprite
 	mWaitVBlank
 	mSetOAM
 
-	ld a,WaitCnt
-	ld [wWaitCnt],a
-
-	;Set Scroll Potition
+	; Set Scroll Potition
 	xor a
 	ldh [rSCY],a
 	ldh [rSCX],a
@@ -142,22 +148,50 @@ Start:
 	ld a,LOW(MapVramX20)
 	ld [wMapVram+1],a
 
-	;set wMapTbl
+	; Set wMapTbl
 	ld a,HIGH(MapTbl)
 	ld [wMapTbl],a
 	ld a,LOW(MapTbl)
 	ld [wMapTbl+1],a
 
 MainLoop:
+	mCheckJoypad
+
+	ld a,[wJoypad]
+	ld e,a
+	bit JBitRight,a
+	jr z,.left
+
+	ld a,[wPosX]
+	inc a
+	ld [wNewPosX],a
+	jr .next
+
+.left
+	ld a,e
+	bit JBitLeft,a
+	jr z,.next
+
+	ld a,[wPosX]
+	dec a
+	ld [wNewPosX],a
+	jr .next
+
+.next
+	mSetMapTbl
 	mWaitVBlank
 
-	ld a,[wWaitCnt]
-	dec a
-	ld [wWaitCnt],a
-	jr nz,MainLoop
+	ld bc,CarSpriteTbl
+	call SetSprite
+	mSetOAM
 
-	ld a,WaitCnt
-	ld [wWaitCnt],a
+	mSetCarPosVram
+	mCheckCollision
+
+	;ld a,[wButton]
+	;bit JBitButtonA,a
+	;jp z,MainLoop
+
 	ldh a,[rSCY]
 	dec a
 	ldh [rSCY],a
@@ -166,17 +200,42 @@ MainLoop:
 	dec a
 	ld [wScrollCnt],a
 	or a
-	jr nz,MainLoop
+	jp nz,MainLoop
 
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
-	mSetMapTbl
-	mWaitVBlank
+
 	mDecMapVram
 	mSetVram
 	mCalcMapTbl
 
 	jp MainLoop
+
+SetSprite:
+	ld hl,wShadowOAM
+	ld e,4 ; Sprite pattern count
+.loop
+	ld a,[wPosY]
+	ld d,a
+	ld a,[bc]
+	add a,d
+	ld [hli],a ; Y Position
+	inc c
+	ld a,[wPosX]
+	ld d,a
+	ld a,[bc]
+	add a,d
+	ld [hli],a ; X Position
+	inc c
+	ld a,[bc]
+	ld [hli],a ; Tile Index
+	inc c
+	ld a,[bc]
+	ld [hli],a ; Attributes/Flags
+	inc c
+	dec e
+	jr nz,.loop
+	ret
 
 SetMapPartTbl:
 	ld hl,wMapPartTbl
@@ -197,9 +256,9 @@ SetMapPartTbl:
 	ld d,a
 	and %00011111
 	ld [hli],a
-	cp BGPriorityTile
-	jr c,.skip1
-	ld e,%10000000 ; BG-to-OAM Priority
+	;cp BGPriorityTile
+	;jr c,.skip1
+	;ld e,%10000000 ; BG-to-OAM Priority
 .skip1
 	ld a,d
 	and %00100000 ; Horizontal Flip
@@ -220,9 +279,9 @@ SetMapPartTbl:
 	ld d,a
 	and %00011111
 	ld [hli],a
-	cp BGPriorityTile
-	jr c,.skip2
-	ld e,%10000000 ; BG-to-OAM Priority
+	;cp BGPriorityTile
+	;jr c,.skip2
+	;ld e,%10000000 ; BG-to-OAM Priority
 .skip2
 	ld a,d
 	and %00100000 ; Horizontal Flip
