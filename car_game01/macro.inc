@@ -1,3 +1,38 @@
+MACRO mDecEnemyCar
+	ld a,[wEnemyPosY]
+	dec a
+	dec a
+	dec a
+	ld [wEnemyPosY],a
+ENDM
+
+MACRO mIncEnemyCar
+	ld a,[wEnemyWaitCnt]
+	cp 0
+	jr z,.move\@
+	dec a
+	ld [wEnemyWaitCnt],a
+	jr .skip\@
+.move\@
+	ld a,EnemyWaitCnt
+	ld [wEnemyWaitCnt],a
+	ld a,[wEnemyPosY]
+	inc a
+	ld [wEnemyPosY],a
+.skip\@
+ENDM
+
+MACRO mInitEnemyCar
+	ld a,EnemyWaitCnt
+	ld [wEnemyWaitCnt],a
+	ld a,EnemyStartY
+	ld [wEnemyPosY],a
+	ld a,EnemyStartX
+	ld [wEnemyPosX],a
+	ld bc,CarSpriteTbl
+	call SetEnemySprite
+ENDM
+
 MACRO mGetCarCollision
 ;call mGetCarCollision ;24cycles
 	rrca ;1byte
@@ -19,6 +54,11 @@ MACRO mGetCarColSubTbl
 	ld c,[hl]
 ENDM
 
+MACRO mSetWCarColWait
+ld a,CarColWait
+ld [wCarColWait],a
+ENDM
+
 MACRO mCheckCollision
 	ld a,[wCarPosVram]
 	ld h,a
@@ -27,9 +67,9 @@ MACRO mCheckCollision
 	push hl
 
 	; Check Upper left
-	ld a,[wNewPosX]
+	ld a,[wNewCarPosX]
 	ld e,a
-	sub 7 ; wNewPosX-7 Upper left
+	sub 7 ; wNewCarPosX-7 Upper left
 	ld d,a
 	mGetCarCollision
 	cp BGDontColTile
@@ -44,21 +84,22 @@ MACRO mCheckCollision
 	cp BGDontColTile
 	jr c,.upperRight\@
 
-	ld a,[wNewPosX]
+	mSetWCarColWait
+	ld a,[wNewCarPosX]
 	add CarVibration
-	ld [wNewPosX],a
-	jr .update\@
+	ld [wNewCarPosX],a
+	jp .update\@
 
 .upperRight\@
 	; Check Upper Right
 	pop hl
 	push hl
 	ld a,e
-	add a,6 ; wNewPosX+7 Upper Right
+	add a,6 ; wNewCarPosX+7 Upper Right
 	ld d,a
 	mGetCarCollision
 	cp BGDontColTile
-	jr c,.update\@
+	jr c,.checkEnemy\@
 
 	mGetCarColSubTbl
 	ld a,d
@@ -67,16 +108,59 @@ MACRO mCheckCollision
 	push hl
 	mGetCarCollision
 	cp BGDontColTile
-	jr c,.update\@
+	jr c,.checkEnemy\@
 	
-	ld a,[wNewPosX]
+	mSetWCarColWait
+	ld a,[wNewCarPosX]
 	sub CarVibration
-	ld [wNewPosX],a
+	ld [wNewCarPosX],a
 	jr .update\@
 
+.checkEnemy\@
+	ld a,[wEnemyPosY]
+	cp CarStartY-12
+	jr c,.update\@
+
+	ld a,[wEnemyPosY]
+	cp CarStartY+13
+	jr nc,.update\@
+
+	ld a,[wEnemyPosX]
+	sub 13
+	ld c,a
+	ld a,[wCarPosX]
+	cp c
+	jr c,.update\@
+
+	ld a,[wEnemyPosX]
+	add 14
+	ld c,a
+	ld a,[wCarPosX]
+	cp c
+	jr nc,.update\@
+
+	mSetWCarColWait
+
+	ld a,[wEnemyPosX]
+	add 6
+	ld c,a
+	ld a,[wCarPosX]
+	cp c
+	jr c,.sub\@
+
+	ld a,[wNewCarPosX]
+	add CarVibration
+	ld [wNewCarPosX],a
+	jr .update\@
+
+.sub\@
+	ld a,[wNewCarPosX]
+	sub CarVibration
+	ld [wNewCarPosX],a
+
 .update\@
-	ld a,[wNewPosX]
-	ld [wPosX],a
+	ld a,[wNewCarPosX]
+	ld [wCarPosX],a
 	pop hl
 ENDM
 
@@ -234,33 +318,23 @@ MACRO mCalcMapTbl
 ENDM
 
 MACRO mDecMapVram
-	ld bc,MapVramDec ;12
-	ld a,[wMapVram] ;16
-	ld h,a ;4
-	ld a,[wMapVram+1] ;16
+	ld a,[wMapVramPos] ;16
+	cp 0 ;4
+	jr nz,.dec\@ ;8/12
+	ld a,MapVramPosMax ;8
+	jr .update\@ ;12 = 48
+.dec\@
+	dec a ;4 = 36
+.update\@
+	ld [wMapVramPos],a ;16
+
+	ld h,HIGH(MapVramTbl) ;8
+	add a,a ;4
 	ld l,a ;4
-	add hl,bc ;8 = 60
-
-	ld bc,MapVramMin ;12
-	ld a,l ;4
-	cp c ;4
-	jr nz,.next\@ ;12 = 32+60 = 92
-	ld a,h ;4
-	cp b ;4
-	jr nz,.next\@ ;12 = 20+32+60 = 112
-
-	ld a,HIGH(MapVramX31) ;8
-	ld [wMapVram],a ;16
-	ld a,LOW(MapVramX31) ;8
-	ld [wMapVram+1],a ;16 = 48+112=160
-	jr .next2\@ ;12
-
-.next\@
-	ld a,h ;4
-	ld [wMapVram],a ;16
-	ld a,l ;4
-	ld [wMapVram+1],a ;16 = 40+92=132, 40+112=152
-.next2\@
+	ld a,[hli] ;8
+	ld [wMapVram+1],a ;16
+	ld a,[hl] ;8
+	ld [wMapVram],a ;16 = 80 = 116/128
 ENDM
 
 MACRO mWaitVBlank

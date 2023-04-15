@@ -7,19 +7,23 @@ wMapAttributesTbl: ds MapSize
 
 ;SECTION "State",WRAM0
 SECTION "State",WRAM0[$C100];debug
-wDebug1: ds 1
-wDebug2: ds 1
-wDebug3: ds 1
 wCarPosVram: ds 2
+wCarColWait: ds 1
+wCarPosY: ds 1
+wCarPosX: ds 1
+wNewCarPosX: ds 1
+
+wEnemyPosY: ds 1
+wEnemyPosX: ds 1
+wEnemyWaitCnt: ds 1
+
 wJoypad: ds 1
 wButton: ds 1
 
 wMapTbl: ds 2
 wMapVram: ds 2
+wMapVramPos: ds 1
 wScrollCnt: ds 1
-wPosY: ds 1
-wPosX: ds 1
-wNewPosX: ds 1
 
 SECTION "Map Part Table",WRAMX[$D000]
 wMapPartTbl: ds MapPartTblSize

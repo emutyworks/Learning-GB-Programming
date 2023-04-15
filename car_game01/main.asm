@@ -58,9 +58,7 @@ Start:
 	ldh [rSVBK],a
 	ld [wJoypad],a
 	ld [wButton],a
-	ld [wDebug1],a
-	ld [wDebug2],a
-	ld [wDebug3],a
+	ld [wCarColWait],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -79,16 +77,24 @@ Start:
 	jr nz,.resetMapLoop
 
 	; Set Map data
-	ld a,HIGH(MapVramX31)
-	ld [wMapVram],a
-	ld a,LOW(MapVramX31)
-	ld [wMapVram+1],a
 	ld a,HIGH(InitMapTbl)
 	ld [wMapTbl],a
 	ld a,LOW(InitMapTbl)
 	ld [wMapTbl+1],a
+	ld a,MapVramPosMax+1
 
 .initMapData
+	dec a
+	ld [wMapVramPos],a
+	
+	ld h,HIGH(MapVramTbl)
+	add a,a
+	ld l,a
+	ld a,[hli]
+	ld [wMapVram+1],a
+	ld a,[hl]
+	ld [wMapVram],a
+
 	mSetMapTbl
 	mSetVram
 	ld bc,MapTblSize
@@ -102,23 +108,8 @@ Start:
 	ld a,l
 	ld [wMapTbl+1],a
 
-	ld bc,MapVramDec
-	ld a,[wMapVram]
-	ld h,a
-	ld a,[wMapVram+1]
-	ld l,a
-	add hl,bc
-	ld a,h
-	ld [wMapVram],a
-	ld a,l
-	ld [wMapVram+1],a
-
-	ld bc,MapVramMin
-	ld a,l
-	cp c
-	jp nz,.initMapData
-	ld a,h
-	cp b
+	ld a,[wMapVramPos]
+	cp 0
 	jp nz,.initMapData
 
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
@@ -126,14 +117,17 @@ Start:
 
 	call InitwShadowOAM
 
-	; Set Sprite
+	; Set Car Sprite
 	ld a,CarStartY
-	ld [wPosY],a
+	ld [wCarPosY],a
 	ld a,CarStartX
-	ld [wPosX],a
-	ld [wNewPosX],a
+	ld [wCarPosX],a
+	ld [wNewCarPosX],a
 	ld bc,CarSpriteTbl
-	call SetSprite
+	ld hl,wShadowOAM
+	call SetCarSprite
+	mInitEnemyCar
+
 	mWaitVBlank
 	mSetOAM
 
@@ -143,10 +137,8 @@ Start:
 	ldh [rSCX],a
 	ld a,MapPosCnt
 	ld [wScrollCnt],a
-	ld a,HIGH(MapVramX20)
-	ld [wMapVram],a
-	ld a,LOW(MapVramX20)
-	ld [wMapVram+1],a
+	ld a,MapVramPosInit
+	ld [wMapVramPos],a
 
 	; Set wMapTbl
 	ld a,HIGH(MapTbl)
@@ -162,9 +154,9 @@ MainLoop:
 	bit JBitRight,a
 	jr z,.left
 
-	ld a,[wPosX]
+	ld a,[wCarPosX]
 	inc a
-	ld [wNewPosX],a
+	ld [wNewCarPosX],a
 	jr .next
 
 .left
@@ -172,9 +164,9 @@ MainLoop:
 	bit JBitLeft,a
 	jr z,.next
 
-	ld a,[wPosX]
+	ld a,[wCarPosX]
 	dec a
-	ld [wNewPosX],a
+	ld [wNewCarPosX],a
 	jr .next
 
 .next
@@ -182,21 +174,38 @@ MainLoop:
 	mWaitVBlank
 
 	ld bc,CarSpriteTbl
-	call SetSprite
+	ld hl,wShadowOAM
+	call SetCarSprite
+	ld bc,CarSpriteTbl
+	call SetEnemySprite
 	mSetOAM
 
 	mSetCarPosVram
 	mCheckCollision
 
+	ld a,[wCarColWait]
+	cp 0
+	jr z,.setScroll
+	dec a
+	ld [wCarColWait],a
+
+	mDecEnemyCar
+	jp MainLoop
+
+.setScroll
 	;ld a,[wButton]
 	;bit JBitButtonA,a
 	;jp z,MainLoop
 
+	mIncEnemyCar
+
 	ldh a,[rSCY]
+	dec a
 	dec a
 	ldh [rSCY],a
 
 	ld a,[wScrollCnt]
+	dec a
 	dec a
 	ld [wScrollCnt],a
 	or a
@@ -211,17 +220,16 @@ MainLoop:
 
 	jp MainLoop
 
-SetSprite:
-	ld hl,wShadowOAM
+SetCarSprite:
 	ld e,4 ; Sprite pattern count
 .loop
-	ld a,[wPosY]
+	ld a,[wCarPosY]
 	ld d,a
 	ld a,[bc]
 	add a,d
 	ld [hli],a ; Y Position
 	inc c
-	ld a,[wPosX]
+	ld a,[wCarPosX]
 	ld d,a
 	ld a,[bc]
 	add a,d
@@ -231,6 +239,32 @@ SetSprite:
 	ld [hli],a ; Tile Index
 	inc c
 	ld a,[bc]
+	ld [hli],a ; Attributes/Flags
+	inc c
+	dec e
+	jr nz,.loop
+	ret
+
+SetEnemySprite:
+	ld e,4 ; Sprite pattern count
+.loop
+	ld a,[wEnemyPosY]
+	ld d,a
+	ld a,[bc]
+	add a,d
+	ld [hli],a ; Y Position
+	inc c
+	ld a,[wEnemyPosX]
+	ld d,a
+	ld a,[bc]
+	add a,d
+	ld [hli],a ; X Position
+	inc c
+	ld a,[bc]
+	ld [hli],a ; Tile Index
+	inc c
+	ld a,[bc]
+	or %0000001
 	ld [hli],a ; Attributes/Flags
 	inc c
 	dec e
