@@ -40,7 +40,7 @@ Start:
 	ld c,BGPaletteCnt
 	ld hl,BGPalette
 	ld de,rBCPD
-	mSetPalette
+	call SetPalette
 
 	; Set Object Palette
 	ld a,%10000000
@@ -48,7 +48,7 @@ Start:
 	ld c,ObjPaletteCnt
 	ld hl,ObjPalette
 	ld de,rOCPD
-	mSetPalette
+	call SetPalette
 
 	xor a
 	ldh [rLCDC],a
@@ -56,9 +56,13 @@ Start:
 	ldh [rIF],a
 	ldh [rSTAT],a
 	ldh [rSVBK],a
+	ldh [rSCY],a
+	ldh [rSCX],a
 	ld [wJoypad],a
 	ld [wButton],a
 	ld [wCarColWait],a
+	ld [wOneEighthY],a
+	ld [wOneEighthYOld],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -81,21 +85,22 @@ Start:
 	ld [wMapTbl],a
 	ld a,LOW(InitMapTbl)
 	ld [wMapTbl+1],a
-	ld a,MapVramPosMax+1
+	ld a,32
 
 .initMapData
 	dec a
-	ld [wMapVramPos],a
+	push af
 	
 	ld h,HIGH(MapVramTbl)
 	add a,a
 	ld l,a
 	ld a,[hli]
-	ld [wMapVram+1],a
+	ld e,a ;l
 	ld a,[hl]
-	ld [wMapVram],a
-
+	ld d,a ;h
+	push de
 	mSetMapTbl
+	pop de
 	mSetVram
 	ld bc,MapTblSize
 	ld a,[wMapTbl]
@@ -108,7 +113,7 @@ Start:
 	ld a,l
 	ld [wMapTbl+1],a
 
-	ld a,[wMapVramPos]
+	pop af
 	cp 0
 	jp nz,.initMapData
 
@@ -130,15 +135,6 @@ Start:
 
 	mWaitVBlank
 	mSetOAM
-
-	; Set Scroll Potition
-	xor a
-	ldh [rSCY],a
-	ldh [rSCX],a
-	ld a,MapPosCnt
-	ld [wScrollCnt],a
-	ld a,MapVramPosInit
-	ld [wMapVramPos],a
 
 	; Set wMapTbl
 	ld a,HIGH(MapTbl)
@@ -204,15 +200,11 @@ MainLoop:
 	dec a
 	ldh [rSCY],a
 
-	ld a,[wScrollCnt]
-	dec a
-	dec a
-	ld [wScrollCnt],a
-	or a
-	jp nz,MainLoop
-
-	ld a,MapPosCnt
-	ld [wScrollCnt],a
+	mOneEighth
+	ld d,a
+	ld a,[wOneEighthYOld]
+	cp d
+	jp z,MainLoop
 
 	mDecMapVram
 	mSetVram
@@ -339,6 +331,16 @@ SetMapPartTbl:
 	cp d
 	jr nz,.loop
   ret
+
+SetPalette:
+.loop
+	ld a,[hli]
+	ld [de],a
+	ld a,[hli]
+	ld [de],a
+	dec c
+	jr nz,.loop
+	ret
 
 CopyData:
 	ld a,[de] ; Grab 1 byte from the source

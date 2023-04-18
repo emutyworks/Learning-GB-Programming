@@ -34,17 +34,15 @@ MACRO mInitEnemyCar
 ENDM
 
 MACRO mGetCarCollision
-;call mGetCarCollision ;24cycles
-	rrca ;1byte
-	rrca ;1
-	rrca ;1
-	and %00011111 ;2
-	add a,l ;1
-	ld l,a ;1
-	xor a ;1
-	ldh [rVBK],a ;2
-	ld a,[hl] ;1 = 11bytes
-;ret ;16cycles = 40cycles
+	rrca
+	rrca
+	rrca
+	and %00011111
+	add a,l
+	ld l,a
+	xor a
+	ldh [rVBK],a
+	ld a,[hl]
 ENDM
 
 MACRO mGetCarColSubTbl
@@ -60,10 +58,8 @@ ld [wCarColWait],a
 ENDM
 
 MACRO mCheckCollision
-	ld a,[wCarPosVram]
-	ld h,a
-	ld a,[wCarPosVram+1]
-	ld l,a
+	ld h,d
+	ld l,e
 	push hl
 
 	; Check Upper left
@@ -164,20 +160,25 @@ MACRO mCheckCollision
 	pop hl
 ENDM
 
+MACRO mOneEighth
+	rrca ;4
+	rrca ;4
+	rrca ;4
+	and %00011111 ;8
+	ld [wOneEighthY],a ;16 = 36
+ENDM
+
 MACRO mSetCarPosVram
-	ldh a,[rSCY]
+	ld a,[wOneEighthY]
 	add a,CarBaseY
-	rrca
-	rrca
-	rrca
 	and %00011111
 	ld hl,MapVramTbl
 	add a,a
 	ld l,a
 	ld a,[hli]
-	ld [wCarPosVram+1],a
+	ld e,a ;l
 	ld a,[hl]
-	ld [wCarPosVram],a
+	ld d,a ;h
 ENDM
 
 MACRO mCheckJoypad
@@ -245,33 +246,43 @@ MACRO mSetMapTbl
 	ld [bc],a ;8 wMapAttributesTbl 2
 	ld a,c ;4
 	cp SetMapTblEnd ;8
-	jr z,.loopEnd ;12
+	jr z,.loopEnd ;8/12 = 168*10+12 = 1692
 
 	sub MapSize-1 ;8 bc-19
 	ld c,a ;4
 	pop hl ;12
-	jr .loop\@ ;12 = 208*10+64 = 2144
+	jr .loop\@ ;8/12 = 32*10+12 = 332
 .loopEnd
-	pop hl ;12 = 2156
+	pop hl ;12 = 1692+332+12 = 2036
+ENDM
+
+MACRO mDecMapVram
+	ld a,[wOneEighthY] ;16
+	ld [wOneEighthYOld],a ;16
+	add MapVramPosInit ;8
+	and %00011111 ;4
+	ld h,HIGH(MapVramTbl) ;8
+	add a,a ;4
+	ld l,a ;4
+	ld a,[hli] ;8
+	ld e,a ;4 l
+	ld a,[hl] ;8
+	ld d,a ;4 h = 84
 ENDM
 
 MACRO mSetVram
-	ld a,[wMapVram] ;16
-	ld d,a ;4
-	ld a,[wMapVram+1] ;16
-	ld e,a ;4
 	ld h,d ;4
 	ld l,e ;4
 	xor a ;4
 	ldh [rVBK],a ;12 Tile Indexes
-	ld bc,wMapIndexesTbl ;12 = 76
+	ld bc,wMapIndexesTbl ;12 = 36
 .loop\@
 	ld a,[bc] ;8
 	ld [hli],a ;8
   inc c ;4
 	ld a,c ;4
 	cp WMapIndexesEnd ;8
-	jr nz,.loop\@ ;12 = 44
+	jr nz,.loop\@ ;12/8 = 40*20+12 = 812
 
 	ld h,d ;4
 	ld l,e ;4
@@ -284,7 +295,7 @@ MACRO mSetVram
   inc c ;4
 	ld a,c ;4
 	cp WMapAttributesEnd ;8
-	jr nz,.loop2\@ ;12 = 44+76+44+40 = 204
+	jr nz,.loop2\@ ;12/8 = 40*20+12 = 812+36+812+40 = 1700
 ENDM
 
 MACRO mCalcMapTbl
@@ -317,26 +328,6 @@ MACRO mCalcMapTbl
 .next2\@
 ENDM
 
-MACRO mDecMapVram
-	ld a,[wMapVramPos] ;16
-	cp 0 ;4
-	jr nz,.dec\@ ;8/12
-	ld a,MapVramPosMax ;8
-	jr .update\@ ;12 = 48
-.dec\@
-	dec a ;4 = 36
-.update\@
-	ld [wMapVramPos],a ;16
-
-	ld h,HIGH(MapVramTbl) ;8
-	add a,a ;4
-	ld l,a ;4
-	ld a,[hli] ;8
-	ld [wMapVram+1],a ;16
-	ld a,[hl] ;8
-	ld [wMapVram],a ;16 = 80 = 116/128
-ENDM
-
 MACRO mWaitVBlank
 .loop\@
 	ldh a,[rLY]
@@ -349,14 +340,4 @@ MACRO mSetOAM
 	; which then copies the bytes to the OAM and sprites begin to draw
 	ld a,HIGH(wShadowOAM)
 	call hOAMDMA
-ENDM
-
-MACRO mSetPalette
-.loop\@
-	ld a,[hli]
-	ld [de],a
-	ld a,[hli]
-	ld [de],a
-	dec c
-	jr nz,.loop\@
 ENDM
