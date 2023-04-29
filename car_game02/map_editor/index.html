@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<title>Compress Map Editor (prototype)</title>
+<meta http-equiv="content-type" content="text/html; charset=utf-8" />
+<meta http-equiv="content-language" content="ja" />
+<meta http-equiv="Content-Script-Type" content="text/javascript" />
+<meta http-equiv="Content-Style-Type" content="text/css" />
+<link rel="stylesheet" type="text/css" href="css/main.css">
+<script type="text/javascript" src="js/jquery-3.6.0.min.js"></script>
+<script type="text/javascript" src="init_data.js"></script>
+<script type="text/javascript" src="js/data.js"></script>
+<script type="text/javascript" src="js/editor.js"></script>
+<script type="text/javascript" src="js/init.js"></script>
+<script type="text/javascript" src="js/main.js"></script>
+</head>
+<body>
+Upload tiles.bin (GBTD export file/All-purpose binary):<input type="file" name="bin_upload" accept="*/*"><br>
+<a href="#" id="map_download" onClick="map_download()">Download:</a> <input type="text" name="download_file" size="12"><input type="checkbox" name="reverse_map" value="1">Download in reverse Map Table order | Upload:<input type="file" name="map_upload" accept="*/*"><br>
+<div id="help_mes"></div>
+<span id="map_table_title">Map Table: edit <select name="map_size" onchange="setMapSize('confirm')">
+<option value="20">20</option>
+<option value="32">32</option>
+</select> tiles <input type="checkbox" name="show_grid" id="show_grid" onClick="showGrid()" value="">Show Grid</span>
+<span id="bg_tiles_title">BG Tiles:</span>
+<span id="bg_palette_title">BG Palette:</span>
+<span id="map_part_title">Map Part:</span>
+<span id="map_view_title">Map View:</span>
+<canvas id="base" class="canvas_base" width="" height=""></canvas>
+<canvas id="view" class="canvas_base" width="" height=""></canvas>
+<canvas id="grid" class="canvas_base" width="" height=""></canvas>
+<canvas id="win" class="canvas_base" width="" height=""></canvas>
+<canvas id="cursor" class="canvas_base" width="" height=""></canvas>
+
+<span id="win_mappart">
+<table id="win_table">
+<tr><td style="border: none;">
+<table>
+<tr><td></td><td>Palette</td><td>Horizontal Flip</td></tr>
+<tr><td>Left</td><td>
+<input type="radio" name="left_pal" value="0" onChange="updateMapPart()">0
+<input type="radio" name="left_pal" value="1" onChange="updateMapPart()">1
+<input type="radio" name="left_pal" value="2" onChange="updateMapPart()">2
+<input type="radio" name="left_pal" value="3" onChange="updateMapPart()">3
+</td><td>
+<input type="checkbox" name="left_flip" value="1" onChange="updateMapPart()">
+</td></tr>
+<tr><td>Right</td><td>
+<input type="radio" name="right_pal" value="0" onChange="updateMapPart()">0
+<input type="radio" name="right_pal" value="1" onChange="updateMapPart()">1
+<input type="radio" name="right_pal" value="2" onChange="updateMapPart()">2
+<input type="radio" name="right_pal" value="3" onChange="updateMapPart()">3
+</td><td>
+<input type="checkbox" name="right_flip" value="1" onChange="updateMapPart()">
+</td></tr>
+<tr><td colspan="3" style="text-align: right"><a href="#" onClick="updateMapPart('save')">[Save]</a></td>
+</table>
+</td></tr>
+</table>
+</span>
+
+<div id="hr">
+<hr>
+<a href="https://github.com/emutyworks/Learning-GB-Programming/wiki/Car-Game" target="_blank">https://github.com/emutyworks/Learning-GB-Programming/wiki/Car-Game</a><br>
+Sample data:<br>
+<a href="https://emutyworks.github.io/Learning-GB-Programming/map_editor/tiles.bin">tiles.bin</a><br>
+<a href="https://emutyworks.github.io/Learning-GB-Programming/map_editor/map_editor.txt">map_editor.txt</a><br>
+</div>
+
+</body>
+</html>
