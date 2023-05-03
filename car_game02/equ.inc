@@ -11,7 +11,12 @@ SBX            EQU 8 ; Screen Base X
 CarStartY      EQU SBY+8*8
 CarStartX      EQU SBX+8*9
 CarMaxDir      EQU 15
-InputWait      EQU 1
+CarMaxSpeed    EQU 2 
+;InputWait      EQU 1
+SpriteTblCnt   EQU 16
+
+SpeedDownWait  EQU 150
+SpeedUpWait    EQU 50
 
 BGPaletteCnt   EQU 4*3
 ObjPaletteCnt  EQU 4*2

@@ -61,9 +61,11 @@ Start:
 	ld [wJoypad],a
 	ld [wButton],a
 	ld [wCarDir],a
-	ld [wInputWait],a
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
+	ld [wCarSpeed],a
+	ld [wSpeedUpWait],a
+	ld [wSpeedDownWait],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -139,393 +141,383 @@ Start:
 	ld a,0
 	ld [wCarDir],a
 
+	ld a,0
+	ld [wCarSpeed],a
+
 MainLoop:
-	mWaitVBlank
 
-;	ld a,[wInputWait]
-;	cp 0
-;	jr z,.check
-;	dec a
-;	ld [wInputWait],a
-;	jr MainLoop
-
-.check
-	xor a
-	ld [wCarSpeedY],a
-	ld [wCarSpeedX],a
+;debug
+;	ld e,InputWait
+;.loopWait
+;	mWaitVBlank
+;	dec e
+;	jr nz,.loopWait
 
 	mCheckJoypad
+	ld a,[wButton]
+	bit JBitButtonA,a
+	jr nz,.setSpeed
+	jr .joypad
 
-	ld a,[wJoypad]
-	ld e,a
-	bit JBitRight,a
-	jr z,.left
+.setSpeed
+	ld a,SpeedDownWait
+	ld [wSpeedDownWait],a
 
-	ld a,[wCarDir]
-	cp CarMaxDir
-	jr nz,.add
-	xor a
-	ld [wCarDir],a
-	jr .check0
-
-.add
-	inc a
-	ld [wCarDir],a
-	jr .check0
-
-.left
-	ld a,e
-	bit JBitLeft,a
-	jr z,.check0
-
-	ld a,[wCarDir]
+	ld a,[wSpeedUpWait]
 	cp 0
-	jr nz,.dec
-
-	ld a,CarMaxDir
-	ld [wCarDir],a
-	jr .check0
-
-.dec
+	jr z,.addSpeed
 	dec a
-	ld [wCarDir],a
+	ld [wSpeedUpWait],a
+	jr .joypad
 
-.check0
+.addSpeed
+	ld a,SpeedUpWait
+	ld [wSpeedUpWait],a
+	ld a,[wCarSpeed]
+	cp CarMaxSpeed
+	jr z,.joypad
+	inc a
+	ld [wCarSpeed],a
+
+.joypad
 	ld a,[wCarDir]
+	ld e,a
+	ld a,[wJoypad]
+	bit JBitRight,a
+	jr nz,.jRight
+	bit JBitLeft,a
+	jr nz,.jLeft
+	jr .jpDir
+
+.jRight
+	ld a,e
+	cp CarMaxDir
+	jr z,.resetDir2
+	inc e
+	jr .jpDir
+.jLeft
+	ld a,e
 	cp 0
-	jr nz,.check1
+	jr z,.resetDir1
+	dec e
+	jr .jpDir
 
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set0
-	ld a,255
+.resetDir1
+	ld e,CarMaxDir
+	jr .jpDir
+.resetDir2
+	ld e,0
+.jpDir
+	ld a,e
+	ld [wCarDir],a
+	ld bc,DirJpTbl
+	add a,a
+	add a,c
+	ld c,a
+	ld a,[bc]
+	ld l,a
+	inc c
+	ld a,[bc]
+	ld h,a
+	jp hl
+
+Dir00:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
 	ld [wCarSpeedY],a
-.set0
-	ld bc,CarSpriteTbl+16*0
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*0
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
+	jp NextLoop
 
-.check1
-	cp 1
-	jr nz,.check2
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set1
-	ld a,255
+Dir01:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
 	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
-	bit 0,a
-	jp z,.set1
-	ld a,1
-	ld [wCarSpeedX],a
-
-.set1
-	ld bc,CarSpriteTbl+16*1
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check2
+	ld a,e
 	cp 2
-	jr nz,.check3
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set2
-	ld a,255
-	ld [wCarSpeedY],a
-	ld a,1
-	ld [wCarSpeedX],a
-.set2
-	ld bc,CarSpriteTbl+16*2
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check3
-	cp 3
-	jr nz,.check4
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set3
-	ld a,1
-	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
-	bit 0,a
-	jp z,.set3
-	ld a,255
-	ld [wCarSpeedY],a
-
-.set3
-	ld bc,CarSpriteTbl+16*3
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check4
-	cp 4
-	jr nz,.check5
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set4
-	ld a,1
-	ld [wCarSpeedX],a
-
-.set4
-	ld bc,CarSpriteTbl+16*4
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check5
-	cp 5
-	jr nz,.check6
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set5
-	ld a,1
-	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
-	bit 0,a
-	jp z,.set5
-	ld a,1
-	ld [wCarSpeedY],a
-
-.set5
-	ld bc,CarSpriteTbl+16*5
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check6
-	cp 6
-	jr nz,.check7
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set6
-	ld a,1
-	ld [wCarSpeedY],a
-	ld [wCarSpeedX],a
-
-.set6
-	ld bc,CarSpriteTbl+16*6
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check7
-	cp 7
-	jr nz,.check8
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set7
-	ld a,1
-	ld [wCarSpeedY],a
+	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
-	jp z,.set7
+	jr z,.set
+.setX
 	ld a,1
 	ld [wCarSpeedX],a
-
-.set7
-	ld bc,CarSpriteTbl+16*7
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*1
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
+	jp NextLoop
 
-.check8
-	cp 8
-	jr nz,.check9
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set8
-	ld a,1
+Dir02:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld [wCarSpeedX],a
+	ld e,a
+	xor a
+	sub e
 	ld [wCarSpeedY],a
-
-.set8
-	ld bc,CarSpriteTbl+16*8
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*2
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
+	jp NextLoop
 
-.check9
-	cp 9
-	jr nz,.check10
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set9
-	ld a,1
-	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
-	bit 0,a
-	jp z,.set9
-	ld a,255
+Dir03:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
 	ld [wCarSpeedX],a
-
-.set9
-	ld bc,CarSpriteTbl+16*9
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check10
-	cp 10
-	jr nz,.check11
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set10
-	ld a,1
-	ld [wCarSpeedY],a
-	ld a,255
-	ld [wCarSpeedX],a
-
-.set10
-	ld bc,CarSpriteTbl+16*10
-	ld hl,wShadowOAM
-	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
-
-.check11
-	cp 11
-	jr nz,.check12
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set11
-	ld a,255
-	ld [wCarSpeedX],a
+	cp 2
+	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
-	jp z,.set11
-	ld a,1
+	jp z,.set
+.setY
+	ld a,255
 	ld [wCarSpeedY],a
-
-.set11
-	ld bc,CarSpriteTbl+16*11
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*3
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
+	jp NextLoop
 
-.check12
-	cp 12
-	jr nz,.check13
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set12
-	ld a,255
+Dir04:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
 	ld [wCarSpeedX],a
-
-.set12
-	ld bc,CarSpriteTbl+16*12
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*4
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jp .next
+	jp NextLoop
 
-.check13
-	cp 13
-	jr nz,.check14
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set13
-	ld a,255
+Dir05:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
 	ld [wCarSpeedX],a
+	cp 2
+	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
-	jp z,.set13
-	ld a,255
+	jp z,.set
+.setY
+	ld a,1
 	ld [wCarSpeedY],a
-
-.set13
-	ld bc,CarSpriteTbl+16*13
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*5
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jr .next
+	jp NextLoop
 
-.check14
-	cp 14
-	jr nz,.check15
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set14
-	ld a,255
+Dir06:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
-	ld [wCarSpeedY],a
-
-.set14
-	ld bc,CarSpriteTbl+16*14
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*6
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jr .next
+	jp NextLoop
 
-.check15
-	cp 15
-	jr nz,.next
-
-	ld a,[wButton]
-	bit JBitButtonA,a
-	jp z,.set15
-	ld a,255
+Dir07:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
 	ld [wCarSpeedY],a
+	cp 2
+	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
-	jp z,.set15
-	ld a,255
+	jp z,.set
+.setX
+	ld a,1
 	ld [wCarSpeedX],a
-
-.set15
-	ld bc,CarSpriteTbl+16*15
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*7
 	ld hl,wShadowOAM
 	call SetCarSprite
-	ld a,InputWait
-	ld [wInputWait],a
-	jr .next
+	jp NextLoop
 
-.next
+Dir08:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld [wCarSpeedY],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*8
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir09:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld [wCarSpeedY],a
+	cp 2
+	jr z,.setX
+	ld a,[wCarPosY]
+	bit 0,a
+	jp z,.set
+.setX
+	ld a,255
+	ld [wCarSpeedX],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*9
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir10:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld [wCarSpeedY],a
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedX],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*10
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir11:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedX],a
+	ld a,e
+	cp 2
+	jr z,.setY
+	ld a,[wCarPosX]
+	bit 0,a
+	jp z,.set
+.setY
+	ld a,1
+	ld [wCarSpeedY],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*11
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir12:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedX],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*12
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir13:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedX],a
+	ld a,e
+	cp 2
+	jr z,.setY
+	ld a,[wCarPosX]
+	bit 0,a
+	jp z,.set
+.setY
+	ld a,255
+	ld [wCarSpeedY],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*13
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir14:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedX],a
+	ld [wCarSpeedY],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*14
+	ld hl,wShadowOAM
+	call SetCarSprite
+	jp NextLoop
+
+Dir15:
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.set
+	ld e,a
+	xor a
+	sub e
+	ld [wCarSpeedY],a
+	ld a,e
+	cp 2
+	jr z,.setX
+	ld a,[wCarPosY]
+	bit 0,a
+	jp z,.set
+.setX
+	ld a,255
+	ld [wCarSpeedX],a
+.set
+	ld bc,CarSpriteTbl+SpriteTblCnt*15
+	ld hl,wShadowOAM
+	call SetCarSprite
+
+NextLoop:
 	mWaitVBlank
 	mSetOAM
+
+	xor a
+	ld [wCarSpeedY],a
+	ld [wCarSpeedX],a
+
+	ld a,[wSpeedDownWait]
+	cp 0
+	jr z,.speedDownWait
+	dec a
+	ld [wSpeedDownWait],a
+	jp MainLoop
+
+.speedDownWait
+	ld a,[wCarSpeed]
+	cp 0
+	jp z,MainLoop
+	dec a
+	ld [wCarSpeed],a
+	ld a,SpeedDownWait
+	ld [wSpeedDownWait],a
 	jp MainLoop
 
 SetCarSprite:

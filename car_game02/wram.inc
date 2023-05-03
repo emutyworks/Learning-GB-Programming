@@ -12,8 +12,10 @@ wCarPosY: ds 1
 wCarPosX: ds 1
 wCarSpeedY: ds 1
 wCarSpeedX: ds 1
+wCarSpeed: ds 1
+wSpeedUpWait: ds 1
+wSpeedDownWait: ds 1
 
-wInputWait: ds 1
 wMapTbl: ds 2
 wJoypad: ds 1
 wButton: ds 1
