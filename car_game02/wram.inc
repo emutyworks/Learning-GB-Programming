@@ -15,6 +15,12 @@ wCarSpeedY: ds 1
 wCarSpeedX: ds 1
 wCarSpeed: ds 1
 wCarTurnWait: ds 1
+wSmoke1Y: ds 1
+wSmoke1X: ds 1
+wSmoke2Y: ds 1
+wSmoke2X: ds 1
+wSmoke1Wait: ds 1
+wSmoke2Wait: ds 1
 wSpeedUpWait: ds 1
 wSpeedDownWait: ds 1
 

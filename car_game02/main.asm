@@ -66,6 +66,12 @@ Start:
 	ld [wCarSpeed],a
 	ld [wCarTurn],a
 	ld [wCarTurnWait],a
+	ld [wSmoke1Y],a
+	ld [wSmoke1X],a
+	ld [wSmoke2Y],a
+	ld [wSmoke2X],a
+	ld [wSmoke1Wait],a
+	ld [wSmoke2Wait],a
 	ld [wSpeedUpWait],a
 	ld [wSpeedDownWait],a
 
@@ -187,7 +193,7 @@ MainLoop:
 
 	ld a,[wCarTurnWait]
 	cp 0
-	jr nz,.turnWait
+	jp nz,.turnWait
 
 	ld a,[wJoypad]
 	bit JBitRight,a
@@ -197,6 +203,25 @@ MainLoop:
 	jr .turn
 
 .jRight
+	ld a,[wSmoke1Wait]
+	cp 0
+	jr nz,.setRight
+	ld a,Smoke1Wait
+	ld [wSmoke1Wait],a
+	ld a,Smoke2Wait
+	ld [wSmoke2Wait],a
+	xor a
+	ld [wSmoke1Y],a
+	ld [wSmoke1X],a
+	ld [wSmoke2Y],a
+	ld [wSmoke2X],a
+	ld a,[wCarPosY]
+	add a,8
+	ld [wSmoke1Y],a
+	ld a,[wCarPosX]
+	add a,4
+	ld [wSmoke1X],a
+.setRight
 	ld a,[wCarTurn]
 	ld e,a
 	ld a,CarTurnWait
@@ -207,6 +232,25 @@ MainLoop:
 	ld [wCarTurn],a
 	jr .turn
 .jLeft
+	ld a,[wSmoke1Wait]
+	cp 0
+	jr nz,.setLeft
+	ld a,Smoke1Wait
+	ld [wSmoke1Wait],a
+	ld a,Smoke2Wait
+	ld [wSmoke2Wait],a
+	xor a
+	ld [wSmoke1Y],a
+	ld [wSmoke1X],a
+	ld [wSmoke2Y],a
+	ld [wSmoke2X],a
+	ld a,[wCarPosY]
+	add a,8
+	ld [wSmoke1Y],a
+	ld a,[wCarPosX]
+	add a,4
+	ld [wSmoke1X],a
+.setLeft
 	ld a,[wCarTurn]
 	ld e,a
 	ld a,CarTurnWait
@@ -476,6 +520,64 @@ NextLoop:
 	ld c,a
 	ld hl,wShadowOAM
 	call SetCarSprite
+	; Set Smoke
+	ld a,[wSmoke1Y]
+	ld [hli],a ; Y Position
+	inc c
+	ld a,[wSmoke1X]
+	ld [hli],a ; X Position
+	inc c
+	ld a,107
+	ld [hli],a ; Tile Index
+	inc c
+	xor a
+	ld [hli],a ; Attributes/Flags
+	;
+	ld a,[wSmoke2Y]
+	ld [hli],a ; Y Position
+	inc c
+	ld a,[wSmoke2X]
+	ld [hli],a ; X Position
+	inc c
+	ld a,108
+	ld [hli],a ; Tile Index
+	inc c
+	ld a,1
+	ld [hl],a ; Attributes/Flags
+
+	; Somke
+	ld a,[wSmoke1Wait]
+	cp 0
+	jr z,.nextSmoke2
+	dec a
+	ld [wSmoke1Wait],a
+	jr .next
+.nextSmoke2
+	ld a,[wSmoke2Wait]
+	cp Smoke2Wait
+	jr z,.setSmoke2
+	dec a
+	cp 0
+	jr z,.resetSmoke
+	ld [wSmoke2Wait],a
+	jr .next
+.setSmoke2
+	dec a
+	ld [wSmoke2Wait],a
+	ld a,[wCarPosY]
+	add a,8
+	ld [wSmoke2Y],a
+	ld a,[wCarPosX]
+	add a,4
+	ld [wSmoke2X],a
+	jr .next
+.resetSmoke
+	xor a
+	ld [wSmoke1Y],a
+	ld [wSmoke1X],a
+	ld [wSmoke2Y],a
+	ld [wSmoke2X],a
+.next
 	mWaitVBlank
 	mSetOAM
 

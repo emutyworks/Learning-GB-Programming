@@ -175,9 +175,9 @@ ObjPalette:
 	dw 31
 	; 1
 	dw 15134
-	dw 0
+	dw 8456
 	dw 32767
-	dw 31744
+	dw 24311
 
 SECTION "Map VRAM Address Table",ROM0[$3200]
 MapVramTbl:;MapX
