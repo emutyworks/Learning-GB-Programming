@@ -214,7 +214,7 @@ MapVramTbl:;MapX
 	dw $9BC0 ; 30
 	dw $9BE0 ; 31
 
-SECTION "Direction Jump Table",ROM0[$3240]
+SECTION "Direction Jump Table",ROM0[$3300]
 DirJpTbl:
 	;14,15,00,01,02
 	;13          03

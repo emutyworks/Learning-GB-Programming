@@ -141,13 +141,10 @@ Start:
 	ld a,0
 	ld [wCarDir],a
 
-	ld a,0
-	ld [wCarSpeed],a
-
 MainLoop:
 
-;debug
-;	ld e,InputWait
+	;debug
+;	ld e,DebugWait
 ;.loopWait
 ;	mWaitVBlank
 ;	dec e
@@ -190,29 +187,17 @@ MainLoop:
 	jr .jpDir
 
 .jRight
-	ld a,e
-	cp CarMaxDir
-	jr z,.resetDir2
 	inc e
 	jr .jpDir
 .jLeft
-	ld a,e
-	cp 0
-	jr z,.resetDir1
 	dec e
-	jr .jpDir
 
-.resetDir1
-	ld e,CarMaxDir
-	jr .jpDir
-.resetDir2
-	ld e,0
 .jpDir
 	ld a,e
+	and %00001111
 	ld [wCarDir],a
 	ld bc,DirJpTbl
 	add a,a
-	add a,c
 	ld c,a
 	ld a,[bc]
 	ld l,a
