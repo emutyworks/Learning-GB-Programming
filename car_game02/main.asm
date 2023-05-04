@@ -64,6 +64,8 @@ Start:
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
+	ld [wCarTurn],a
+	ld [wCarTurnWait],a
 	ld [wSpeedUpWait],a
 	ld [wSpeedDownWait],a
 
@@ -160,6 +162,9 @@ MainLoop:
 	ld a,SpeedDownWait
 	ld [wSpeedDownWait],a
 
+	ld a,[wCarSpeed]
+	cp 0
+	jr z,.addSpeed
 	ld a,[wSpeedUpWait]
 	cp 0
 	jr z,.addSpeed
@@ -179,19 +184,47 @@ MainLoop:
 .joypad
 	ld a,[wCarDir]
 	ld e,a
+
+	ld a,[wCarTurnWait]
+	cp 0
+	jr nz,.turnWait
+
 	ld a,[wJoypad]
 	bit JBitRight,a
 	jr nz,.jRight
 	bit JBitLeft,a
 	jr nz,.jLeft
-	jr .jpDir
+	jr .turn
 
 .jRight
-	inc e
-	jr .jpDir
+	ld a,[wCarTurn]
+	ld e,a
+	ld a,CarTurnWait
+	ld [wCarTurnWait],a
+	ld a,e
+	inc a
+	and %00001111
+	ld [wCarTurn],a
+	jr .turn
 .jLeft
-	dec e
-
+	ld a,[wCarTurn]
+	ld e,a
+	ld a,CarTurnWait
+	ld [wCarTurnWait],a
+	ld a,e
+	dec a
+	and %00001111
+	ld [wCarTurn],a
+.turn
+	ld a,[wCarTurnWait]
+	cp 0
+	jr nz,.turnWait
+	ld a,[wCarTurn]
+	ld e,a
+	jr .jpDir
+.turnWait
+	dec a
+	ld [wCarTurnWait],a
 .jpDir
 	ld a,e
 	and %00001111
@@ -215,9 +248,6 @@ Dir00:
 	sub e
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*0
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir01:
@@ -238,9 +268,6 @@ Dir01:
 	ld a,1
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*1
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir02:
@@ -253,9 +280,6 @@ Dir02:
 	sub e
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*2
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir03:
@@ -272,9 +296,6 @@ Dir03:
 	ld a,255
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*3
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir04:
@@ -283,9 +304,6 @@ Dir04:
 	jr z,.set
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*4
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir05:
@@ -302,9 +320,6 @@ Dir05:
 	ld a,1
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*5
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir06:
@@ -314,9 +329,6 @@ Dir06:
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*6
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir07:
@@ -333,9 +345,6 @@ Dir07:
 	ld a,1
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*7
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir08:
@@ -344,9 +353,6 @@ Dir08:
 	jr z,.set
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*8
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir09:
@@ -363,9 +369,6 @@ Dir09:
 	ld a,255
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*9
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir10:
@@ -378,9 +381,6 @@ Dir10:
 	sub e
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*10
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir11:
@@ -401,9 +401,6 @@ Dir11:
 	ld a,1
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*11
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir12:
@@ -415,9 +412,6 @@ Dir12:
 	sub e
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*12
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir13:
@@ -438,9 +432,6 @@ Dir13:
 	ld a,255
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*13
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir14:
@@ -453,9 +444,6 @@ Dir14:
 	ld [wCarSpeedX],a
 	ld [wCarSpeedY],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*14
-	ld hl,wShadowOAM
-	call SetCarSprite
 	jp NextLoop
 
 Dir15:
@@ -476,11 +464,18 @@ Dir15:
 	ld a,255
 	ld [wCarSpeedX],a
 .set
-	ld bc,CarSpriteTbl+SpriteTblCnt*15
-	ld hl,wShadowOAM
-	call SetCarSprite
+	;jp NextLoop
 
 NextLoop:
+	ld a,[wCarTurn]
+	rrca
+	rrca
+	rrca
+	rrca
+	ld bc,CarSpriteTbl
+	ld c,a
+	ld hl,wShadowOAM
+	call SetCarSprite
 	mWaitVBlank
 	mSetOAM
 

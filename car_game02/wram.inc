@@ -8,11 +8,13 @@ wMapAttributesTbl: ds MapSize
 ;SECTION "State",WRAM0
 SECTION "State",WRAM0[$C100];debug
 wCarDir: ds 1
+wCarTurn: ds 1
 wCarPosY: ds 1
 wCarPosX: ds 1
 wCarSpeedY: ds 1
 wCarSpeedX: ds 1
 wCarSpeed: ds 1
+wCarTurnWait: ds 1
 wSpeedUpWait: ds 1
 wSpeedDownWait: ds 1
 
