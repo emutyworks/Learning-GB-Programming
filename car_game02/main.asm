@@ -61,19 +61,24 @@ Start:
 	ld [wJoypad],a
 	ld [wButton],a
 	ld [wCarDir],a
+	ld [wCarTurn],a
+	ld [wCarPosY],a
+	ld [wCarPosX],a
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
-	ld [wCarTurn],a
-	ld [wCarTurnWait],a
+	ld [wCarShift],a
+	ld [wTurnWait],a
+	ld [wDriftWait],a
+	ld [wSpeedWait],a
+	ld [wSpeedWaitInit],a
+	ld [wSpeedWaitCnt],a
 	ld [wSmoke1Y],a
 	ld [wSmoke1X],a
 	ld [wSmoke2Y],a
 	ld [wSmoke2X],a
 	ld [wSmoke1Wait],a
 	ld [wSmoke2Wait],a
-	ld [wSpeedUpWait],a
-	ld [wSpeedDownWait],a
 
 	; Set Tiles data
 	ld hl,_VRAM8000
@@ -151,58 +156,78 @@ Start:
 
 MainLoop:
 
-	;debug
-;	ld e,DebugWait
-;.loopWait
-;	mWaitVBlank
-;	dec e
-;	jr nz,.loopWait
-
 	mCheckJoypad
 	ld a,[wButton]
 	bit JBitButtonA,a
-	jr nz,.setSpeed
+	jr nz,.checkShift
+
+	ld a,[wCarShift]
+	cp $ff
+	jr z,.joypad
+
+	ld a,[wSpeedWait]
+	cp 0
+	jr z,.waitCount
+	dec a
+	ld [wSpeedWait],a
 	jr .joypad
+
+.waitCount
+	ld a,[wSpeedWaitCnt]
+	cp 0
+	jr z,.shiftDown
+	dec a
+	ld [wSpeedWaitCnt],a
+	ld a,[wSpeedWaitInit]
+	ld [wSpeedWait],a
+	jr .setSpeed
+
+.checkShift
+	ld a,[wCarShift]
+	cp CarMaxShift
+	jr z,.setSpeed
+
+	ld a,CarMaxShift
+	ld [wCarShift],a
+	jr .setSpeedWait
+
+.shiftDown
+	ld a,[wCarShift]
+	dec a
+	ld [wCarShift],a
+
+.setSpeedWait
+	ld h,HIGH(CarSpeedTbl)
+	add a,a
+	ld l,a
+	ld a,[hli]
+	ld [wSpeedWait],a
+	ld [wSpeedWaitInit],a
+	ld a,[hl]
+	ld [wSpeedWaitCnt],a
 
 .setSpeed
-	ld a,SpeedDownWait
-	ld [wSpeedDownWait],a
-
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.addSpeed
-	ld a,[wSpeedUpWait]
-	cp 0
-	jr z,.addSpeed
-	dec a
-	ld [wSpeedUpWait],a
-	jr .joypad
-
-.addSpeed
-	ld a,SpeedUpWait
-	ld [wSpeedUpWait],a
-	ld a,[wCarSpeed]
-	cp CarMaxSpeed
-	jr z,.joypad
-	inc a
+	ld a,1
 	ld [wCarSpeed],a
 
 .joypad
 	ld a,[wCarDir]
 	ld e,a
 
-	ld a,[wCarTurnWait]
-	cp 0
-	jp nz,.turnWait
-
 	ld a,[wJoypad]
 	bit JBitRight,a
 	jr nz,.jRight
 	bit JBitLeft,a
 	jr nz,.jLeft
-	jr .turn
+	xor a
+	ld [wTurnWait],a
+	jp .jpDir
 
 .jRight
+	ld a,[wTurnWait]
+	cp 0
+	jp nz,.decTurnWait
+
 	ld a,[wSmoke1Wait]
 	cp 0
 	jr nz,.setRight
@@ -224,13 +249,15 @@ MainLoop:
 .setRight
 	ld a,[wCarTurn]
 	ld e,a
-	ld a,CarTurnWait
-	ld [wCarTurnWait],a
-	ld a,e
 	inc a
 	and %00001111
 	ld [wCarTurn],a
-	jr .turn
+	ld a,TurnWait
+	ld [wTurnWait],a
+	ld a,DriftWait
+	ld [wDriftWait],a
+	jr .jpDir
+
 .jLeft
 	ld a,[wSmoke1Wait]
 	cp 0
@@ -251,24 +278,24 @@ MainLoop:
 	add a,4
 	ld [wSmoke1X],a
 .setLeft
+	ld a,[wTurnWait]
+	cp 0
+	jr nz,.decTurnWait
 	ld a,[wCarTurn]
 	ld e,a
-	ld a,CarTurnWait
-	ld [wCarTurnWait],a
-	ld a,e
 	dec a
 	and %00001111
 	ld [wCarTurn],a
-.turn
-	ld a,[wCarTurnWait]
-	cp 0
-	jr nz,.turnWait
-	ld a,[wCarTurn]
-	ld e,a
+	ld a,TurnWait
+	ld [wTurnWait],a
+	ld a,DriftWait
+	ld [wDriftWait],a
 	jr .jpDir
-.turnWait
+
+.decTurnWait
 	dec a
-	ld [wCarTurnWait],a
+	ld [wTurnWait],a
+
 .jpDir
 	ld a,e
 	and %00001111
@@ -287,9 +314,7 @@ Dir00:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedY],a
 .set
 	jp NextLoop
@@ -298,13 +323,8 @@ Dir01:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedY],a
-	ld a,e
-	cp 2
-	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
 	jr z,.set
@@ -318,10 +338,9 @@ Dir02:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedX],a
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedY],a
 .set
 	jp NextLoop
@@ -330,13 +349,11 @@ Dir03:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedX],a
-	cp 2
-	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
 	jp z,.set
-.setY
 	ld a,255
 	ld [wCarSpeedY],a
 .set
@@ -346,6 +363,7 @@ Dir04:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedX],a
 .set
 	jp NextLoop
@@ -354,13 +372,11 @@ Dir05:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedX],a
-	cp 2
-	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
 	jp z,.set
-.setY
 	ld a,1
 	ld [wCarSpeedY],a
 .set
@@ -370,6 +386,7 @@ Dir06:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 .set
@@ -379,13 +396,11 @@ Dir07:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedY],a
-	cp 2
-	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
 	jp z,.set
-.setX
 	ld a,1
 	ld [wCarSpeedX],a
 .set
@@ -395,6 +410,7 @@ Dir08:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedY],a
 .set
 	jp NextLoop
@@ -403,13 +419,11 @@ Dir09:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedY],a
-	cp 2
-	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
 	jp z,.set
-.setX
 	ld a,255
 	ld [wCarSpeedX],a
 .set
@@ -419,10 +433,9 @@ Dir10:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
+	ld a,1
 	ld [wCarSpeedY],a
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedX],a
 .set
 	jp NextLoop
@@ -431,17 +444,11 @@ Dir11:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedX],a
-	ld a,e
-	cp 2
-	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
 	jp z,.set
-.setY
 	ld a,1
 	ld [wCarSpeedY],a
 .set
@@ -451,9 +458,7 @@ Dir12:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedX],a
 .set
 	jp NextLoop
@@ -462,17 +467,11 @@ Dir13:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedX],a
-	ld a,e
-	cp 2
-	jr z,.setY
 	ld a,[wCarPosX]
 	bit 0,a
 	jp z,.set
-.setY
 	ld a,255
 	ld [wCarSpeedY],a
 .set
@@ -482,9 +481,7 @@ Dir14:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedX],a
 	ld [wCarSpeedY],a
 .set
@@ -494,56 +491,65 @@ Dir15:
 	ld a,[wCarSpeed]
 	cp 0
 	jr z,.set
-	ld e,a
-	xor a
-	sub e
+	ld a,255
 	ld [wCarSpeedY],a
-	ld a,e
-	cp 2
-	jr z,.setX
 	ld a,[wCarPosY]
 	bit 0,a
 	jp z,.set
-.setX
 	ld a,255
 	ld [wCarSpeedX],a
 .set
 	;jp NextLoop
 
 NextLoop:
+	ld a,[wDriftWait]
+	cp 0
+	jr z,.setDir
+	dec a
+	ld [wDriftWait],a
 	ld a,[wCarTurn]
+	jr .setSprite
+
+.setDir
+	ld a,[wCarTurn]
+	ld [wCarDir],a
+;	ld a,[wCarDir]
+;	ld [wCarTurn],a
+
+.setSprite
 	rrca
 	rrca
 	rrca
 	rrca
-	ld bc,CarSpriteTbl
+	ld b,HIGH(CarSpriteTbl)
 	ld c,a
 	ld hl,wShadowOAM
 	call SetCarSprite
+
 	; Set Smoke
 	ld a,[wSmoke1Y]
-	ld [hli],a ; Y Position
+	ld [hli],a
 	inc c
 	ld a,[wSmoke1X]
-	ld [hli],a ; X Position
+	ld [hli],a
 	inc c
 	ld a,107
-	ld [hli],a ; Tile Index
+	ld [hli],a
 	inc c
 	xor a
-	ld [hli],a ; Attributes/Flags
+	ld [hli],a
 	;
 	ld a,[wSmoke2Y]
-	ld [hli],a ; Y Position
+	ld [hli],a
 	inc c
 	ld a,[wSmoke2X]
-	ld [hli],a ; X Position
+	ld [hli],a
 	inc c
 	ld a,108
-	ld [hli],a ; Tile Index
+	ld [hli],a
 	inc c
 	ld a,1
-	ld [hl],a ; Attributes/Flags
+	ld [hl],a
 
 	; Somke
 	ld a,[wSmoke1Wait]
@@ -577,6 +583,7 @@ NextLoop:
 	ld [wSmoke1X],a
 	ld [wSmoke2Y],a
 	ld [wSmoke2X],a
+
 .next
 	mWaitVBlank
 	mSetOAM
@@ -584,22 +591,7 @@ NextLoop:
 	xor a
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
-
-	ld a,[wSpeedDownWait]
-	cp 0
-	jr z,.speedDownWait
-	dec a
-	ld [wSpeedDownWait],a
-	jp MainLoop
-
-.speedDownWait
-	ld a,[wCarSpeed]
-	cp 0
-	jp z,MainLoop
-	dec a
 	ld [wCarSpeed],a
-	ld a,SpeedDownWait
-	ld [wSpeedDownWait],a
 	jp MainLoop
 
 SetCarSprite:

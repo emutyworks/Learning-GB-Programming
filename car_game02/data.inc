@@ -68,7 +68,16 @@ InitMapTbl:
 	db $22,$22,$22,$22,$22,$22,$22,$22,$22,$22
 InitMapTblEnd:
 
-SECTION "Car Sprite Table",ROM0[$3000]
+SECTION "Car Speed Table",ROM0[$3000]
+CarSpeedTbl:; Wait, Count
+	db 7,7
+	db 5,10
+	db 3,10
+	db 2,30
+	db 1,50
+	db 0,50
+
+SECTION "Car Sprite Table",ROM0[$3100]
 CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	; 0
 	db 0,0,126,0
@@ -151,34 +160,6 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	db 8,0,116,OAMF_XFLIP
 	db 8,8,114,OAMF_XFLIP
 
-BGPalette:
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 24311
-
-	dw 24311
-	dw 8456
-	dw 24311
-	dw 24311
-
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 32767
-
-ObjPalette:
-	; 0
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31
-	; 1
-	dw 15134
-	dw 8456
-	dw 32767
-	dw 24311
-
 SECTION "Map VRAM Address Table",ROM0[$3200]
 MapVramTbl:;MapX
 	dw $9800 ; 0
@@ -213,6 +194,34 @@ MapVramTbl:;MapX
 	dw $9BA0 ; 29
 	dw $9BC0 ; 30
 	dw $9BE0 ; 31
+
+BGPalette:
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 24311
+
+	dw 24311
+	dw 8456
+	dw 24311
+	dw 24311
+
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 32767
+
+ObjPalette:
+	; 0
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31
+	; 1
+	dw 15134
+	dw 8456
+	dw 32767
+	dw 24311
 
 SECTION "Direction Jump Table",ROM0[$3300]
 DirJpTbl:

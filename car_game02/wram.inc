@@ -14,15 +14,20 @@ wCarPosX: ds 1
 wCarSpeedY: ds 1
 wCarSpeedX: ds 1
 wCarSpeed: ds 1
-wCarTurnWait: ds 1
+wCarShift: ds 1
+wTurnWait: ds 1
+wDriftWait: ds 1
+
+wSpeedWait: ds 1
+wSpeedWaitInit: ds 1
+wSpeedWaitCnt: ds 1
+
 wSmoke1Y: ds 1
 wSmoke1X: ds 1
 wSmoke2Y: ds 1
 wSmoke2X: ds 1
 wSmoke1Wait: ds 1
 wSmoke2Wait: ds 1
-wSpeedUpWait: ds 1
-wSpeedDownWait: ds 1
 
 wMapTbl: ds 2
 wJoypad: ds 1
