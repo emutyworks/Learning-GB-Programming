@@ -12,7 +12,7 @@ CarStartY      EQU SBY+8*14
 CarStartX      EQU SBX+8*10
 CarMaxShift    EQU 5
 
-TurnWait       EQU 4
+TurnWait1      EQU 5
 DriftWait      EQU 25
 
 Smoke1Wait     EQU 10

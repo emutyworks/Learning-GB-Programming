@@ -75,7 +75,7 @@ CarSpeedTbl:; Wait, Count
 	db 3,10
 	db 2,30
 	db 1,50
-	db 0,50
+	db 0,150
 
 SECTION "Car Sprite Table",ROM0[$3100]
 CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags

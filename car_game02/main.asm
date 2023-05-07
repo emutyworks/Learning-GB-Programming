@@ -68,7 +68,7 @@ Start:
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
 	ld [wCarShift],a
-	ld [wTurnWait],a
+	ld [wTurnWait1],a
 	ld [wDriftWait],a
 	ld [wSpeedWait],a
 	ld [wSpeedWaitInit],a
@@ -220,13 +220,13 @@ MainLoop:
 	bit JBitLeft,a
 	jr nz,.jLeft
 	xor a
-	ld [wTurnWait],a
+	ld [wTurnWait1],a
 	jp .jpDir
 
 .jRight
-	ld a,[wTurnWait]
+	ld a,[wTurnWait1]
 	cp 0
-	jp nz,.decTurnWait
+	jp nz,.decTurnWait1
 
 	ld a,[wSmoke1Wait]
 	cp 0
@@ -252,13 +252,17 @@ MainLoop:
 	inc a
 	and %00001111
 	ld [wCarTurn],a
-	ld a,TurnWait
-	ld [wTurnWait],a
+	ld a,TurnWait1
+	ld [wTurnWait1],a
 	ld a,DriftWait
 	ld [wDriftWait],a
 	jr .jpDir
 
 .jLeft
+	ld a,[wTurnWait1]
+	cp 0
+	jr nz,.decTurnWait1
+
 	ld a,[wSmoke1Wait]
 	cp 0
 	jr nz,.setLeft
@@ -278,23 +282,20 @@ MainLoop:
 	add a,4
 	ld [wSmoke1X],a
 .setLeft
-	ld a,[wTurnWait]
-	cp 0
-	jr nz,.decTurnWait
 	ld a,[wCarTurn]
 	ld e,a
 	dec a
 	and %00001111
 	ld [wCarTurn],a
-	ld a,TurnWait
-	ld [wTurnWait],a
+	ld a,TurnWait1
+	ld [wTurnWait1],a
 	ld a,DriftWait
 	ld [wDriftWait],a
 	jr .jpDir
 
-.decTurnWait
+.decTurnWait1
 	dec a
-	ld [wTurnWait],a
+	ld [wTurnWait1],a
 
 .jpDir
 	ld a,e
@@ -502,6 +503,10 @@ Dir15:
 	;jp NextLoop
 
 NextLoop:
+	ld a,[wButton]
+	cp 0
+	jr z,.setDir
+
 	ld a,[wDriftWait]
 	cp 0
 	jr z,.setDir
