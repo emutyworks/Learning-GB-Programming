@@ -68,7 +68,7 @@ Start:
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
 	ld [wCarShift],a
-	ld [wTurnWait1],a
+	ld [wTurnWait],a
 	ld [wDriftWait],a
 	ld [wSpeedWait],a
 	ld [wSpeedWaitInit],a
@@ -135,7 +135,7 @@ Start:
 
 	xor a
 	ldh [rVBK],a
-	ld hl,$9A01
+	ld hl,$9A20
 	ld de,Message1
 	ld bc,Message1End - Message1
 	call CopyData
@@ -155,6 +155,16 @@ Start:
 	ld [wCarDir],a
 
 MainLoop:
+	;debug
+;	ld e,DebugWait
+;.debugWait
+;	ld a,e
+;	cp 0
+;	jr z,.debugNext
+;	mWaitVBlank
+;	dec e
+;	jr nz,.debugWait
+;.debugNext
 
 	mCheckJoypad
 	ld a,[wButton]
@@ -220,13 +230,13 @@ MainLoop:
 	bit JBitLeft,a
 	jr nz,.jLeft
 	xor a
-	ld [wTurnWait1],a
+	ld [wTurnWait],a
 	jp .jpDir
 
 .jRight
-	ld a,[wTurnWait1]
+	ld a,[wTurnWait]
 	cp 0
-	jp nz,.decTurnWait1
+	jp nz,.decTurnWait
 
 	ld a,[wSmoke1Wait]
 	cp 0
@@ -252,16 +262,16 @@ MainLoop:
 	inc a
 	and %00001111
 	ld [wCarTurn],a
-	ld a,TurnWait1
-	ld [wTurnWait1],a
+	ld a,TurnWait
+	ld [wTurnWait],a
 	ld a,DriftWait
 	ld [wDriftWait],a
 	jr .jpDir
 
 .jLeft
-	ld a,[wTurnWait1]
+	ld a,[wTurnWait]
 	cp 0
-	jr nz,.decTurnWait1
+	jr nz,.decTurnWait
 
 	ld a,[wSmoke1Wait]
 	cp 0
@@ -287,21 +297,21 @@ MainLoop:
 	dec a
 	and %00001111
 	ld [wCarTurn],a
-	ld a,TurnWait1
-	ld [wTurnWait1],a
+	ld a,TurnWait
+	ld [wTurnWait],a
 	ld a,DriftWait
 	ld [wDriftWait],a
 	jr .jpDir
 
-.decTurnWait1
+.decTurnWait
 	dec a
-	ld [wTurnWait1],a
+	ld [wTurnWait],a
 
-.jpDir
+.jpDir:
 	ld a,e
 	and %00001111
 	ld [wCarDir],a
-	ld bc,DirJpTbl
+	ld b,HIGH(DirJpTbl)
 	add a,a
 	ld c,a
 	ld a,[bc]
@@ -329,7 +339,6 @@ Dir01:
 	ld a,[wCarPosY]
 	bit 0,a
 	jr z,.set
-.setX
 	ld a,1
 	ld [wCarSpeedX],a
 .set
@@ -503,23 +512,26 @@ Dir15:
 	;jp NextLoop
 
 NextLoop:
-	ld a,[wButton]
-	cp 0
-	jr z,.setDir
-
 	ld a,[wDriftWait]
 	cp 0
-	jr z,.setDir
-	dec a
-	ld [wDriftWait],a
-	ld a,[wCarTurn]
-	jr .setSprite
+	jr nz,.decDriftWait
+	jr .skip2
 
-.setDir
+	ld a,[wButton]
+	bit JBitButtonA,a
+	jr nz,.skip
+	xor a
+	ld [wDriftWait],a
+.skip2
 	ld a,[wCarTurn]
 	ld [wCarDir],a
-;	ld a,[wCarDir]
-;	ld [wCarTurn],a
+	jr .setSprite
+
+.decDriftWait
+	dec a
+	ld [wDriftWait],a
+.skip
+	ld a,[wCarTurn]
 
 .setSprite
 	rrca
@@ -534,25 +546,19 @@ NextLoop:
 	; Set Smoke
 	ld a,[wSmoke1Y]
 	ld [hli],a
-	inc c
 	ld a,[wSmoke1X]
 	ld [hli],a
-	inc c
 	ld a,107
 	ld [hli],a
-	inc c
 	xor a
 	ld [hli],a
 	;
 	ld a,[wSmoke2Y]
 	ld [hli],a
-	inc c
 	ld a,[wSmoke2X]
 	ld [hli],a
-	inc c
 	ld a,108
 	ld [hli],a
-	inc c
 	ld a,1
 	ld [hl],a
 

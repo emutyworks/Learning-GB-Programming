@@ -12,8 +12,9 @@ CarStartY      EQU SBY+8*14
 CarStartX      EQU SBX+8*10
 CarMaxShift    EQU 5
 
-TurnWait1      EQU 5
-DriftWait      EQU 25
+TurnWait       EQU 5
+DriftWait      EQU 30
+;DebugWait      EQU 0
 
 Smoke1Wait     EQU 10
 Smoke2Wait     EQU 20
@@ -21,8 +22,8 @@ Smoke2Wait     EQU 20
 BGPaletteCnt   EQU 4*3
 ObjPaletteCnt  EQU 4*2
 
-BGPriorityTile EQU $1E
-BGDontColTile  EQU $03
+;BGPriorityTile EQU $1E
+;BGDontColTile  EQU $03
 
 SetMapTblEnd      EQU LOW($C0A0+MapSize*2-1) ; $C0A0 = wMapIndexesTbl
 WMapIndexesEnd    EQU LOW($C0A0+MapSize)
