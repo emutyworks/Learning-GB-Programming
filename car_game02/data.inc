@@ -1,74 +1,4 @@
-SECTION "Map Table",ROM0[$2000]
-MapPartTbl:
-	;#### Before compression (2 bytes total) ####
-	;%76543210
-	; oooooooo Tile Indexes (0-255)
-	;%76543210
-	; -o------ BG Map Attributes: Vertical Flip
-	; --o----- BG Map Attributes: Horizontal Flip
-	; -----ooo BG Map Attributes: BG Palette (0-7)
-	;
-	;#### After compression (1 byte total) ####
-	;%76543210
-	; ---xxxxx Tile Indexes (0-31)
-	; --x----- BG Map Attributes: Horizontal Flip (--o-----)
-	; xx------ BG Map Attributes: BG Palette (------oo)
-	;
-	;%0000 $0 BG Palette 0
-	;%0100 $4 BG Palette 1
-	;%1000 $8 BG Palette 2
-	;%1100 $C BG Palette 3
-	;%0010 $2 BG Palette 0 + Horizontal Flip
-	;%0110 $6 BG Palette 1 + Horizontal Flip
-	;%1010 $A BG Palette 2 + Horizontal Flip
-	;%1110 $E BG Palette 3 + Horizontal Flip
-	db $01,$01,$00,$00,$00,$00,$9E,$9F,$9F,$BF,$9F,$BE,$00,$00,$00,$00
-	db $01,$04,$24,$01,$01,$07,$65,$40,$40,$45,$27,$01,$00,$00,$00,$00
-	db $07,$65,$45,$27,$01,$06,$66,$40,$40,$46,$26,$01,$00,$00,$00,$00
-	db $06,$66,$46,$26,$01,$05,$67,$40,$40,$47,$25,$01,$00,$00,$00,$00
-	db $05,$67,$47,$25,$44,$44,$00,$00,$64,$01,$01,$44,$00,$00,$00,$00
-	db $04,$40,$40,$24,$64,$01,$01,$44,$00,$00,$00,$00,$00,$00,$00,$00
-MapPartTblEnd:
-
-;MapTbl:
-;MapTblEnd:
-
-InitMapTbl:
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $02,$02,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$2B,$00,$00,$00
-	db $00,$00,$00,$2A,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$2A,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-	db $00,$00,$00,$00,$00,$00,$00,$00,$00,$00
-InitMapTblEnd:
-
-SECTION "Car Speed Table",ROM0[$3000]
+SECTION "Car Speed Table",ROM0[$2000]
 CarSpeedTbl:; Wait, Count
 	db 7,7
 	db 5,10
@@ -77,7 +7,51 @@ CarSpeedTbl:; Wait, Count
 	db 1,50
 	db 0,200
 
-SECTION "Car Sprite Table",ROM0[$3100]
+BGPalette:
+	; 0
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31
+	; 1
+	dw 15134
+	dw 23391
+	dw 10840
+	dw 3472
+	; 2
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 32767
+	; 3
+	dw 15134
+	dw 0
+	dw 32767
+	dw 1023
+	; 4
+	dw 15134
+	dw 0
+	dw 32767
+	dw 512
+	; 5
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31744
+
+ObjPalette:
+	; 0
+	dw 15134
+	dw 0
+	dw 32767
+	dw 31
+	; 1
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 32767
+
+SECTION "Car Sprite Table",ROM0[$2100]
 CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	; 0
 	db 0,0,126,0
@@ -160,70 +134,7 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	db 8,0,116,OAMF_XFLIP
 	db 8,8,114,OAMF_XFLIP
 
-SECTION "Map VRAM Address Table",ROM0[$3200]
-MapVramTbl:;MapX
-	dw $9800 ; 0
-	dw $9820 ; 1
-	dw $9840 ; 2
-	dw $9860 ; 3
-	dw $9880 ; 4
-	dw $98A0 ; 5
-	dw $98C0 ; 6
-	dw $98E0 ; 7
-	dw $9900 ; 8
-	dw $9920 ; 9
-	dw $9940 ; 10
-	dw $9960 ; 11
-	dw $9980 ; 12
-	dw $99A0 ; 13
-	dw $99C0 ; 14
-	dw $99E0 ; 15
-	dw $9A00 ; 16
-	dw $9A20 ; 17
-	dw $9A40 ; 18
-	dw $9A60 ; 19
-	dw $9A80 ; 20
-	dw $9AA0 ; 21
-	dw $9AC0 ; 22
-	dw $9AE0 ; 23
-	dw $9B00 ; 24
-	dw $9B20 ; 25
-	dw $9B40 ; 26
-	dw $9B60 ; 27
-	dw $9B80 ; 28
-	dw $9BA0 ; 29
-	dw $9BC0 ; 30
-	dw $9BE0 ; 31
-
-BGPalette:
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 24311
-
-	dw 24311
-	dw 8456
-	dw 24311
-	dw 24311
-
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 32767
-
-ObjPalette:
-	; 0
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31
-	; 1
-	dw 15134
-	dw 8456
-	dw 32767
-	dw 24311
-
-SECTION "Direction Jump Table",ROM0[$3300]
+SECTION "Direction Jump Table",ROM0[$2200]
 DirJpTbl:
 	;14,15,00,01,02
 	;13          03
@@ -251,6 +162,10 @@ Tiles:
 	INCBIN "tiles.bin"
 TilesEnd:
 
-Message1:
-db 32,33,34,35,36,37,38,39,41,42,43,44,45
-Message1End:
+BgTileMap0: ; Tile Indexes
+	INCLUDE "bg_tile0.inc"
+BgTileMap0End:
+
+BgTileMap1: ; BG Map Attributes
+	INCLUDE "bg_tile1.inc"
+BgTileMap1End:

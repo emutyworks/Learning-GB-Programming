@@ -85,59 +85,19 @@ Start:
 	ld de,Tiles
 	ld bc,TilesEnd - Tiles
 	call CopyData
-	call SetMapPartTbl
-
-	; Reset Map Indexes/Attributes Table
-	ld hl,wMapIndexesTbl
-	ld e,MapSize*2
-	xor a
-.resetMapLoop
-	ld [hli],a
-	dec e
-	jr nz,.resetMapLoop
 
 	; Set Map data
-	ld a,HIGH(InitMapTbl)
-	ld [wMapTbl],a
-	ld a,LOW(InitMapTbl)
-	ld [wMapTbl+1],a
-	ld a,32
-
-.initMapData
-	dec a
-	push af
-	
-	ld h,HIGH(MapVramTbl)
-	add a,a
-	ld l,a
-	ld a,[hli]
-	ld e,a ;l
-	ld a,[hl]
-	ld d,a ;h
-	push de
-	mSetMapTbl
-	pop de
-	mSetVram
-	ld bc,MapTblSize
-	ld a,[wMapTbl]
-	ld h,a
-	ld a,[wMapTbl+1]
-	ld l,a
-	add hl,bc
-	ld a,h
-	ld [wMapTbl],a
-	ld a,l
-	ld [wMapTbl+1],a
-
-	pop af
-	cp 0
-	jp nz,.initMapData
-
+	ld a,1
+	ldh [rVBK],a ; BG Map Attributes
+	ld hl,_SCRN0
+	ld de,BgTileMap1
+	ld bc,BgTileMap1End - BgTileMap1
+	call CopyData
 	xor a
-	ldh [rVBK],a
-	ld hl,$9A20
-	ld de,Message1
-	ld bc,Message1End - Message1
+	ldh [rVBK],a ; Tile Indexes
+	ld hl,_SCRN0
+	ld de,BgTileMap0
+	ld bc,BgTileMap0End - BgTileMap0
 	call CopyData
 
 	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
@@ -151,21 +111,11 @@ Start:
 	ld a,CarStartX
 	ld [wCarPosX],a
 
-	ld a,0
+	ld a,4
 	ld [wCarDir],a
+	ld [wCarTurn],a
 
 MainLoop:
-	;debug
-;	ld e,DebugWait
-;.debugWait
-;	ld a,e
-;	cp 0
-;	jr z,.debugNext
-;	mWaitVBlank
-;	dec e
-;	jr nz,.debugWait
-;.debugNext
-
 	mCheckJoypad
 	ld a,[wButton]
 	bit JBitButtonA,a
@@ -615,9 +565,41 @@ SetCarSprite:
 	ld a,[wCarSpeedX]
 	ld d,a
 	ld a,[wCarPosX]
+	cp ScrollRightPos
+	jr nc,.addScrollRightPos
+	jr .addCarPos1
+
+.addScrollRightPos
+	ldh a,[rSCX]
+	cp ScrollRightSC
+	jr z,.addCarPos1
+	add a,d
+	ldh [rSCX],a
+	jr .setSprite
+
+.addCarPos1
+	ld a,[wCarPosX]
+	cp ScrollLeftPos
+	jr c,.addScrollLeftPos
 	add a,d
 	ld [wCarPosX],a
+	jr .setSprite
 
+.addScrollLeftPos
+	ldh a,[rSCX]
+	cp ScrollLeftSC
+	jr z,.addCarPos2
+	add a,d
+	ldh [rSCX],a
+	jr .setSprite
+
+.addCarPos2
+	ld a,[wCarPosX]
+	add a,d
+	ld [wCarPosX],a
+	;jr .setSprite
+
+.setSprite
 	ld e,4 ; Sprite pattern count
 .loop
 	ld a,[wCarPosY]
@@ -641,75 +623,6 @@ SetCarSprite:
 	dec e
 	jr nz,.loop
 	ret
-
-SetMapPartTbl:
-	ld hl,wMapPartTbl
-	ld bc,MapPartTblSize
-.reset
-	xor a
-	ld [hli],a
-	dec bc
-	ld a,b
-	or c
-	jr nz,.reset
-
-	ld bc,MapPartTbl
-	ld hl,wMapPartTbl
-.loop
-	ld e,0
-	ld a,[bc]
-	ld d,a
-	and %00011111
-	ld [hli],a
-	;cp BGPriorityTile
-	;jr c,.skip1
-	;ld e,%10000000 ; BG-to-OAM Priority
-.skip1
-	ld a,d
-	and %00100000 ; Horizontal Flip
-	or e
-	ld e,a
-	ld a,d
-	and %11000000
-	swap a
-	rrca
-	rrca
-	or e
-	inc hl
-	ld [hld],a
-	inc bc
-
-	ld e,0
-	ld a,[bc]
-	ld d,a
-	and %00011111
-	ld [hli],a
-	;cp BGPriorityTile
-	;jr c,.skip2
-	;ld e,%10000000 ; BG-to-OAM Priority
-.skip2
-	ld a,d
-	and %00100000 ; Horizontal Flip
-	or e
-	ld e,a
-	ld a,d
-	and %11000000
-	swap a
-	rrca
-	rrca
-	or e
-	inc hl
-	ld [hli],a
-	inc bc
-
-	ld de,MapPartTblEnd
-	ld a,c
-	cp e
-	jr nz,.loop
-	ld a,b
-	cp d
-	jr nz,.loop
-  ret
 
 SetPalette:
 .loop
