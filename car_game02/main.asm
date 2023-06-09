@@ -115,6 +115,10 @@ Start:
 	ld [wCarDir],a
 	ld [wCarTurn],a
 
+	;debug
+	;ld a,ScrollRightSC
+	;ldh [rSCX],a
+
 MainLoop:
 	mCheckJoypad
 	ld a,[wButton]
@@ -558,46 +562,84 @@ NextLoop:
 SetCarSprite:
 	ld a,[wCarSpeedY]
 	ld d,a
+	cp 0 ; not move
+	jr z,.setCarPosX
+	cp 1 ; down
+	jr z,.checkDownMove
+	; up
+	ldh a,[rSCY]
+	cp ScrollUpSC
+	jr z,.addCarPosY
+	ld a,[wCarPosY]
+	cp ScrollUpPos
+	jr nc,.addCarPosY
+	ldh a,[rSCY]
+	add a,d
+	ldh [rSCY],a
+	jr .setCarPosX
+
+.checkDownMove
+	ld a,[wCarPosY]
+	cp ScrollDownPos
+	jr nc,.scrollDown
+	add a,d
+	ld [wCarPosY],a
+	jr .setCarPosX
+
+.scrollDown
+	ldh a,[rSCY]
+	cp ScrollDownSC
+	jr z,.addCarPosY
+	add a,d
+	ldh [rSCY],a
+	jr .setCarPosX
+
+.addCarPosY
 	ld a,[wCarPosY]
 	add a,d
 	ld [wCarPosY],a
+	jr .setCarPosX
 
+.setCarPosX
 	ld a,[wCarSpeedX]
 	ld d,a
-	ld a,[wCarPosX]
-	cp ScrollRightPos
-	jr nc,.addScrollRightPos
-	jr .addCarPos1
-
-.addScrollRightPos
-	ldh a,[rSCX]
-	cp ScrollRightSC
-	jr z,.addCarPos1
-	add a,d
-	ldh [rSCX],a
-	jr .setSprite
-
-.addCarPos1
-	ld a,[wCarPosX]
-	cp ScrollLeftPos
-	jr c,.addScrollLeftPos
-	add a,d
-	ld [wCarPosX],a
-	jr .setSprite
-
-.addScrollLeftPos
+	cp 0 ; not move
+	jr z,.setSprite
+	cp 1 ; right
+	jr z,.checkRightMove
+	; left
 	ldh a,[rSCX]
 	cp ScrollLeftSC
-	jr z,.addCarPos2
+	jr z,.addCarPosX
+	ld a,[wCarPosX]
+	cp ScrollLeftPos
+	jr nc,.addCarPosX
+	ldh a,[rSCX]
 	add a,d
 	ldh [rSCX],a
 	jr .setSprite
 
-.addCarPos2
+.checkRightMove
+	ld a,[wCarPosX]
+	cp ScrollRightPos
+	jr nc,.scrollRight
+	add a,d
+	ld [wCarPosX],a
+	jr .setSprite
+
+.scrollRight
+	ldh a,[rSCX]
+	cp ScrollRightSC
+	jr z,.addCarPosX
+	add a,d
+	ldh [rSCX],a
+	jr .setSprite
+
+.addCarPosX
 	ld a,[wCarPosX]
 	add a,d
 	ld [wCarPosX],a
-	;jr .setSprite
+	jr .setSprite
 
 .setSprite
 	ld e,4 ; Sprite pattern count
