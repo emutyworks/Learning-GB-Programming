@@ -62,26 +62,34 @@ Start:
 	ld [wButton],a
 	ld [wCarDir],a
 	ld [wCarTurn],a
-	ld [wCarPosY],a
-	ld [wCarPosX],a
+	ld [wCarSpriteY],a
+	ld [wCarSpriteX],a
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
-	ld [wCarShift],a
 	ld [wTurnWait],a
 	ld [wDriftWait],a
 	ld [wSpeedWait],a
 	ld [wSpeedWaitInit],a
 	ld [wSpeedWaitCnt],a
-	ld [wSmoke1Y],a
-	ld [wSmoke1X],a
-	ld [wSmoke2Y],a
-	ld [wSmoke2X],a
-	ld [wSmoke1Wait],a
-	ld [wSmoke2Wait],a
+	ld [wSmokeY],a
+	ld [wSmokeX],a
+	ld [wSmokeAddY],a
+	ld [wSmokeAddX],a
+	ld [wSmokeWait],a
+	ld [wNewCarSpriteY],a
+	ld [wNewCarSpriteX],a
+	ld [wNewRSCY],a
+	ld [wNewRSCX],a
+	ld [wNewSmokeY],a
+	ld [wNewSmokeX],a
 
-	; Set Tiles data
+	; Set Sprites/Tiles data
 	ld hl,_VRAM8000
+	ld de,Sprites
+	ld bc,SpritesEnd - Sprites
+	call CopyData
+	ld hl,_VRAM9000
 	ld de,Tiles
 	ld bc,TilesEnd - Tiles
 	call CopyData
@@ -100,24 +108,24 @@ Start:
 	ld bc,BgTileMap0End - BgTileMap0
 	call CopyData
 
-	ld a,LCDCF_ON|LCDCF_BG8000|LCDCF_OBJON|LCDCF_BGON
+	ld a,LCDCF_ON|LCDCB_BG8000|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
 	ldh [rLCDC],a
 
 	call InitwShadowOAM
 
 	; Set Car Sprite
 	ld a,CarStartY
-	ld [wCarPosY],a
+	ld [wCarSpriteY],a
+	ld [wNewCarSpriteY],a
 	ld a,CarStartX
-	ld [wCarPosX],a
+	ld [wCarSpriteX],a
+	ld [wNewCarSpriteX],a
 
 	ld a,4
 	ld [wCarDir],a
 	ld [wCarTurn],a
-
-	;debug
-	;ld a,ScrollRightSC
-	;ldh [rSCX],a
+	ld a,$ff
+	ld [wCarShift],a
 
 MainLoop:
 	mCheckJoypad
@@ -150,6 +158,7 @@ MainLoop:
 	ld a,[wCarShift]
 	cp CarMaxShift
 	jr z,.setSpeed
+	;jr .setSpeed ;debug
 
 	ld a,CarMaxShift
 	ld [wCarShift],a
@@ -192,24 +201,15 @@ MainLoop:
 	cp 0
 	jp nz,.decTurnWait
 
-	ld a,[wSmoke1Wait]
+	ld a,[wSmokeWait]
 	cp 0
 	jr nz,.setRight
-	ld a,Smoke1Wait
-	ld [wSmoke1Wait],a
-	ld a,Smoke2Wait
-	ld [wSmoke2Wait],a
-	xor a
-	ld [wSmoke1Y],a
-	ld [wSmoke1X],a
-	ld [wSmoke2Y],a
-	ld [wSmoke2X],a
-	ld a,[wCarPosY]
-	add a,8
-	ld [wSmoke1Y],a
-	ld a,[wCarPosX]
-	add a,4
-	ld [wSmoke1X],a
+	ld a,SmokeWait
+	ld [wSmokeWait],a
+	ld a,[wCarSpriteY]
+	ld [wSmokeY],a
+	ld a,[wCarSpriteX]
+	ld [wSmokeX],a
 .setRight
 	ld a,[wCarTurn]
 	ld e,a
@@ -227,24 +227,15 @@ MainLoop:
 	cp 0
 	jr nz,.decTurnWait
 
-	ld a,[wSmoke1Wait]
+	ld a,[wSmokeWait]
 	cp 0
 	jr nz,.setLeft
-	ld a,Smoke1Wait
-	ld [wSmoke1Wait],a
-	ld a,Smoke2Wait
-	ld [wSmoke2Wait],a
-	xor a
-	ld [wSmoke1Y],a
-	ld [wSmoke1X],a
-	ld [wSmoke2Y],a
-	ld [wSmoke2X],a
-	ld a,[wCarPosY]
-	add a,8
-	ld [wSmoke1Y],a
-	ld a,[wCarPosX]
-	add a,4
-	ld [wSmoke1X],a
+	ld a,SmokeWait
+	ld [wSmokeWait],a
+	ld a,[wCarSpriteY]
+	ld [wSmokeY],a
+	ld a,[wCarSpriteX]
+	ld [wSmokeX],a
 .setLeft
 	ld a,[wCarTurn]
 	ld e,a
@@ -281,6 +272,8 @@ Dir00:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
+	ld a,1
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -290,11 +283,15 @@ Dir01:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
+	ld a,1
+	ld [wSmokeAddY],a
+	ld a,[wCarSpriteY]
 	bit 0,a
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
+	ld a,255
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -304,8 +301,10 @@ Dir02:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
+	ld [wSmokeAddY],a
 	ld a,255
 	ld [wCarSpeedY],a
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -315,11 +314,15 @@ Dir03:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
+	ld a,255
+	ld [wSmokeAddX],a
+	ld a,[wCarSpriteX]
 	bit 0,a
 	jp z,.set
 	ld a,255
 	ld [wCarSpeedY],a
+	ld a,1
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -329,6 +332,8 @@ Dir04:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
+	ld a,255
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -338,11 +343,15 @@ Dir05:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
+	ld a,255
+	ld [wSmokeAddX],a
+	ld a,[wCarSpriteX]
 	bit 0,a
 	jp z,.set
 	ld a,1
 	ld [wCarSpeedY],a
+	ld a,255
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -353,6 +362,9 @@ Dir06:
 	ld a,1
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
+	ld a,255
+	ld [wSmokeAddY],a
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -362,11 +374,15 @@ Dir07:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
+	ld a,255
+	ld [wSmokeAddY],a
+	ld a,[wCarSpriteY]
 	bit 0,a
 	jp z,.set
 	ld a,1
 	ld [wCarSpeedX],a
+	ld a,255
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -376,6 +392,8 @@ Dir08:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
+	ld a,255
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -385,11 +403,15 @@ Dir09:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
+	ld a,255
+	ld [wSmokeAddY],a
+	ld a,[wCarSpriteY]
 	bit 0,a
 	jp z,.set
 	ld a,255
 	ld [wCarSpeedX],a
+	ld a,1
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -399,8 +421,10 @@ Dir10:
 	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
+	ld [wSmokeAddX],a
 	ld a,255
 	ld [wCarSpeedX],a
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -410,11 +434,15 @@ Dir11:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
+	ld a,1
+	ld [wSmokeAddX],a
+	ld a,[wCarSpriteX]
 	bit 0,a
 	jp z,.set
 	ld a,1
 	ld [wCarSpeedY],a
+	ld a,255
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -424,6 +452,8 @@ Dir12:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
+	ld a,1
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -433,11 +463,15 @@ Dir13:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
-	ld a,[wCarPosX]
+	ld a,1
+	ld [wSmokeAddX],a
+	ld a,[wCarSpriteX]
 	bit 0,a
 	jp z,.set
 	ld a,255
 	ld [wCarSpeedY],a
+	ld a,1
+	ld [wSmokeAddY],a
 .set
 	jp NextLoop
 
@@ -448,6 +482,9 @@ Dir14:
 	ld a,255
 	ld [wCarSpeedX],a
 	ld [wCarSpeedY],a
+	ld a,1
+	ld [wSmokeAddY],a
+	ld [wSmokeAddX],a
 .set
 	jp NextLoop
 
@@ -457,11 +494,15 @@ Dir15:
 	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
-	ld a,[wCarPosY]
+	ld a,1
+	ld [wSmokeAddY],a
+	ld a,[wCarSpriteY]
 	bit 0,a
 	jp z,.set
 	ld a,255
 	ld [wCarSpeedX],a
+	ld a,1
+	ld [wSmokeAddX],a
 .set
 	;jp NextLoop
 
@@ -488,68 +529,15 @@ NextLoop:
 	ld a,[wCarTurn]
 
 .setSprite
-	rrca
-	rrca
-	rrca
-	rrca
+	rlca
+	rlca
+	rlca
 	ld b,HIGH(CarSpriteTbl)
 	ld c,a
 	ld hl,wShadowOAM
-	call SetCarSprite
+	mSetCarSprite
 
-	; Set Smoke
-	ld a,[wSmoke1Y]
-	ld [hli],a
-	ld a,[wSmoke1X]
-	ld [hli],a
-	ld a,107
-	ld [hli],a
-	xor a
-	ld [hli],a
-	;
-	ld a,[wSmoke2Y]
-	ld [hli],a
-	ld a,[wSmoke2X]
-	ld [hli],a
-	ld a,108
-	ld [hli],a
-	ld a,1
-	ld [hl],a
-
-	; Somke
-	ld a,[wSmoke1Wait]
-	cp 0
-	jr z,.nextSmoke2
-	dec a
-	ld [wSmoke1Wait],a
-	jr .next
-.nextSmoke2
-	ld a,[wSmoke2Wait]
-	cp Smoke2Wait
-	jr z,.setSmoke2
-	dec a
-	cp 0
-	jr z,.resetSmoke
-	ld [wSmoke2Wait],a
-	jr .next
-.setSmoke2
-	dec a
-	ld [wSmoke2Wait],a
-	ld a,[wCarPosY]
-	add a,8
-	ld [wSmoke2Y],a
-	ld a,[wCarPosX]
-	add a,4
-	ld [wSmoke2X],a
-	jr .next
-.resetSmoke
-	xor a
-	ld [wSmoke1Y],a
-	ld [wSmoke1X],a
-	ld [wSmoke2Y],a
-	ld [wSmoke2X],a
-
-.next
+SetOAM:
 	mWaitVBlank
 	mSetOAM
 
@@ -558,113 +546,6 @@ NextLoop:
 	ld [wCarSpeedX],a
 	ld [wCarSpeed],a
 	jp MainLoop
-
-SetCarSprite:
-	ld a,[wCarSpeedY]
-	ld d,a
-	cp 0 ; not move
-	jr z,.setCarPosX
-	cp 1 ; down
-	jr z,.checkDownMove
-	; up
-	ldh a,[rSCY]
-	cp ScrollUpSC
-	jr z,.addCarPosY
-	ld a,[wCarPosY]
-	cp ScrollUpPos
-	jr nc,.addCarPosY
-	ldh a,[rSCY]
-	add a,d
-	ldh [rSCY],a
-	jr .setCarPosX
-
-.checkDownMove
-	ld a,[wCarPosY]
-	cp ScrollDownPos
-	jr nc,.scrollDown
-	add a,d
-	ld [wCarPosY],a
-	jr .setCarPosX
-
-.scrollDown
-	ldh a,[rSCY]
-	cp ScrollDownSC
-	jr z,.addCarPosY
-	add a,d
-	ldh [rSCY],a
-	jr .setCarPosX
-
-.addCarPosY
-	ld a,[wCarPosY]
-	add a,d
-	ld [wCarPosY],a
-	jr .setCarPosX
-
-.setCarPosX
-	ld a,[wCarSpeedX]
-	ld d,a
-	cp 0 ; not move
-	jr z,.setSprite
-	cp 1 ; right
-	jr z,.checkRightMove
-	; left
-	ldh a,[rSCX]
-	cp ScrollLeftSC
-	jr z,.addCarPosX
-	ld a,[wCarPosX]
-	cp ScrollLeftPos
-	jr nc,.addCarPosX
-	ldh a,[rSCX]
-	add a,d
-	ldh [rSCX],a
-	jr .setSprite
-
-.checkRightMove
-	ld a,[wCarPosX]
-	cp ScrollRightPos
-	jr nc,.scrollRight
-	add a,d
-	ld [wCarPosX],a
-	jr .setSprite
-
-.scrollRight
-	ldh a,[rSCX]
-	cp ScrollRightSC
-	jr z,.addCarPosX
-	add a,d
-	ldh [rSCX],a
-	jr .setSprite
-
-.addCarPosX
-	ld a,[wCarPosX]
-	add a,d
-	ld [wCarPosX],a
-	jr .setSprite
-
-.setSprite
-	ld e,4 ; Sprite pattern count
-.loop
-	ld a,[wCarPosY]
-	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; Y Position
-	inc c
-	ld a,[wCarPosX]
-	ld d,a
-	ld a,[bc]
-	add a,d
-	ld [hli],a ; X Position
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Tile Index
-	inc c
-	ld a,[bc]
-	ld [hli],a ; Attributes/Flags
-	inc c
-	dec e
-	jr nz,.loop
-	ret
 
 SetPalette:
 .loop

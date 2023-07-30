@@ -4,8 +4,8 @@ JBitButtonA    EQU 0
 
 SBY            EQU 16 ; Screen Base Y
 SBX            EQU 8 ; Screen Base X
-CarStartY      EQU SBY+8*4
-CarStartX      EQU SBX+8*6
+CarStartY      EQU SBY+8*5
+CarStartX      EQU SBX+8*8
 CarMaxShift    EQU 5
 
 ScrollRightPos EQU SBX+8*15-16
@@ -21,8 +21,7 @@ ScrollUpSC     EQU 0
 TurnWait       EQU 5
 DriftWait      EQU 30
 
-Smoke1Wait     EQU 10
-Smoke2Wait     EQU 20
+SmokeWait      EQU 10
 
-BGPaletteCnt   EQU 4*5
-ObjPaletteCnt  EQU 4*2
+BGPaletteCnt   EQU 4*1
+ObjPaletteCnt  EQU 4*1

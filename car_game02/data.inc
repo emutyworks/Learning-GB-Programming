@@ -9,35 +9,10 @@ CarSpeedTbl:; Wait, Count
 
 BGPalette:
 	; 0
-	dw 15134
 	dw 0
-	dw 32767
-	dw 31
-	; 1
-	dw 15134
-	dw 23391
-	dw 10840
-	dw 3472
-	; 2
-	dw 15134
 	dw 8456
 	dw 24311
 	dw 32767
-	; 3
-	dw 15134
-	dw 0
-	dw 32767
-	dw 1023
-	; 4
-	dw 15134
-	dw 0
-	dw 32767
-	dw 512
-	; 5
-	dw 15134
-	dw 0
-	dw 32767
-	dw 31744
 
 ObjPalette:
 	; 0
@@ -45,102 +20,100 @@ ObjPalette:
 	dw 0
 	dw 32767
 	dw 31
-	; 1
-	dw 15134
-	dw 8456
-	dw 24311
-	dw 32767
 
 SECTION "Car Sprite Table",ROM0[$2100]
-CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
-	; 0
-	db 0,0,126,0
-	db 0,8,126,OAMF_XFLIP
-	db 8,0,127,0
-	db 8,8,127,OAMF_XFLIP
-	; 1
-	db 0,0,113,0
-	db 0,8,115,0
-	db 8,0,114,0
-	db 8,8,116,0
-	; 2
-	db 0,0,121,0
-	db 0,8,120,0
-	db 8,0,123,0
-	db 8,8,122,0
-	; 3
-	db 0,0,109,0
-	db 0,8,111,0
-	db 8,0,110,0
-	db 8,8,112,0
-	; 4
-	db 0,0,124,0
-	db 0,8,125,0
-	db 8,0,124,OAMF_YFLIP
-	db 8,8,125,OAMF_YFLIP
-	; 5
-	db 0,0,110,OAMF_YFLIP
-	db 0,8,112,OAMF_YFLIP
-	db 8,0,109,OAMF_YFLIP
-	db 8,8,111,OAMF_YFLIP
-	; 6
-	db 0,0,123,OAMF_YFLIP
-	db 0,8,122,OAMF_YFLIP
-	db 8,0,121,OAMF_YFLIP
-	db 8,8,120,OAMF_YFLIP
-	; 7
-	db 0,0,114,OAMF_YFLIP
-	db 0,8,116,OAMF_YFLIP
-	db 8,0,113,OAMF_YFLIP
-	db 8,8,115,OAMF_YFLIP
-	; 8
-	db 0,0,127,OAMF_YFLIP
-	db 0,8,127,OAMF_YFLIP|OAMF_XFLIP
-	db 8,0,126,OAMF_YFLIP
-	db 8,8,126,OAMF_YFLIP|OAMF_XFLIP
-	;9
-	db 0,0,116,OAMF_YFLIP|OAMF_XFLIP
-	db 0,8,114,OAMF_YFLIP|OAMF_XFLIP
-	db 8,0,115,OAMF_YFLIP|OAMF_XFLIP
-	db 8,8,113,OAMF_YFLIP|OAMF_XFLIP
-	; 10
-	db 0,0,122,OAMF_YFLIP|OAMF_XFLIP
-	db 0,8,123,OAMF_YFLIP|OAMF_XFLIP
-	db 8,0,120,OAMF_YFLIP|OAMF_XFLIP
-	db 8,8,121,OAMF_YFLIP|OAMF_XFLIP
-	;11
-	db 0,0,112,OAMF_YFLIP|OAMF_XFLIP
-	db 0,8,110,OAMF_YFLIP|OAMF_XFLIP
-	db 8,0,111,OAMF_YFLIP|OAMF_XFLIP
-	db 8,8,109,OAMF_YFLIP|OAMF_XFLIP
-	; 12
-	db 0,0,125,OAMF_XFLIP
-	db 0,8,124,OAMF_XFLIP
-	db 8,0,125,OAMF_YFLIP|OAMF_XFLIP
-	db 8,8,124,OAMF_YFLIP|OAMF_XFLIP
-	;13
-	db 0,0,111,OAMF_XFLIP
-	db 0,8,109,OAMF_XFLIP
-	db 8,0,112,OAMF_XFLIP
-	db 8,8,110,OAMF_XFLIP
-	; 14
-	db 0,0,120,OAMF_XFLIP
-	db 0,8,121,OAMF_XFLIP
-	db 8,0,122,OAMF_XFLIP
-	db 8,8,123,OAMF_XFLIP
-	;15
-	db 0,0,115,OAMF_XFLIP
-	db 0,8,113,OAMF_XFLIP
-	db 8,0,116,OAMF_XFLIP
-	db 8,8,114,OAMF_XFLIP
-
-SECTION "Direction Jump Table",ROM0[$2200]
-DirJpTbl:
 	;14,15,00,01,02
 	;13          03
 	;12          04
 	;11          05
 	;10,09,08,07,06
+CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
+	; 00
+	db 0,0,0,0
+	db 0,8,2,0
+	; 01
+	db 0,0,4,0
+	db 0,8,6,0
+	; 02
+	db 0,0,8,0
+	db 0,8,10,0
+	; 03
+	db 0,0,12,0
+	db 0,8,14,0
+	; 04
+	db 0,0,16,0
+	db 0,8,18,0
+	; 05
+	db 255,0,12,OAMF_YFLIP
+	db 255,8,14,OAMF_YFLIP
+	; 06
+	db 255,0,8,OAMF_YFLIP
+	db 255,8,10,OAMF_YFLIP
+	; 07
+	db 255,0,4,OAMF_YFLIP
+	db 255,8,6,OAMF_YFLIP
+	; 08
+	db 255,0,0,OAMF_YFLIP
+	db 255,8,2,OAMF_YFLIP
+	; 09
+	db 255,255,6,OAMF_YFLIP|OAMF_XFLIP
+	db 255,7,4,OAMF_YFLIP|OAMF_XFLIP
+	; 10
+	db 255,255,10,OAMF_YFLIP|OAMF_XFLIP
+	db 255,7,8,OAMF_YFLIP|OAMF_XFLIP
+	; 11
+	db 255,255,14,OAMF_YFLIP|OAMF_XFLIP
+	db 255,7,12,OAMF_YFLIP|OAMF_XFLIP
+	; 12
+	db 0,255,18,OAMF_XFLIP
+	db 0,7,16,OAMF_XFLIP
+	; 13
+	db 0,255,14,OAMF_XFLIP
+	db 0,7,12,OAMF_XFLIP
+	; 14
+	db 0,255,10,OAMF_XFLIP
+	db 0,7,8,OAMF_XFLIP
+	; 15
+	db 0,255,6,OAMF_XFLIP
+	db 0,7,4,OAMF_XFLIP
+
+SECTION "Map VRAM Address Table",ROM0[$2200]
+MapVramTbl:;MapY
+	dw $9800 ; 0
+	dw $9820 ; 1
+	dw $9840 ; 2
+	dw $9860 ; 3
+	dw $9880 ; 4
+	dw $98A0 ; 5
+	dw $98C0 ; 6
+	dw $98E0 ; 7
+	dw $9900 ; 8
+	dw $9920 ; 9
+	dw $9940 ; 10
+	dw $9960 ; 11
+	dw $9980 ; 12
+	dw $99A0 ; 13
+	dw $99C0 ; 14
+	dw $99E0 ; 15
+	dw $9A00 ; 16
+	dw $9A20 ; 17
+	dw $9A40 ; 18
+	dw $9A60 ; 19
+	dw $9A80 ; 20
+	dw $9AA0 ; 21
+	dw $9AC0 ; 22
+	dw $9AE0 ; 23
+	dw $9B00 ; 24
+	dw $9B20 ; 25
+	dw $9B40 ; 26
+	dw $9B60 ; 27
+	dw $9B80 ; 28
+	dw $9BA0 ; 29
+	dw $9BC0 ; 30
+	dw $9BE0 ; 31
+
+SECTION "Direction Jump Table",ROM0[$2300]
+DirJpTbl:
 	dw Dir00
 	dw Dir01
 	dw Dir02
@@ -157,6 +130,10 @@ DirJpTbl:
 	dw Dir13
 	dw Dir14
 	dw Dir15
+
+Sprites:
+	INCBIN "sprites.bin"
+SpritesEnd:
 
 Tiles:
 	INCBIN "tiles.bin"
