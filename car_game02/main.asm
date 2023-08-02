@@ -79,10 +79,6 @@ Start:
 	ld [wSmokeWait],a
 	ld [wNewCarSpriteY],a
 	ld [wNewCarSpriteX],a
-	ld [wNewRSCY],a
-	ld [wNewRSCX],a
-	ld [wNewSmokeY],a
-	ld [wNewSmokeX],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM8000
@@ -529,12 +525,6 @@ NextLoop:
 	ld a,[wCarTurn]
 
 .setSprite
-	rlca
-	rlca
-	rlca
-	ld b,HIGH(CarSpriteTbl)
-	ld c,a
-	ld hl,wShadowOAM
 	mSetCarSprite
 
 SetOAM:

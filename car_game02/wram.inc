@@ -7,10 +7,6 @@ wCarSpriteY: ds 1
 wCarSpriteX: ds 1
 wNewCarSpriteY: ds 1
 wNewCarSpriteX: ds 1
-wNewRSCY: ds 1
-wNewRSCX: ds 1
-wNewSmokeY: ds 1
-wNewSmokeX: ds 1
 
 wCarDir: ds 1
 wCarTurn: ds 1
