@@ -1,7 +1,12 @@
 <?php
+//==========================================================
+// Convert map_editor.txt to bg_tile0.inc/bg_tile0.inc
+//
+// https://github.com/emutyworks/GBCMapEditor/wiki
+//==========================================================
 $inpit_file = "map_editor.txt";
-$output_file0 = "bg_tile0.inc";
-$output_file1 = "bg_tile1.inc";
+$output_file0 = "bg_tile0.inc"; // Tile Indexes
+$output_file1 = "bg_tile1.inc"; // BG Map Attributes
 
 $in_file = file_get_contents($inpit_file);
 $in_rows = explode("\n",$in_file);
