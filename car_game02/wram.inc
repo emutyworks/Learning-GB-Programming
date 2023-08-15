@@ -5,8 +5,6 @@ wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
 SECTION "State",WRAM0[$C100];debug
 wCarSpriteY: ds 1
 wCarSpriteX: ds 1
-wNewCarSpriteY: ds 1
-wNewCarSpriteX: ds 1
 
 wCarDir: ds 1
 wCarTurn: ds 1

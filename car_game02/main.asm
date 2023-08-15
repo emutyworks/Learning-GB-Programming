@@ -77,8 +77,6 @@ Start:
 	ld [wSmokeAddY],a
 	ld [wSmokeAddX],a
 	ld [wSmokeWait],a
-	ld [wNewCarSpriteY],a
-	ld [wNewCarSpriteX],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM8000
@@ -112,10 +110,8 @@ Start:
 	; Set Car Sprite
 	ld a,CarStartY
 	ld [wCarSpriteY],a
-	ld [wNewCarSpriteY],a
 	ld a,CarStartX
 	ld [wCarSpriteX],a
-	ld [wNewCarSpriteX],a
 
 	ld a,4
 	ld [wCarDir],a
@@ -167,7 +163,7 @@ MainLoop:
 
 .setSpeedWait
 	ld h,HIGH(CarSpeedTbl)
-	add a,a
+	rlca
 	ld l,a
 	ld a,[hli]
 	ld [wSpeedWait],a
@@ -253,7 +249,7 @@ MainLoop:
 	and %00001111
 	ld [wCarDir],a
 	ld b,HIGH(DirJpTbl)
-	add a,a
+	rlca
 	ld c,a
 	ld a,[bc]
 	ld l,a

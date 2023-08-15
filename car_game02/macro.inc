@@ -48,38 +48,41 @@ MACRO mSetOAM
 ENDM
 
 MACRO mSetCarSprite
-	ld a,[wCarSpeedY] ;16
-	ld d,a ;4
-	cp 0 ;8 not move 
-	jr z,.colCarPosX\@ ;8/12 = 40
+	ld a,[wCarSpriteY]
+	ld c,a
+	ld a,[wCarSpriteX]
+	ld b,a
+
+	ld a,[wCarSpeedY]
+	cp 0 ; not move
+	jr z,.colCarPosX\@
 	; up/down
-	ld a,[wCarSpriteY] ;16
-	add a,d ;4
-	ld [wNewCarSpriteY],a ;16 = 72
+	ld d,a
+	ld a,[wCarSpriteY]
+	add a,d
+	ld c,a
 
 .colCarPosX\@
-	ld a,[wCarSpeedX] ;16
-	ld d,a ;4
-	cp 0 ;8 not move
-	jp z,.checkCollision\@ ;12/16 = 44
+	ld a,[wCarSpeedX]
+	cp 0 ; not move
+	jp z,.checkCollision\@
 	; left/right
-	ld a,[wCarSpriteX] ;16
-	add a,d ;4
-	ld [wNewCarSpriteX],a ;16 = 76 = 148
+	ld d,a
+	ld a,[wCarSpriteX]
+	add a,d
+	ld b,a
 
 .checkCollision\@
-	ld a,[wNewCarSpriteY]
-	ld d,a
 	ldh a,[rSCY]
-	add a,d
+	add a,c
 	sub SBY
 	mOneEighth
 	ld h,HIGH(MapVramTbl)
-	add a,a
+	rlca
 	ld l,a
 	ld a,[hli]
 	ld d,a
-	ld a,[wNewCarSpriteX]
+	ld a,b
 	sub SBX
 	ld e,a
 	ldh a,[rSCX]
@@ -102,15 +105,8 @@ MACRO mSetCarSprite
 	ld d,a
 	ld a,[hl]
 	or d
-	cp 0
-	jr z,.setPos\@
-
-;	ld a,$ff
-;	ld [wCarShift],a
-;	xor a
-;	ld [wSpeedWait],a
-;	ld [wSpeedWaitInit],a
-;	ld [wSpeedWaitCnt],a
+	cp $20
+	jr c,.setPos\@
 
 	ld a,[wSmokeAddY]
 	ld d,a
@@ -135,9 +131,9 @@ MACRO mSetCarSprite
 	cp 1 ; down
 	jr z,.checkDownMove\@
 	; up
-	ldh a,[rSCY]
-	cp ScrollUpSC
-	jr z,.addCarPosY\@
+	;ldh a,[rSCY]
+	;cp ScrollUpSC
+	;jr z,.addCarPosY\@
 	ld a,[wCarSpriteY]
 	cp ScrollUpPos
 	jr nc,.addCarPosY\@
@@ -157,8 +153,8 @@ MACRO mSetCarSprite
 
 .scrollDown\@
 	ldh a,[rSCY]
-	cp ScrollDownSC
-	jr z,.addCarPosY\@
+	;cp ScrollDownSC
+	;jr z,.addCarPosY\@
 	add a,d
 	ldh [rSCY],a
 	mAddWSmokeY
@@ -179,9 +175,9 @@ MACRO mSetCarSprite
 	cp 1 ; right
 	jr z,.checkRightMove\@
 	; left
-	ldh a,[rSCX]
-	cp ScrollLeftSC
-	jr z,.addCarPosX\@
+	;ldh a,[rSCX]
+	;cp ScrollLeftSC
+	;jr z,.addCarPosX\@
 	ld a,[wCarSpriteX]
 	cp ScrollLeftPos
 	jr nc,.addCarPosX\@
@@ -201,8 +197,8 @@ MACRO mSetCarSprite
 
 .scrollRight\@
 	ldh a,[rSCX]
-	cp ScrollRightSC
-	jr z,.addCarPosX\@
+	;cp ScrollRightSC
+	;jr z,.addCarPosX\@
 	add a,d
 	ldh [rSCX],a
 	mAddWSmokeX
@@ -215,6 +211,7 @@ MACRO mSetCarSprite
 
 .setSprite\@
 	ld a,[wCarTurn]
+	rlca
 	rlca
 	rlca
 	rlca
@@ -253,6 +250,35 @@ MACRO mSetCarSprite
 	inc c
 	ld a,[bc]
 	ld [hli],a
+	inc c
+	;
+	ld a,[bc]
+	add a,d
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	add a,e
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	add a,d
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	add a,e
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	ld [hli],a
 
 	; Set Smoke
 	ld a,[wSmokeY]
@@ -261,7 +287,16 @@ MACRO mSetCarSprite
 	ld a,[wSmokeX]
 	ld e,a
 	ld [hli],a
-	ld a,20
+	ld a,44
+	ld [hli],a
+	xor a
+	ld [hli],a
+	ld a,d
+	ld [hli],a
+	ld a,e
+	add a,8
+	ld [hli],a
+	ld a,46
 	ld [hli],a
 	xor a
 	ld [hli],a
@@ -269,11 +304,19 @@ MACRO mSetCarSprite
 	ld a,d
 	ld [hli],a
 	ld a,e
+	ld [hli],a
+	ld a,40
+	ld [hli],a
+	ld a,OAMF_PRI|0
+	ld [hli],a
+	ld a,d
+	ld [hli],a
+	ld a,e
 	add a,8
 	ld [hli],a
-	ld a,22
+	ld a,42
 	ld [hli],a
-	xor a
+	ld a,OAMF_PRI|0
 	ld [hli],a
 
 	ld a,[wSmokeWait]
