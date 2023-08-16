@@ -256,247 +256,185 @@ MainLoop:
 	inc c
 	ld a,[bc]
 	ld h,a
+	ld a,[wCarSpeed]
+	cp 0
+	jp z,NextLoop
 	jp hl
 
 Dir00:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir01:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
 	ld a,[wCarSpriteY]
 	bit 0,a
-	jr z,.set
+	jp z,NextLoop
 	ld a,1
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir02:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
 	ld [wSmokeAddY],a
 	ld a,255
 	ld [wCarSpeedY],a
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir03:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddX],a
 	ld a,[wCarSpriteX]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,255
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir04:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir05:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddX],a
 	ld a,[wCarSpriteX]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,1
 	ld [wCarSpeedY],a
 	ld a,255
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir06:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddY],a
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir07:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
 	ld a,255
 	ld [wSmokeAddY],a
 	ld a,[wCarSpriteY]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,1
 	ld [wCarSpeedX],a
 	ld a,255
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir08:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
 	ld a,255
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir09:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
 	ld a,255
 	ld [wSmokeAddY],a
 	ld a,[wCarSpriteY]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,255
 	ld [wCarSpeedX],a
 	ld a,1
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir10:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,1
 	ld [wCarSpeedY],a
 	ld [wSmokeAddX],a
 	ld a,255
 	ld [wCarSpeedX],a
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir11:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
 	ld a,1
 	ld [wSmokeAddX],a
 	ld a,[wCarSpriteX]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,1
 	ld [wCarSpeedY],a
 	ld a,255
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir12:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
 	ld a,1
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir13:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
 	ld a,1
 	ld [wSmokeAddX],a
 	ld a,[wCarSpriteX]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,255
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
-.set
 	jp NextLoop
 
 Dir14:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedX],a
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
 	ld [wSmokeAddX],a
-.set
 	jp NextLoop
 
 Dir15:
-	ld a,[wCarSpeed]
-	cp 0
-	jr z,.set
 	ld a,255
 	ld [wCarSpeedY],a
 	ld a,1
 	ld [wSmokeAddY],a
 	ld a,[wCarSpriteY]
 	bit 0,a
-	jp z,.set
+	jp z,NextLoop
 	ld a,255
 	ld [wCarSpeedX],a
 	ld a,1
 	ld [wSmokeAddX],a
-.set
-	;jp NextLoop
 
 NextLoop:
 	ld a,[wDriftWait]

@@ -56,10 +56,8 @@ CarSpriteTbl: ; AddY,AddX,Tile Index,Attributes/Flags
 	; 04
 	db 0,0,36,0
 	db 0,8,38,0
-	;db 0,0,16,OAMF_PRI|0
-	;db 0,8,18,OAMF_PRI|0
-	db 0,0,16,0
-	db 0,8,18,0
+	db 0,0,16,OAMF_PRI|0
+	db 0,8,18,OAMF_PRI|0
 	; 05
 	db 255,0,32,OAMF_YFLIP|0
 	db 255,8,34,OAMF_YFLIP|0
