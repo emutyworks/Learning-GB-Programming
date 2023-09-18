@@ -7,7 +7,6 @@ wBgYPos: ds 1
 wBgXPos: ds 1
 
 wRoadPTbl: ds 1
-wRoadPMode: ds 1
 wRoadPWaitDef: ds 1
 wRoadPCnt: ds 1
 wRoadPWait: ds 1
@@ -22,5 +21,6 @@ wCarSpriteY: ds 1
 wCarSpriteX: ds 1
 
 SECTION "HRAM Variables",HRAM
+hRoadPMode: ds 1
 hOAMDMA:
 	ds DMARoutineEnd - DMARoutine ; Reserve space to copy the routine to

@@ -29,45 +29,44 @@ SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler:
 	push af
 	push hl
-	push de
+	ldh a,[rLY]
+	cp StartRoadPos
+	jr c,.setBgScroll
+	cp EndRoadPos
+	jr nc,.setBgScroll
+	sub StartRoadPos
+	ld h,HIGH(ScrollLeftTbl)
+	ld l,a
+	ldh a,[hRoadPMode]
+	cp RPL
+	jr z,.left
+	cp RPR
+	jr z,.right
+	jr .skip
+
+.right
+	inc h
+	ld a,[hl]
+	ldh [rSCX],a
+	dec h
+	jr .skip
+
+.left:
+	ld a,[hl]
+	ldh [rSCX],a
+
+.skip:
+	dec h
 	ld a,[wRoadPos]
 	rlca
 	rlca
 	rlca
 	rlca
 	rlca
-	ld d,a
-	ldh a,[rLY]
-	cp StartRoadPos
-	jr c,.setBgScroll
-	cp EndRoadPos
-	jr nc,.setBgScroll
-	ld h,HIGH(ScrollPosTbl)
-	sub StartRoadPos
-	ld e,a
-	add a,d
+	add a,l
 	ld l,a
 	ld a,[hl]
 	ldh [rSCY],a
-	ld a,[wRoadPMode]
-	cp RPL
-	jr z,.left
-	cp RPR
-	jr z,.right
-	jr .reset2
-
-.left
-	ld h,HIGH(ScrollLeftTbl)
-	ld l,e
-	ld a,[hl]
-	ldh [rSCX],a
-	jr .reset2
-
-.right
-	ld h,HIGH(ScrollRightTbl)
-	ld l,e
-	ld a,[hl]
-	ldh [rSCX],a
 	jr .reset2
 
 .setBgScroll:
@@ -86,7 +85,6 @@ HBlankHandler:
 	ldh [rSCY],a
 	ldh [rSCX],a
 .reset2:
-	pop de
 	pop hl
 	pop af
 	reti
@@ -141,7 +139,7 @@ Start:
 	ld [wBgYPos],a
 	ld [wBgXPos],a
 	ld [wRoadPTbl],a
-	ld [wRoadPMode],a
+	ldh [hRoadPMode],a
 	ld [wRoadPWaitDef],a
 	ld [wRoadPCnt],a
 	ld [wRoadPWait],a
@@ -216,7 +214,7 @@ MainLoop:
 	jr z,.setRoadPTbl
 	dec a
 	ld [wRoadPCnt],a
-	ld a,[wRoadPMode]
+	ldh a,[hRoadPMode]
 	cp RPU
 	jr z,.setRoadPUp
 	cp RPD
@@ -264,7 +262,7 @@ MainLoop:
 	ld l,a
 	ld h,HIGH(RoadPatternTbl)
 	ld a,[hli]
-	ld [wRoadPMode],a
+	ldh [hRoadPMode],a
 	ld a,[hli]
 	ld [wRoadPWaitDef],a
 	ld a,[hl]
