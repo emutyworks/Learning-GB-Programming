@@ -38,6 +38,11 @@ ScrollRightTbl:
 SECTION "Road Pattern Table",ROM0[$2300]
 RoadPatternTbl:
 	; mode,wait,cnt,0
+	;db RPD,10,8,0 ;debug
+	;db RPU,10,8,0
+	;db RPL,4,40,0
+	;db RPR,4,40,0
+
 	db RPD,10,24,0 ;0
 	db RPS,20,10,0 ;1 start
 	db RPU,25,8,0 ;2

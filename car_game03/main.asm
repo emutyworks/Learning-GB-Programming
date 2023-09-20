@@ -30,11 +30,20 @@ HBlankHandler:
 	push af
 	push hl
 	ldh a,[rLY]
-	cp StartRoadPos
-	jr c,.setBgScroll
-	cp EndRoadPos
-	jr nc,.setBgScroll
+	cp StartBgPos
+	jr c,.road
+	cp EndBgPos
+	jr nc,.road
+	ldh a,[hBgXPos]
+	ldh [rSCX],a
+	ldh a,[hBgYPos]
+	jr .reset2
+
+.road
 	sub StartRoadPos
+	jr c,.reset
+	cp EndRoadPos
+	jr nc,.reset
 	ld h,HIGH(ScrollLeftTbl)
 	ld l,a
 	ldh a,[hRoadPMode]
@@ -42,49 +51,29 @@ HBlankHandler:
 	jr z,.left
 	cp RPR
 	jr z,.right
-	jr .skip
-
+	jr .road2
 .right
 	inc h
 	ld a,[hl]
 	ldh [rSCX],a
 	dec h
-	jr .skip
-
+	jr .road2
 .left:
 	ld a,[hl]
 	ldh [rSCX],a
-
-.skip:
+.road2:
 	dec h
-	ld a,[wRoadPos]
-	rlca
-	rlca
-	rlca
-	rlca
-	rlca
+	ldh a,[hRoadPos]
 	add a,l
 	ld l,a
 	ld a,[hl]
-	ldh [rSCY],a
-	jr .reset2
-
-.setBgScroll:
-	cp StartBgPos
-	jr c,.reset
-	cp EndBgPos
-	jr nc,.reset
-	ld a,[wBgYPos]
-	ldh [rSCY],a
-	ld a,[wBgXPos]
-	ldh [rSCX],a
 	jr .reset2
 
 .reset:
 	xor a
-	ldh [rSCY],a
 	ldh [rSCX],a
 .reset2:
+	ldh [rSCY],a
 	pop hl
 	pop af
 	reti
@@ -129,17 +118,17 @@ Start:
 	ldh [rSVBK],a
 	ldh [rSCY],a
 	ldh [rSCX],a
+	ldh [hRoadPMode],a
+	ldh [hRoadPos],a
+	ldh [hBgYPos],a
+	ldh [hBgXPos],a
 	ld [wJoypad],a
 	ld [wButton],a
 	ld [wCarSpriteY],a
 	ld [wCarSpriteX],a
 	ld [wVBlankDone],a
-	ld [wRoadPos],a
 	ld [wRoadPosWait],a
-	ld [wBgYPos],a
-	ld [wBgXPos],a
 	ld [wRoadPTbl],a
-	ldh [hRoadPMode],a
 	ld [wRoadPWaitDef],a
 	ld [wRoadPCnt],a
 	ld [wRoadPWait],a
@@ -188,12 +177,9 @@ Start:
 	ld a,CarStartX
 	ld [wCarSpriteX],a
 
-;	ld a,2 ;debug
-;	ld [wRoadPos],a
-
 	; set BG Scroll
 	ld a,StartBgScrollY
-	ld [wBgYPos],a
+	ldh [hBgYPos],a
 
 MainLoop:
 	call WaitForVBlankDone ; halt until interrupt occurs
@@ -229,27 +215,27 @@ MainLoop:
 	jr .setRoadPos
 
 .setRoadPLeft:
-	ld a,[wBgXPos]
+	ldh a,[hBgXPos]
 	dec a
-	ld [wBgXPos],a
+	ldh [hBgXPos],a
 	jr .setRoadPWait
 
 .setRoadPRight:
-	ld a,[wBgXPos]
+	ldh a,[hBgXPos]
 	inc a
-	ld [wBgXPos],a
+	ldh [hBgXPos],a
 	jr .setRoadPWait
 
 .setRoadPUp:
-	ld a,[wBgYPos]
+	ldh a,[hBgYPos]
 	inc a
-	ld [wBgYPos],a
+	ldh [hBgYPos],a
 	jr .setRoadPWait
 
 .setRoadPDown:
-	ld a,[wBgYPos]
+	ldh a,[hBgYPos]
 	dec a
-	ld [wBgYPos],a
+	ldh [hBgYPos],a
 	jr .setRoadPWait
 
 .setRoadPTbl:
@@ -279,11 +265,9 @@ MainLoop:
 .addRoadPos:
 	ld a,RoadPosWait
 	ld [wRoadPosWait],a
-;jr .skipRoadPos ;debug
-	ld a,[wRoadPos]
-	inc a
-	and %00000111
-	ld [wRoadPos],a
+	ldh a,[hRoadPos]
+	add a,$20
+	ldh [hRoadPos],a
 
 .skipRoadPos:
 	mCheckJoypad

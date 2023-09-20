@@ -12,7 +12,7 @@ EndBgPos       EQU 8*10-2
 StartBgScrollY EQU 232
 
 StartRoadPos   EQU 8*10-1
-EndRoadPos     EQU 8*14-1
+EndRoadPos     EQU 8*4 ;8*14
 RoadPosWait    EQU 0
 
 BGPaletteCnt   EQU 4*4
