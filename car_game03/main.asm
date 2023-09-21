@@ -31,35 +31,33 @@ HBlankHandler:
 	push hl
 	ldh a,[rLY]
 	cp StartBgPos
-	jr c,.road
-	cp EndBgPos
+	jr c,.reset
+	cp EndRoadPos
+	jr nc,.reset
+	sub StartRoadPos
 	jr nc,.road
 	ldh a,[hBgXPos]
 	ldh [rSCX],a
 	ldh a,[hBgYPos]
-	jr .reset2
+	jr .setSCY
 
 .road
-	sub StartRoadPos
-	jr c,.reset
-	cp EndRoadPos
-	jr nc,.reset
 	ld h,HIGH(ScrollLeftTbl)
 	ld l,a
 	ldh a,[hRoadPMode]
-	cp RPL
-	jr z,.left
-	cp RPR
-	jr z,.right
-	jr .road2
+	sub 1
+	jr c,.right ;a=0
+	jr z,.left ;a=1
+	xor a
+	jr .setSCX
 .right
 	inc h
 	ld a,[hl]
-	ldh [rSCX],a
 	dec h
-	jr .road2
+	jr .setSCX
 .left:
 	ld a,[hl]
+.setSCX:
 	ldh [rSCX],a
 .road2:
 	dec h
@@ -67,12 +65,12 @@ HBlankHandler:
 	add a,l
 	ld l,a
 	ld a,[hl]
-	jr .reset2
+	jr .setSCY
 
 .reset:
 	xor a
 	ldh [rSCX],a
-.reset2:
+.setSCY:
 	ldh [rSCY],a
 	pop hl
 	pop af
@@ -242,6 +240,7 @@ MainLoop:
 	ld a,[wRoadPTbl]
 	inc a
 	and %00001111
+	;and %00000011;debug
 	ld [wRoadPTbl],a
 	rlca
 	rlca
