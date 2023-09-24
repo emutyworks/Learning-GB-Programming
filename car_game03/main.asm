@@ -30,48 +30,13 @@ HBlankHandler:
 	push af
 	push hl
 	ldh a,[rLY]
-	cp StartBgPos
-	jr c,.reset
-	cp EndRoadPos
-	jr nc,.reset
-	sub StartRoadPos
-	jr nc,.road
-	ldh a,[hBgXPos]
-	ldh [rSCX],a
-	ldh a,[hBgYPos]
-	jr .setSCY
-
-.road
-	ld h,HIGH(ScrollLeftTbl)
 	ld l,a
-	ldh a,[hRoadPMode]
-	sub 1
-	jr c,.right ;a=0
-	jr z,.left ;a=1
-	xor a
-	jr .setSCX
-.right
-	inc h
+	ld h,HIGH(wSCY)
 	ld a,[hl]
-	dec h
-	jr .setSCX
-.left:
-	ld a,[hl]
-.setSCX:
-	ldh [rSCX],a
-.road2:
-	dec h
-	ldh a,[hRoadPos]
-	add a,l
-	ld l,a
-	ld a,[hl]
-	jr .setSCY
-
-.reset:
-	xor a
-	ldh [rSCX],a
-.setSCY:
 	ldh [rSCY],a
+	ld h,HIGH(wSCX)
+	ld a,[hl]
+	ldh [rSCX],a
 	pop hl
 	pop af
 	reti
@@ -89,7 +54,7 @@ ENDR
 SECTION "Start",ROM0[$150]
 
 Start:
-	call CopyDMARoutine ; move DMA subroutine to HRAM
+	mCopyDMARoutine ; move DMA subroutine to HRAM
 	mWaitVBlank
 
 	; Set BG Palette
@@ -116,20 +81,18 @@ Start:
 	ldh [rSVBK],a
 	ldh [rSCY],a
 	ldh [rSCX],a
-	ldh [hRoadPMode],a
-	ldh [hRoadPos],a
-	ldh [hBgYPos],a
-	ldh [hBgXPos],a
 	ld [wJoypad],a
 	ld [wButton],a
-	ld [wCarSpriteY],a
-	ld [wCarSpriteX],a
-	ld [wVBlankDone],a
-	ld [wRoadPosWait],a
+	ld [wJoyPadPos],a
+	ld [wJoypadWait],a
 	ld [wRoadPTbl],a
 	ld [wRoadPWaitDef],a
+	ld [wRoadPMode],a
 	ld [wRoadPCnt],a
 	ld [wRoadPWait],a
+	ld [wRoadPosWait],a
+	ld [wRoadPos],a
+	ld [wVBlankDone],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM8000
@@ -158,6 +121,8 @@ Start:
 	ld a,LCDCF_ON|LCDCB_BG8000|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
 	ldh [rLCDC],a
 
+	mInitwShadowOAM
+
 	; Set up the lcdc int
 	ld a,STATF_LYC|STATF_MODE00
 	ldh [rSTAT],a
@@ -169,18 +134,38 @@ Start:
 	ei
 	ldh [rIF],a
 
-	; Set Car Sprite
-	ld a,CarStartY
-	ld [wCarSpriteY],a
-	ld a,CarStartX
-	ld [wCarSpriteX],a
+	; Set Scroll Table
+	ld hl,wSCY
+	ld c,ScrollSize
+	xor a
+	call SetScrollTbl
+	ld hl,wSCX
+	ld c,ScrollSize
+	call SetScrollTbl
+	ld hl,wRoadXLR
+	ld c,ScrollRoadSize
+	call SetScrollTbl
 
-	; set BG Scroll
 	ld a,StartBgScrollY
-	ldh [hBgYPos],a
+	ld c,ScrollBgSize
+	ld hl,wBgY
+	call SetScrollTbl
+
+	; Set Joypad
+	ld a,JoyPadPos
+	ld [wJoyPadPos],a
+	xor a
+	ld hl,wJoyPadXLR
+	ld c,ScrollRoadSize
+	call SetScrollTbl
+	ld hl,wJoyPadPosAddr
+	ld a,HIGH(ScrollLRCenterTbl)
+	ld [hli],a
+	ld a,LOW(ScrollLRCenterTbl)
+	ld [hli],a
 
 MainLoop:
-	call WaitForVBlankDone ; halt until interrupt occurs
+	mWaitForVBlankDone ; halt until interrupt occurs
 	xor a
 	ld [wVBlankDone],a
 
@@ -190,15 +175,21 @@ MainLoop:
 	jr z,.decRoadPCnt
 	dec a
 	ld [wRoadPWait],a
-	jr .setRoadPos
+	jp .setRoadPos
 
-.decRoadPCnt:
+.decRoadPCnt
 	ld a,[wRoadPCnt]
 	cp 0
-	jr z,.setRoadPTbl
+	jp z,.setRoadPTbl
 	dec a
 	ld [wRoadPCnt],a
-	ldh a,[hRoadPMode]
+
+	xor a
+	ld c,ScrollRoadSize
+	ld hl,wRoadXLR
+	mSetScrollTbl
+
+	ld a,[wRoadPMode]
 	cp RPU
 	jr z,.setRoadPUp
 	cp RPD
@@ -207,36 +198,52 @@ MainLoop:
 	jr z,.setRoadPLeft
 	cp RPR
 	jr z,.setRoadPRight
-.setRoadPWait:
+.setRoadPWait
 	ld a,[wRoadPWaitDef]
 	ld [wRoadPWait],a
 	jr .setRoadPos
 
-.setRoadPLeft:
-	ldh a,[hBgXPos]
+.setRoadPLeft
+	ld a,[wBgX]
 	dec a
-	ldh [hBgXPos],a
+	ld c,ScrollBgSize
+	ld hl,wBgX
+	mSetScrollTbl
+	ld c,ScrollRoadSize
+	ld de,wRoadXLR
+	ld hl,ScrollLeftTbl
+	mCopyScrollTbl
 	jr .setRoadPWait
 
-.setRoadPRight:
-	ldh a,[hBgXPos]
+.setRoadPRight
+	ld a,[wBgX]
 	inc a
-	ldh [hBgXPos],a
+	ld c,ScrollBgSize
+	ld hl,wBgX
+	mSetScrollTbl
+	ld c,ScrollRoadSize
+	ld de,wRoadXLR
+	ld hl,ScrollRightTbl
+	mCopyScrollTbl
 	jr .setRoadPWait
 
-.setRoadPUp:
-	ldh a,[hBgYPos]
+.setRoadPUp
+	ld a,[wBgY]
 	inc a
-	ldh [hBgYPos],a
+	ld c,ScrollBgSize
+	ld hl,wBgY
+	mSetScrollTbl
 	jr .setRoadPWait
 
-.setRoadPDown:
-	ldh a,[hBgYPos]
+.setRoadPDown
+	ld a,[wBgY]
 	dec a
-	ldh [hBgYPos],a
+	ld c,ScrollBgSize
+	ld hl,wBgY
+	mSetScrollTbl
 	jr .setRoadPWait
 
-.setRoadPTbl:
+.setRoadPTbl
 	ld a,[wRoadPTbl]
 	inc a
 	and %00001111
@@ -247,13 +254,13 @@ MainLoop:
 	ld l,a
 	ld h,HIGH(RoadPatternTbl)
 	ld a,[hli]
-	ldh [hRoadPMode],a
+	ld [wRoadPMode],a
 	ld a,[hli]
 	ld [wRoadPWaitDef],a
 	ld a,[hl]
 	ld [wRoadPCnt],a
 
-.setRoadPos:
+.setRoadPos
 	ld a,[wRoadPosWait]
 	cp 0
 	jr z,.addRoadPos
@@ -264,11 +271,27 @@ MainLoop:
 .addRoadPos:
 	ld a,RoadPosWait
 	ld [wRoadPosWait],a
-	ldh a,[hRoadPos]
-	add a,$20
-	ldh [hRoadPos],a
+	ld a,[wRoadPos]
+	add a,ScrollRoadSize
+	ld [wRoadPos],a
+	ld h,HIGH(ScrollPosTbl)
+	ld l,a
+	ld de,wRoadY
+	ld c,ScrollRoadSize
+	mCopyScrollTbl
 
-.skipRoadPos:
+.skipRoadPos
+	ld a,[wJoypadWait]
+	cp 0
+	jr z,.checkJoypad
+	dec a
+	ld [wJoypadWait],a
+	jp .setSprite
+
+.checkJoypad
+	ld a,JoypadWait
+	ld [wJoypadWait],a
+
 	mCheckJoypad
 	ld a,[wJoypad]
 	bit JBitRight,a
@@ -277,53 +300,100 @@ MainLoop:
 	jr nz,.jLeft
 	jr .setSprite
 
-.jRight:
-	ld a,[wCarSpriteX]
+.jRight
+	ld a,[wJoyPadPos]
+	cp 15
+	jr z,.setSprite
 	inc a
-	ld [wCarSpriteX],a
+	ld [wJoyPadPos],a
+
+	ld a,[wJoyPadPosAddr]
+	ld h,a
+	ld a,[wJoyPadPosAddr+1]
+	ld l,a
+	ld de,ScrollRoadSize
+	add HL,de
+	ld a,h
+	ld [wJoyPadPosAddr],a
+	ld a,l
+	ld [wJoyPadPosAddr+1],a
+
+	ld c,ScrollRoadSize
+	ld de,wJoyPadXLR
+	mCopyScrollTbl
 	jr .setSprite
 
-.jLeft:
-	ld a,[wCarSpriteX]
+.jLeft
+	ld a,[wJoyPadPos]
+	cp 1
+	jr z,.setSprite
 	dec a
-	ld [wCarSpriteX],a
+	ld [wJoyPadPos],a
+
+	ld a,[wJoyPadPosAddr]
+	ld h,a
+	ld a,[wJoyPadPosAddr+1]
+	sub ScrollRoadSize
+	ld [wJoyPadPosAddr+1],a
+	ld l,a
+	cp $e0
+	jr nz,.setWJoyPadXLR
+	dec h
+	ld a,h
+	ld [wJoyPadPosAddr],a
+.setWJoyPadXLR
+	ld c,ScrollRoadSize
+	ld de,wJoyPadXLR
+	mCopyScrollTbl
 	jr .setSprite
 
-.setSprite:
+.setSprite
 	ld hl,wShadowOAM
-	ld a,[wCarSpriteY]
+	ld a,CarPosY
 	ld e,a
 	ld [hli],a ; Y Position
-	ld a,[wCarSpriteX]
+	ld a,CarPosX
 	ld [hli],a ; X Position
 	ld a,0
 	ld [hli],a ; Tile Index
 	ld a,0
 	ld [hli],a ; Attributes/Flags
 	;
-	ld a,[wCarSpriteY]
+	ld a,CarPosY
 	ld [hli],a
-	ld a,[wCarSpriteX]
-	add a,8
+	ld a,CarPosX+8
 	ld [hli],a
-	;ld a,0
 	ld a,2
 	ld [hli],a
-	;ld a,0|OAMF_XFLIP
 	ld a,0
 	ld [hli],a
+
+CalcWSCX:
+	ld de,wRoadX
+	ld hl,wRoadXLR
+	ld c,ScrollRoadSize
+.loop
+	ld a,[hl]
+	ld b,a
+	inc h
+	ld a,[hli]
+	add a,b
+	ld [de],a
+	dec h
+	inc e
+	dec c
+	jr nz,.loop
 
 SetOAM:
 	mWaitVBlank
 	mSetOAM
 	jp MainLoop
 
-WaitForVBlankDone:
-.waitloop:
-	halt ; halt until interrupt occurs (low power)
-	ld a,[wVBlankDone]
-	and a
-	jr z,.waitloop
+SetScrollTbl:
+.loop
+	ld [hli],a
+	dec c
+	jr nz,.loop
 	ret
 
 SetPalette:
@@ -346,18 +416,6 @@ CopyData:
 	jr nz,CopyData
 	ret
 
-CopyDMARoutine:
-	ld hl,DMARoutine
-	ld b,DMARoutineEnd - DMARoutine ; Number of bytes to copy
-	ld c,LOW(hOAMDMA) ; Low byte of the destination address
-.loop
-	ld a,[hli]
-	ldh [c],a
-	inc c
-	dec b
-	jr nz,.loop
-	ret
-
 DMARoutine:
 	ldh [rDMA],a
 	ld a,40
@@ -366,16 +424,6 @@ DMARoutine:
 	jr nz,.loop
 	ret
 DMARoutineEnd:
-
-InitwShadowOAM:
-	ld hl,wShadowOAM
-	ld c,4*40
-	xor a
-.loop
-	ld [hli],a
-	dec c
-	jr nz,.loop
-	ret
 
 INCLUDE "data.inc"
 INCLUDE "wram.inc"

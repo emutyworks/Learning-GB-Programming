@@ -1,6 +1,6 @@
 # This data was created with GBCMapEditor.
 # https://github.com/emutyworks/GBCMapEditor/wiki
-# [Create] Sun Sep 17 2023 19:58:50 GMT+0900 (GMT+09:00)
+# [Create] Sat Sep 23 2023 23:01:57 GMT+0900 (GMT+09:00)
 # [FileName] map_editor
 #
 # [BGPalette]

@@ -46,3 +46,49 @@ MACRO mSetOAM
 	ld a,HIGH(wShadowOAM)
 	call hOAMDMA
 ENDM
+
+MACRO mInitwShadowOAM
+	ld hl,wShadowOAM
+	ld c,4*40
+	xor a
+.loop\@
+	ld [hli],a
+	dec c
+	jr nz,.loop\@
+ENDM
+
+MACRO mCopyDMARoutine
+	ld hl,DMARoutine
+	ld b,DMARoutineEnd - DMARoutine ; Number of bytes to copy
+	ld c,LOW(hOAMDMA) ; Low byte of the destination address
+.loop\@
+	ld a,[hli]
+	ldh [c],a
+	inc c
+	dec b
+	jr nz,.loop\@
+ENDM
+
+MACRO mWaitForVBlankDone
+.waitloop\@
+	halt ; halt until interrupt occurs (low power)
+	ld a,[wVBlankDone]
+	and a
+	jr z,.waitloop\@
+ENDM
+
+MACRO mSetScrollTbl
+.loop\@
+	ld [hli],a
+	dec c
+	jr nz,.loop\@
+ENDM
+
+MACRO mCopyScrollTbl
+.loop\@
+	ld a,[hli]
+	ld [de],a
+	inc e
+	dec c
+	jr nz,.loop\@
+ENDM

@@ -4,14 +4,17 @@ JBitButtonA    EQU 0
 
 SBY            EQU 16 ; Screen Base Y
 SBX            EQU 8 ; Screen Base X
-CarStartY      EQU SBY+8*12
-CarStartX      EQU SBX+8*9
+CarPosY        EQU SBY+8*12
+CarPosX        EQU SBX+8*9
 
-StartBgPos     EQU 8*7-1
-StartRoadPos   EQU 8*10-1 ;EndBgPos
-EndRoadPos     EQU 8*14-1
 StartBgScrollY EQU 232
 RoadPosWait    EQU 0
+JoypadWait     EQU 3
+JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
+
+ScrollSize     EQU 8*18
+ScrollBgSize   EQU 8*3
+ScrollRoadSize EQU 8*4
 
 BGPaletteCnt   EQU 4*4
 ObjPaletteCnt  EQU 4*1
