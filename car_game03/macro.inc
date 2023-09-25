@@ -77,18 +77,18 @@ MACRO mWaitForVBlankDone
 	jr z,.waitloop\@
 ENDM
 
-MACRO mSetScrollTbl
-.loop\@
-	ld [hli],a
-	dec c
-	jr nz,.loop\@
-ENDM
+;MACRO mSetScrollTbl
+;.loop\@
+;	ld [hli],a
+;	dec c
+;	jr nz,.loop\@
+;ENDM
 
-MACRO mCopyScrollTbl
-.loop\@
-	ld a,[hli]
-	ld [de],a
-	inc e
-	dec c
-	jr nz,.loop\@
-ENDM
+;MACRO mCopyScrollTbl
+;.loop\@
+;	ld a,[hli]
+;	ld [de],a
+;	inc e
+;	dec c
+;	jr nz,.loop\@
+;ENDM

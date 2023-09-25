@@ -185,63 +185,101 @@ MainLoop:
 	ld [wRoadPCnt],a
 
 	xor a
-	ld c,ScrollRoadSize
 	ld hl,wRoadXLR
-	mSetScrollTbl
-
+	;ld c,ScrollRoadSize ;8
+	;mSetScrollTbl
+	;.loop\@
+	;	ld [hli],a ;8
+	;	dec c ;4
+	;	jr nz,.loop\@ ;12/8 = 24*31+8+20=772
+REPT ScrollRoadSize
+	ld [hli],a ;8*32=256
+ENDR
 	ld a,[wRoadPMode]
 	cp RPU
-	jr z,.setRoadPUp
+	jp z,.setRoadPUp
 	cp RPD
-	jr z,.setRoadPDown
+	jp z,.setRoadPDown
 	cp RPL
-	jr z,.setRoadPLeft
+	jp z,.setRoadPLeft
 	cp RPR
-	jr z,.setRoadPRight
+	jp z,.setRoadPRight
 .setRoadPWait
 	ld a,[wRoadPWaitDef]
 	ld [wRoadPWait],a
-	jr .setRoadPos
+	jp .setRoadPos
 
 .setRoadPLeft
 	ld a,[wBgX]
 	dec a
-	ld c,ScrollBgSize
 	ld hl,wBgX
-	mSetScrollTbl
-	ld c,ScrollRoadSize
+	;ld c,ScrollBgSize ;8
+	;mSetScrollTbl ;572
+REPT ScrollBgSize
+	ld [hli],a ;8*24=192
+ENDR
+	;ld c,ScrollRoadSize ;8
 	ld de,wRoadXLR
 	ld hl,ScrollLeftTbl
-	mCopyScrollTbl
-	jr .setRoadPWait
+	;mCopyScrollTbl
+	;.loop\@
+	;	ld a,[hli] ;8
+	;	ld [de],a ;8
+	;	inc e ;4
+	;	dec c ;4
+	;	jr nz,.loop\@ ;12/8 = 36*31+8+32=1156
+REPT ScrollRoadSize-1
+	ld a,[hli] ;8
+	ld [de],a ;8
+	inc e ;4 = 20*31=620
+ENDR
+	ld a,[hl] ;8
+	ld [de],a ;8 = 16+620=636
+	jp .setRoadPWait
 
 .setRoadPRight
 	ld a,[wBgX]
 	inc a
-	ld c,ScrollBgSize
 	ld hl,wBgX
-	mSetScrollTbl
-	ld c,ScrollRoadSize
+	;ld c,ScrollBgSize ;8
+	;mSetScrollTbl ;572
+REPT ScrollBgSize
+	ld [hli],a ;8*24=192
+ENDR
+	;ld c,ScrollRoadSize
 	ld de,wRoadXLR
 	ld hl,ScrollRightTbl
-	mCopyScrollTbl
-	jr .setRoadPWait
+	;mCopyScrollTbl ;1156
+REPT ScrollRoadSize-1
+	ld a,[hli] ;8
+	ld [de],a ;8
+	inc e ;4 = 20*31=620
+ENDR
+	ld a,[hl] ;8
+	ld [de],a ;8 = 16+620=636
+	jp .setRoadPWait
 
 .setRoadPUp
 	ld a,[wBgY]
 	inc a
-	ld c,ScrollBgSize
 	ld hl,wBgY
-	mSetScrollTbl
-	jr .setRoadPWait
+	;ld c,ScrollBgSize ;8
+	;mSetScrollTbl ;572
+REPT ScrollBgSize
+	ld [hli],a ;8*24=192
+ENDR
+	jp .setRoadPWait
 
 .setRoadPDown
 	ld a,[wBgY]
 	dec a
-	ld c,ScrollBgSize
 	ld hl,wBgY
-	mSetScrollTbl
-	jr .setRoadPWait
+	;ld c,ScrollBgSize ;8
+	;mSetScrollTbl ;572
+REPT ScrollBgSize
+	ld [hli],a ;8*24=192
+ENDR
+	jp .setRoadPWait
 
 .setRoadPTbl
 	ld a,[wRoadPTbl]
@@ -276,10 +314,16 @@ MainLoop:
 	ld [wRoadPos],a
 	ld h,HIGH(ScrollPosTbl)
 	ld l,a
+	;ld c,ScrollRoadSize
 	ld de,wRoadY
-	ld c,ScrollRoadSize
-	mCopyScrollTbl
-
+	;mCopyScrollTbl ;1156
+REPT ScrollRoadSize-1
+	ld a,[hli] ;8
+	ld [de],a ;8
+	inc e ;4 = 20*31=620
+ENDR
+	ld a,[hl] ;8
+	ld [de],a ;8 = 16+620=636
 .skipRoadPos
 	ld a,[wJoypadWait]
 	cp 0
@@ -295,15 +339,15 @@ MainLoop:
 	mCheckJoypad
 	ld a,[wJoypad]
 	bit JBitRight,a
-	jr nz,.jRight
+	jp nz,.jRight
 	bit JBitLeft,a
-	jr nz,.jLeft
-	jr .setSprite
+	jp nz,.jLeft
+	jp .setSprite
 
 .jRight
 	ld a,[wJoyPadPos]
 	cp 15
-	jr z,.setSprite
+	jp z,.setSprite
 	inc a
 	ld [wJoyPadPos],a
 
@@ -318,10 +362,17 @@ MainLoop:
 	ld a,l
 	ld [wJoyPadPosAddr+1],a
 
-	ld c,ScrollRoadSize
+	;ld c,ScrollRoadSize
 	ld de,wJoyPadXLR
-	mCopyScrollTbl
-	jr .setSprite
+	;mCopyScrollTbl ;1156
+REPT ScrollRoadSize-1
+	ld a,[hli] ;8
+	ld [de],a ;8
+	inc e ;4 = 20*31=620
+ENDR
+	ld a,[hl] ;8
+	ld [de],a ;8 = 16+620=636
+	jp .setSprite
 
 .jLeft
 	ld a,[wJoyPadPos]
@@ -342,9 +393,16 @@ MainLoop:
 	ld a,h
 	ld [wJoyPadPosAddr],a
 .setWJoyPadXLR
-	ld c,ScrollRoadSize
+	;ld c,ScrollRoadSize
 	ld de,wJoyPadXLR
-	mCopyScrollTbl
+	;mCopyScrollTbl ;1156
+REPT ScrollRoadSize-1
+	ld a,[hli] ;8
+	ld [de],a ;8
+	inc e ;4 = 20*31=620
+ENDR
+	ld a,[hl] ;8
+	ld [de],a ;8 = 16+620=636
 	jr .setSprite
 
 .setSprite
@@ -368,21 +426,39 @@ MainLoop:
 	ld a,0
 	ld [hli],a
 
+;CalcWSCX:
+;	ld de,wRoadX ;12
+;	ld hl,wRoadXLR ;12
+;	ld c,ScrollRoadSize ;8
+;.loop
+;	ld a,[hl] ;8
+;	ld b,a ;4
+;	inc h ;4
+;	ld a,[hli] ;8
+;	add a,b ;4
+;	ld [de],a ;8
+;	dec h ;4
+;	inc e ;4
+;	dec c ;4
+;	jr nz,.loop ;12/8 = 92*31+88=2940
+
 CalcWSCX:
-	ld de,wRoadX
-	ld hl,wRoadXLR
-	ld c,ScrollRoadSize
-.loop
-	ld a,[hl]
-	ld b,a
-	inc h
-	ld a,[hli]
-	add a,b
-	ld [de],a
-	dec h
-	inc e
-	dec c
-	jr nz,.loop
+	ld de,wRoadX ;12
+	ld hl,wRoadXLR ;12 =24
+REPT ScrollRoadSize-1
+	ld c,[hl] ;8
+	inc h ;4
+	ld a,[hli] ;8
+	add a,c ;4
+	ld [de],a ;8
+	dec h ;4
+	inc e ;4 = 40*31=1240
+ENDR
+	ld c,[hl] ;8
+	inc h ;4
+	ld a,[hli] ;8
+	add a,c ;4
+	ld [de],a ;8 = 32+24+1240=1296
 
 SetOAM:
 	mWaitVBlank
