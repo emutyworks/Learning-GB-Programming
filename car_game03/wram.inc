@@ -16,6 +16,7 @@ wJoypad: ds 1
 wButton: ds 1
 
 wVBlankDone: ds 1
+wMainLoopFlg: ds 1
 
 SECTION "rSCY Table",WRAM0[$C100]
 wSCY: ds 8*7-1

@@ -93,13 +93,14 @@ Start:
 	ld [wRoadPosWait],a
 	ld [wRoadPos],a
 	ld [wVBlankDone],a
+	ld [wMainLoopFlg],a
 
 	; Set Sprites/Tiles data
-	ld hl,_VRAM8000
+	ld hl,_VRAM ;$8000
 	ld de,Sprites
 	ld bc,SpritesEnd - Sprites
 	call CopyData
-	ld hl,_VRAM9000
+	ld hl,_VRAM+$1000 ;$9000
 	ld de,Tiles
 	ld bc,TilesEnd - Tiles
 	call CopyData
@@ -118,7 +119,7 @@ Start:
 	ld bc,BgTileMap0End - BgTileMap0
 	call CopyData
 
-	ld a,LCDCF_ON|LCDCB_BG8000|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
+	ld a,LCDCF_ON|LCDCB_BLKS|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
 	ldh [rLCDC],a
 
 	mInitwShadowOAM
@@ -128,7 +129,7 @@ Start:
 	ldh [rSTAT],a
 
 	; Enable the interrupts
-	ld a,IEF_VBLANK|IEF_LCDC
+	ld a,IEF_VBLANK|IEF_STAT
 	ldh [rIE],a
 	xor a
 	ei
@@ -164,10 +165,14 @@ Start:
 	ld a,LOW(ScrollLRCenterTbl)
 	ld [hli],a
 
-MainLoop:
-	mWaitForVBlankDone ; halt until interrupt occurs
 	xor a
 	ld [wVBlankDone],a
+	ld [wMainLoopFlg],a
+
+MainLoop:
+	ld a,[wMainLoopFlg]
+	cp 1
+	jp z,SetOAM
 
 	;RoadPatternTbl
 	ld a,[wRoadPWait]
@@ -186,14 +191,8 @@ MainLoop:
 
 	xor a
 	ld hl,wRoadXLR
-	;ld c,ScrollRoadSize ;8
-	;mSetScrollTbl
-	;.loop\@
-	;	ld [hli],a ;8
-	;	dec c ;4
-	;	jr nz,.loop\@ ;12/8 = 24*31+8+20=772
 REPT ScrollRoadSize
-	ld [hli],a ;8*32=256
+	ld [hli],a
 ENDR
 	ld a,[wRoadPMode]
 	cp RPU
@@ -213,60 +212,44 @@ ENDR
 	ld a,[wBgX]
 	dec a
 	ld hl,wBgX
-	;ld c,ScrollBgSize ;8
-	;mSetScrollTbl ;572
 REPT ScrollBgSize
-	ld [hli],a ;8*24=192
+	ld [hli],a
 ENDR
-	;ld c,ScrollRoadSize ;8
 	ld de,wRoadXLR
 	ld hl,ScrollLeftTbl
-	;mCopyScrollTbl
-	;.loop\@
-	;	ld a,[hli] ;8
-	;	ld [de],a ;8
-	;	inc e ;4
-	;	dec c ;4
-	;	jr nz,.loop\@ ;12/8 = 36*31+8+32=1156
 REPT ScrollRoadSize-1
-	ld a,[hli] ;8
-	ld [de],a ;8
-	inc e ;4 = 20*31=620
+	ld a,[hli]
+	ld [de],a
+	inc e
 ENDR
-	ld a,[hl] ;8
-	ld [de],a ;8 = 16+620=636
+	ld a,[hl]
+	ld [de],a
 	jp .setRoadPWait
 
 .setRoadPRight
 	ld a,[wBgX]
 	inc a
 	ld hl,wBgX
-	;ld c,ScrollBgSize ;8
-	;mSetScrollTbl ;572
 REPT ScrollBgSize
-	ld [hli],a ;8*24=192
+	ld [hli],a
 ENDR
-	;ld c,ScrollRoadSize
 	ld de,wRoadXLR
 	ld hl,ScrollRightTbl
-	;mCopyScrollTbl ;1156
 REPT ScrollRoadSize-1
-	ld a,[hli] ;8
-	ld [de],a ;8
-	inc e ;4 = 20*31=620
+	ld a,[hli]
+	ld [de],a
+	inc e
 ENDR
-	ld a,[hl] ;8
-	ld [de],a ;8 = 16+620=636
+	ld a,[hl]
+	ld [de],a
 	jp .setRoadPWait
 
 .setRoadPUp
 	ld a,[wBgY]
 	inc a
 	ld hl,wBgY
-	;ld c,ScrollBgSize ;8
-	;mSetScrollTbl ;572
 REPT ScrollBgSize
-	ld [hli],a ;8*24=192
+	ld [hli],a
 ENDR
 	jp .setRoadPWait
 
@@ -274,10 +257,8 @@ ENDR
 	ld a,[wBgY]
 	dec a
 	ld hl,wBgY
-	;ld c,ScrollBgSize ;8
-	;mSetScrollTbl ;572
 REPT ScrollBgSize
-	ld [hli],a ;8*24=192
+	ld [hli],a
 ENDR
 	jp .setRoadPWait
 
@@ -314,16 +295,14 @@ ENDR
 	ld [wRoadPos],a
 	ld h,HIGH(ScrollPosTbl)
 	ld l,a
-	;ld c,ScrollRoadSize
 	ld de,wRoadY
-	;mCopyScrollTbl ;1156
 REPT ScrollRoadSize-1
-	ld a,[hli] ;8
-	ld [de],a ;8
-	inc e ;4 = 20*31=620
+	ld a,[hli]
+	ld [de],a
+	inc e
 ENDR
-	ld a,[hl] ;8
-	ld [de],a ;8 = 16+620=636
+	ld a,[hl]
+	ld [de],a
 .skipRoadPos
 	ld a,[wJoypadWait]
 	cp 0
@@ -362,16 +341,14 @@ ENDR
 	ld a,l
 	ld [wJoyPadPosAddr+1],a
 
-	;ld c,ScrollRoadSize
 	ld de,wJoyPadXLR
-	;mCopyScrollTbl ;1156
 REPT ScrollRoadSize-1
-	ld a,[hli] ;8
-	ld [de],a ;8
-	inc e ;4 = 20*31=620
+	ld a,[hli]
+	ld [de],a
+	inc e
 ENDR
-	ld a,[hl] ;8
-	ld [de],a ;8 = 16+620=636
+	ld a,[hl]
+	ld [de],a
 	jp .setSprite
 
 .jLeft
@@ -393,16 +370,14 @@ ENDR
 	ld a,h
 	ld [wJoyPadPosAddr],a
 .setWJoyPadXLR
-	;ld c,ScrollRoadSize
 	ld de,wJoyPadXLR
-	;mCopyScrollTbl ;1156
 REPT ScrollRoadSize-1
-	ld a,[hli] ;8
-	ld [de],a ;8
-	inc e ;4 = 20*31=620
+	ld a,[hli]
+	ld [de],a
+	inc e
 ENDR
-	ld a,[hl] ;8
-	ld [de],a ;8 = 16+620=636
+	ld a,[hl]
+	ld [de],a
 	jr .setSprite
 
 .setSprite
@@ -426,42 +401,36 @@ ENDR
 	ld a,0
 	ld [hli],a
 
-;CalcWSCX:
-;	ld de,wRoadX ;12
-;	ld hl,wRoadXLR ;12
-;	ld c,ScrollRoadSize ;8
-;.loop
-;	ld a,[hl] ;8
-;	ld b,a ;4
-;	inc h ;4
-;	ld a,[hli] ;8
-;	add a,b ;4
-;	ld [de],a ;8
-;	dec h ;4
-;	inc e ;4
-;	dec c ;4
-;	jr nz,.loop ;12/8 = 92*31+88=2940
-
-CalcWSCX:
-	ld de,wRoadX ;12
-	ld hl,wRoadXLR ;12 =24
+	;CalcWSCX
+	ld de,wRoadX
+	ld hl,wRoadXLR
 REPT ScrollRoadSize-1
-	ld c,[hl] ;8
-	inc h ;4
-	ld a,[hli] ;8
-	add a,c ;4
-	ld [de],a ;8
-	dec h ;4
-	inc e ;4 = 40*31=1240
+	ld c,[hl]
+	inc h
+	ld a,[hli]
+	add a,c
+	ld [de],a
+	dec h
+	inc e
 ENDR
-	ld c,[hl] ;8
-	inc h ;4
-	ld a,[hli] ;8
-	add a,c ;4
-	ld [de],a ;8 = 32+24+1240=1296
+	ld c,[hl]
+	inc h
+	ld a,[hli]
+	add a,c
+	ld [de],a
+
+	ld a,1
+	ld [wMainLoopFlg],a
+	jp MainLoop
 
 SetOAM:
-	mWaitVBlank
+	ld a,[wVBlankDone]
+	cp 1
+	jp nz,MainLoop
+	xor a
+	ld [wVBlankDone],a
+	ld [wMainLoopFlg],a
+
 	mSetOAM
 	jp MainLoop
 

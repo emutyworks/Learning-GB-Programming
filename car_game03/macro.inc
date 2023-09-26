@@ -69,26 +69,10 @@ MACRO mCopyDMARoutine
 	jr nz,.loop\@
 ENDM
 
-MACRO mWaitForVBlankDone
-.waitloop\@
-	halt ; halt until interrupt occurs (low power)
-	ld a,[wVBlankDone]
-	and a
-	jr z,.waitloop\@
-ENDM
-
-;MACRO mSetScrollTbl
-;.loop\@
-;	ld [hli],a
-;	dec c
-;	jr nz,.loop\@
-;ENDM
-
-;MACRO mCopyScrollTbl
-;.loop\@
-;	ld a,[hli]
-;	ld [de],a
-;	inc e
-;	dec c
-;	jr nz,.loop\@
+;MACRO mWaitForVBlankDone
+;.waitloop\@
+;	halt ; halt until interrupt occurs (low power)
+;	ld a,[wVBlankDone]
+;	and a
+;	jr z,.waitloop\@
 ;ENDM
