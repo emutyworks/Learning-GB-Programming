@@ -89,6 +89,7 @@ Start:
 	ld [wRoadPWaitDef],a
 	ld [wRoadPMode],a
 	ld [wRoadPCnt],a
+	ld [wRoadPNum],a
 	ld [wRoadPWait],a
 	ld [wRoadPosWait],a
 	ld [wRoadPos],a
@@ -136,14 +137,14 @@ Start:
 	ldh [rIF],a
 
 	; Set Scroll Table
-	ld hl,wSCY
-	ld c,ScrollSize
 	xor a
+	ld hl,wSCY
+	ld c,ScrollMaxSize
 	call SetScrollTbl
 	ld hl,wSCX
-	ld c,ScrollSize
+	ld c,ScrollMaxSize
 	call SetScrollTbl
-	ld hl,wRoadXLR
+	ld hl,wRoadYUD
 	ld c,ScrollRoadSize
 	call SetScrollTbl
 
@@ -189,84 +190,73 @@ MainLoop:
 	dec a
 	ld [wRoadPCnt],a
 
-	xor a
-	ld hl,wRoadXLR
-REPT ScrollRoadSize
-	ld [hli],a
-ENDR
+	mInitWRoadXLR
 	ld a,[wRoadPMode]
-	cp RPU
-	jp z,.setRoadPUp
-	cp RPD
-	jp z,.setRoadPDown
-	cp RPL
-	jp z,.setRoadPLeft
-	cp RPR
-	jp z,.setRoadPRight
+	cp RPBU
+	jp z,.setRoadPBgUp
+	cp RPBD
+	jp z,.setRoadPBgDown
+	cp RPRL
+	jp z,.setRoadPRoadLeft
+	cp RPRR
+	jp z,.setRoadPRoadRight
+	cp RPUD
+	jp z,.setRoadPRoadUpDown
 .setRoadPWait
 	ld a,[wRoadPWaitDef]
 	ld [wRoadPWait],a
 	jp .setRoadPos
 
-.setRoadPLeft
+.setRoadPRoadUpDown
+	ld a,[wRoadPNum]
+	rrca
+	rrca
+	rrca
+	ld h,HIGH(ScrollUpDnTbl)
+	ld l,a
+	ld de,wRoadYUD
+	mCopyScrollRoad
+	jp .setRoadPWait
+
+.setRoadPRoadLeft
 	ld a,[wBgX]
 	dec a
 	ld hl,wBgX
-REPT ScrollBgSize
-	ld [hli],a
-ENDR
+	mSetWBG
 	ld de,wRoadXLR
 	ld hl,ScrollLeftTbl
-REPT ScrollRoadSize-1
-	ld a,[hli]
-	ld [de],a
-	inc e
-ENDR
-	ld a,[hl]
-	ld [de],a
+	mCopyScrollRoad
 	jp .setRoadPWait
 
-.setRoadPRight
+.setRoadPRoadRight
 	ld a,[wBgX]
 	inc a
 	ld hl,wBgX
-REPT ScrollBgSize
-	ld [hli],a
-ENDR
+	mSetWBG
 	ld de,wRoadXLR
 	ld hl,ScrollRightTbl
-REPT ScrollRoadSize-1
-	ld a,[hli]
-	ld [de],a
-	inc e
-ENDR
-	ld a,[hl]
-	ld [de],a
+	mCopyScrollRoad
 	jp .setRoadPWait
 
-.setRoadPUp
+.setRoadPBgUp
 	ld a,[wBgY]
 	inc a
 	ld hl,wBgY
-REPT ScrollBgSize
-	ld [hli],a
-ENDR
+	mSetWBG
 	jp .setRoadPWait
 
-.setRoadPDown
+.setRoadPBgDown
 	ld a,[wBgY]
 	dec a
 	ld hl,wBgY
-REPT ScrollBgSize
-	ld [hli],a
-ENDR
+	mSetWBG
 	jp .setRoadPWait
 
 .setRoadPTbl
 	ld a,[wRoadPTbl]
 	inc a
-	and %00001111
-	;and %00000011;debug
+	;and %00001111
+	and %00001111;debug
 	ld [wRoadPTbl],a
 	rlca
 	rlca
@@ -276,8 +266,10 @@ ENDR
 	ld [wRoadPMode],a
 	ld a,[hli]
 	ld [wRoadPWaitDef],a
-	ld a,[hl]
+	ld a,[hli]
 	ld [wRoadPCnt],a
+	ld a,[hl]
+	ld [wRoadPNum],a
 
 .setRoadPos
 	ld a,[wRoadPosWait]
@@ -285,7 +277,7 @@ ENDR
 	jr z,.addRoadPos
 	dec a
 	ld [wRoadPosWait],a
-	jr .skipRoadPos
+	jp .skipRoadPos
 
 .addRoadPos:
 	ld a,RoadPosWait
@@ -296,13 +288,9 @@ ENDR
 	ld h,HIGH(ScrollPosTbl)
 	ld l,a
 	ld de,wRoadY
-REPT ScrollRoadSize-1
-	ld a,[hli]
-	ld [de],a
-	inc e
-ENDR
-	ld a,[hl]
-	ld [de],a
+	mCopyScrollRoad
+	mCalcWRoadY
+
 .skipRoadPos
 	ld a,[wJoypadWait]
 	cp 0
@@ -342,13 +330,7 @@ ENDR
 	ld [wJoyPadPosAddr+1],a
 
 	ld de,wJoyPadXLR
-REPT ScrollRoadSize-1
-	ld a,[hli]
-	ld [de],a
-	inc e
-ENDR
-	ld a,[hl]
-	ld [de],a
+	mCopyScrollRoad
 	jp .setSprite
 
 .jLeft
@@ -371,13 +353,7 @@ ENDR
 	ld [wJoyPadPosAddr],a
 .setWJoyPadXLR
 	ld de,wJoyPadXLR
-REPT ScrollRoadSize-1
-	ld a,[hli]
-	ld [de],a
-	inc e
-ENDR
-	ld a,[hl]
-	ld [de],a
+	mCopyScrollRoad
 	jr .setSprite
 
 .setSprite
@@ -401,23 +377,7 @@ ENDR
 	ld a,0
 	ld [hli],a
 
-	;CalcWSCX
-	ld de,wRoadX
-	ld hl,wRoadXLR
-REPT ScrollRoadSize-1
-	ld c,[hl]
-	inc h
-	ld a,[hli]
-	add a,c
-	ld [de],a
-	dec h
-	inc e
-ENDR
-	ld c,[hl]
-	inc h
-	ld a,[hli]
-	add a,c
-	ld [de],a
+	mCalcWSCX
 
 	ld a,1
 	ld [wMainLoopFlg],a

@@ -69,10 +69,62 @@ MACRO mCopyDMARoutine
 	jr nz,.loop\@
 ENDM
 
-;MACRO mWaitForVBlankDone
-;.waitloop\@
-;	halt ; halt until interrupt occurs (low power)
-;	ld a,[wVBlankDone]
-;	and a
-;	jr z,.waitloop\@
-;ENDM
+MACRO mInitWRoadXLR
+	xor a
+	ld hl,wRoadXLR
+REPT ScrollRoadSize
+	ld [hli],a
+ENDR
+ENDM
+
+MACRO mCopyScrollRoad
+REPT ScrollRoadSize-1
+	ld a,[hli]
+	ld [de],a
+	inc e
+ENDR
+	ld a,[hl]
+	ld [de],a
+ENDM
+
+MACRO mSetWBG
+REPT ScrollBgSize
+	ld [hli],a
+ENDR
+ENDM
+
+MACRO mCalcWRoadY
+	ld hl,wRoadYUD
+	ld de,wRoadY
+REPT ScrollRoadSize-1
+	ld c,[hl]
+	ld a,[de]
+	add a,c
+	ld [de],a
+	inc l
+	inc e
+ENDR
+	ld c,[hl]
+	ld a,[de]
+	add a,c
+	ld [de],a
+ENDM
+
+MACRO mCalcWSCX
+	ld de,wRoadX
+	ld hl,wRoadXLR
+REPT ScrollRoadSize-1
+	ld c,[hl]
+	inc h
+	ld a,[hli]
+	add a,c
+	ld [de],a
+	dec h
+	inc e
+ENDR
+	ld c,[hl]
+	inc h
+	ld a,[hli]
+	add a,c
+	ld [de],a
+ENDM

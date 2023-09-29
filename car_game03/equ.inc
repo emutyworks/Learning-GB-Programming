@@ -7,7 +7,7 @@ SBX            EQU 8 ; Screen Base X
 CarPosY        EQU SBY+8*12
 CarPosX        EQU SBX+8*9
 
-StartBgScrollY EQU 232
+StartBgScrollY EQU 0
 RoadPosWait    EQU 0
 JoypadWait     EQU 3
 JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
@@ -15,17 +15,19 @@ JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
 ScrollSize     EQU 8*18
 ScrollBgSize   EQU 8*3
 ScrollRoadSize EQU 8*4
+ScrollMaxSize  EQU 154
 
 BGPaletteCnt   EQU 4*4
 ObjPaletteCnt  EQU 4*1
 
 ; HBlank Scroll Position Table
-S0 EQU 96
-S1 EQU 64
+S0 EQU 128
+S1 EQU 80
 
 ; Road Pattern Table
-RPR EQU 0 ; Right
-RPL EQU 1 ; Left
-RPS EQU 2 ; Straight
-RPU EQU 3 ; Up
-RPD EQU 4 ; Down
+RPRR EQU 0 ; Road Right
+RPRL EQU 1 ; Road Left
+RPRS EQU 2 ; Road Straight
+RPBU EQU 3 ; BG Up
+RPBD EQU 4 ; BG Down
+RPUD EQU 5 ; Road Up/Down

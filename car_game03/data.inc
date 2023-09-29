@@ -1,5 +1,8 @@
 SECTION "HBlank Scroll Position Table",ROM0[$2000]
 ScrollPosTbl:
+	;debug
+	;db S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1
+	;db S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1
 	;0
 	db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0,S0
 	db S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1
@@ -25,17 +28,35 @@ ScrollPosTbl:
 	db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
 	db S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1,S0
 
-SECTION "HBlank Scroll Left Table",ROM0[$2100]
+SECTION "HBlank Scroll Up/Down Table",ROM0[$2100]
+ScrollUpDnTbl:
+	;0
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;1
+	db -1,-2,-3,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-1,-1,-1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;2
+	db -1,-2,-3,-4,-5,-6,-7,-8,-8,-8,-8,-7,-7,-6,-6,-5
+	db -5,-4,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0
+	;3
+	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-12,-12,-12,-11
+	db -11,-10,-9,-8,-7,-6,-5,-5,-3,-3,-2,-2,-1,-1,0,0
+	;4
+	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
+	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
+
+SECTION "HBlank Scroll Left Table",ROM0[$2200]
 ScrollLeftTbl:
 	db 50,45,40,35,30,25,20,16,12,9,8,7,6,5,4,3
 	db 2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0
 
-SECTION "HBlank Scroll Right Table",ROM0[$2200]
+SECTION "HBlank Scroll Right Table",ROM0[$2300]
 ScrollRightTbl:
 	db -50,-45,-40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3
 	db -2,-2,-2,-1,0,0,0,0,0,0,0,0,0,0,0,0
 
-SECTION "HBlank Scroll LR Table",ROM0[$2300]
+SECTION "HBlank Scroll LR Table",ROM0[$2400]
 ScrollLRTbl:
 	;0
 	db  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -87,35 +108,25 @@ ScrollLRCenterTbl:
 	db  0, 3, 5, 8,10,13,15,18,20,23,26,28,31,33,36,38
 	db 41,44,46,49,51,54,56,59,61,64,67,69,72,74,77,79
 
-SECTION "Road Pattern Table",ROM0[$2500]
+SECTION "Road Pattern Table",ROM0[$2600]
 RoadPatternTbl:
-	; mode,wait,cnt,0
-	;db RPS,20,10,0 ;debug
-	;db RPS,20,10,0
-	;db RPS,20,10,0
-	;db RPS,20,10,0
-
-	;db RPD,10,8,0
-	;db RPU,10,8,0
-	;db RPL,4,40,0
-	;db RPR,4,40,0
-
-	db RPD,10,24,0 ;0
-	db RPS,20,10,0 ;1 start
-	db RPU,25,8,0 ;2
-	db RPS,10,24,0 ;3
-	db RPU,25,8,0 ;4
-	db RPS,10,10,0 ;5
-	db RPU,15,8,0 ;6
-	db RPS,10,10,0 ;7
-	db RPL,2,255,0 ;8
-	db RPS,20,10,0 ;9
-	db RPR,8,100,0 ;10
-	db RPS,1,1,0 ;11
-	db RPS,1,1,0 ;12
-	db RPS,1,1,0 ;13
-	db RPS,1,1,0 ;14
-	db RPS,20,10,0 ;15
+	; mode,wait,cnt,num
+	db RPUD,10,1,0
+	db RPUD,100,1,0 ;start
+	db RPBD,5,24,0
+	db RPUD,12,1,1
+	db RPUD,12,1,2
+	db RPUD,12,1,3
+	db RPUD,100,1,4
+	db RPUD,30,1,3
+	db RPUD,30,1,2
+	db RPUD,30,1,1
+	db RPUD,50,1,0
+	db RPBU,20,16,0
+	db RPRR,10,50,0
+	db RPRS,80,1,0
+	db RPRL,10,50,0
+	db RPBU,20,8,0
 
 BGPalette:
 	dw 23454
