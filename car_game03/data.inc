@@ -1,8 +1,5 @@
 SECTION "HBlank Scroll Position Table",ROM0[$2000]
 ScrollPosTbl:
-	;debug
-	;db S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1
-	;db S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1,S1
 	;0
 	db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0,S0
 	db S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1
@@ -45,16 +42,19 @@ ScrollUpDnTbl:
 	;4
 	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
 	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
+	;96
 
 SECTION "HBlank Scroll Left Table",ROM0[$2200]
 ScrollLeftTbl:
 	db 50,45,40,35,30,25,20,16,12,9,8,7,6,5,4,3
 	db 2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0
+	;224
 
 SECTION "HBlank Scroll Right Table",ROM0[$2300]
 ScrollRightTbl:
 	db -50,-45,-40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3
 	db -2,-2,-2,-1,0,0,0,0,0,0,0,0,0,0,0,0
+	;224
 
 SECTION "HBlank Scroll LR Table",ROM0[$2400]
 ScrollLRTbl:
@@ -108,9 +108,56 @@ ScrollLRCenterTbl:
 	db  0, 3, 5, 8,10,13,15,18,20,23,26,28,31,33,36,38
 	db 41,44,46,49,51,54,56,59,61,64,67,69,72,74,77,79
 
-SECTION "Road Pattern Table",ROM0[$2600]
+SECTION "Car Speed/Smoke Table",ROM0[$2600]
+CarSpeedTbl:
+	;shift wait,loop wait,ScrollRoadSize,0
+	db 10,0,0,0
+	db 40,3,ScrollRoadSize,0
+	db 40,2,ScrollRoadSize,0
+	db 40,1,ScrollRoadSize,0
+	db 40,0,ScrollRoadSize,0
+	db 30,0,ScrollRoadSize*2,0 ;24
+CarSmokeTbl:
+	; 0:skip,1:right,2:left,3:left/right
+  ;   L               C             R
+	;   0 1 2 3 4 5 6 7 8 9 101112131415
+	db  3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3
+	;216
+
+SECTION "Car Sprite Table",ROM0[$2700]
+CarSpriteTbl:
+	;Tile Index,Attributes/Flags,Tile Index,Attributes/Flags
+	db 0,0,0,0|OAMF_XFLIP ;0 straight
+	db 2,0,2,0|OAMF_XFLIP
+	db 4,0,6,0 ;2 left
+	db 8,0,10,0
+	db 12,0,14,0 ;4 right
+	db 16,0,18,0
+	;232
+
+SECTION "Engine Sound Table",ROM0[$2800]
+SoundTbl:
+	;Output level,Frequency low,Hi,0
+	db %01000000,$40,%10000000,0
+	db %00100000,$60,%10000000,0
+	db %00100000,$7F,%10000000,0
+	db %00100000,$9F,%10000001,0
+	db %00100000,$bf,%10000010,0
+	db %00100000,$FF,%10000011,0
+WaveData:
+	db $12,$56 ; 1,2,5,6
+	db $BC,$DC ; 11,12,13,12
+	db $DB,$DD ; 13,11,13,13
+	db $CE,$A9 ; 12,14,10,09
+	db $76,$65 ; 07,06,06,05
+WaveDataEnd:
+
+SECTION "Road Pattern Table",ROM0[$2900]
 RoadPatternTbl:
-	; mode,wait,cnt,num
+	;mode,wait,cnt,num
+	;db RPRS,80,1,0 ;debug
+	;db RPRS,80,1,0
+
 	db RPUD,10,1,0
 	db RPUD,100,1,0 ;start
 	db RPBD,5,24,0
@@ -144,10 +191,10 @@ BGPalette:
 	dw 5854
 	dw 505
 
-	dw 23454
-	dw 505
-	dw 31412
+	dw 0
+	dw 32767
 	dw 5854
+	dw 505
 
 ObjPalette:
 	dw 15134
@@ -155,18 +202,24 @@ ObjPalette:
 	dw 32767
 	dw 31
 
+	dw 15134
+	dw 8456
+	dw 24311
+	dw 505
+
+SECTION "tiles/sprites",ROM0[$6800]
 Sprites:
-	INCBIN "sprites.bin"
+	INCBIN "sprites.bin" ;$800
 SpritesEnd:
 
 Tiles:
-	INCBIN "tiles.bin"
+	INCBIN "tiles.bin" ;$800
 TilesEnd:
 
 BgTileMap0: ; Tile Indexes
-	INCLUDE "bg_tile0.inc"
+	INCLUDE "bg_tile0.inc" ;$400
 BgTileMap0End:
 
 BgTileMap1: ; BG Map Attributes
-	INCLUDE "bg_tile1.inc"
+	INCLUDE "bg_tile1.inc" ;$400
 BgTileMap1End:

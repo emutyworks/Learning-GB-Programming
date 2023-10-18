@@ -1,6 +1,9 @@
 ;
 ; I used this Website/Document as a reference to create "main.asm".
 ;
+; Lesson P21 - Sound on the Gameboy and GBC
+; https://www.chibiakumas.com/z80/platform3.php#LessonP21
+;
 ; Lesson H9- Hello World on the Gameboy and Gameboy Color
 ; https://www.chibiakumas.com/z80/helloworld.php#LessonH9
 ;
@@ -82,7 +85,6 @@ Start:
 	ldh [rSCY],a
 	ldh [rSCX],a
 	ld [wJoypad],a
-	ld [wButton],a
 	ld [wJoyPadPos],a
 	ld [wJoypadWait],a
 	ld [wRoadPTbl],a
@@ -91,10 +93,19 @@ Start:
 	ld [wRoadPCnt],a
 	ld [wRoadPNum],a
 	ld [wRoadPWait],a
-	ld [wRoadPosWait],a
 	ld [wRoadPos],a
 	ld [wVBlankDone],a
 	ld [wMainLoopFlg],a
+	ld [wCarSprite],a
+	ld [wCarSmoke],a
+	ld [wCarSpeed],a
+	ld [wCarSpeedWait],a
+	ld [wCarShift],a
+	ld [wCarShiftWait],a
+	ld [wCarScroll],a
+	ld [wAddScroll],a
+	ld [wEngineSound],a
+	ld [wSmokeTbl],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM ;$8000
@@ -136,7 +147,7 @@ Start:
 	ei
 	ldh [rIF],a
 
-	; Set Scroll Table
+	; Init Work RAM
 	xor a
 	ld hl,wSCY
 	ld c,ScrollMaxSize
@@ -147,13 +158,22 @@ Start:
 	ld hl,wRoadYUD
 	ld c,ScrollRoadSize
 	call SetScrollTbl
+	ld hl,wRoadXLR
+	ld c,ScrollRoadSize
+	call SetScrollTbl
+	ld hl,wJoyPadXLR
+	ld c,ScrollRoadSize
+	call SetScrollTbl
 
+	; Set Work RAM
 	ld a,StartBgScrollY
 	ld c,ScrollBgSize
 	ld hl,wBgY
 	call SetScrollTbl
 
 	; Set Joypad
+	ld a,JoypadWait
+	ld [wJoypadWait],a
 	ld a,JoyPadPos
 	ld [wJoyPadPos],a
 	xor a
@@ -170,10 +190,51 @@ Start:
 	ld [wVBlankDone],a
 	ld [wMainLoopFlg],a
 
+	; Set Sound
+	ld a,%00010001 ; -LLL-RRR Channel volume
+	ldh [$FF24],a
+	ld a,%11111111 ; Channel Sound output terminal
+	ldh [$FF25],a
+	ld a,%10000000 ; Sound on/off
+	ldh [$FF26],a
+
+	; Set Wave Data
+	ld hl,$FF30
+	ld de,WaveData
+	ld bc,WaveDataEnd - WaveData
+	call CopyData
+
+	ld a,%10000000 ; Wave Output on/off
+	ldh [$FF1A],a
+	ld a,$FF ; Sound Length
+	ldh [$FF1B],a
+
 MainLoop:
 	ld a,[wMainLoopFlg]
 	cp 1
 	jp z,SetOAM
+
+	ld a,[wCarSmoke]
+	inc a
+	and %00000011
+	ld [wCarSmoke],a
+
+	;Set Speed
+	ld a,[wCarSpeedWait]
+	cp 0
+	jr z,.setSpeed
+	dec a
+	ld [wCarSpeedWait],a
+	jp .setRoadPos
+
+
+.setSpeed
+	ld a,[wCarSpeed]
+	ld [wCarSpeedWait],a
+	ld a,[wCarScroll]
+	ld [wAddScroll],a
+	cp 0
+	jp z,.setRoadPos
 
 	;RoadPatternTbl
 	ld a,[wRoadPWait]
@@ -216,7 +277,7 @@ MainLoop:
 	ld l,a
 	ld de,wRoadYUD
 	mCopyScrollRoad
-	jp .setRoadPWait
+	jr .setRoadPWait
 
 .setRoadPRoadLeft
 	ld a,[wBgX]
@@ -255,8 +316,7 @@ MainLoop:
 .setRoadPTbl
 	ld a,[wRoadPTbl]
 	inc a
-	;and %00001111
-	and %00001111;debug
+	and %00001111
 	ld [wRoadPTbl],a
 	rlca
 	rlca
@@ -272,18 +332,10 @@ MainLoop:
 	ld [wRoadPNum],a
 
 .setRoadPos
-	ld a,[wRoadPosWait]
-	cp 0
-	jr z,.addRoadPos
-	dec a
-	ld [wRoadPosWait],a
-	jp .skipRoadPos
-
-.addRoadPos:
-	ld a,RoadPosWait
-	ld [wRoadPosWait],a
+	ld a,[wAddScroll]
+	ld d,a
 	ld a,[wRoadPos]
-	add a,ScrollRoadSize
+	add a,d
 	ld [wRoadPos],a
 	ld h,HIGH(ScrollPosTbl)
 	ld l,a
@@ -291,17 +343,8 @@ MainLoop:
 	mCopyScrollRoad
 	mCalcWRoadY
 
-.skipRoadPos
-	ld a,[wJoypadWait]
-	cp 0
-	jr z,.checkJoypad
-	dec a
-	ld [wJoypadWait],a
-	jp .setSprite
-
-.checkJoypad
-	ld a,JoypadWait
-	ld [wJoypadWait],a
+	xor a
+	ld [wAddScroll],a
 
 	mCheckJoypad
 	ld a,[wJoypad]
@@ -309,12 +352,15 @@ MainLoop:
 	jp nz,.jRight
 	bit JBitLeft,a
 	jp nz,.jLeft
-	jp .setSprite
+	jp CheckButton
 
 .jRight
+	ld a,4
+	ld [wCarSprite],a
+	mJoypadWait
 	ld a,[wJoyPadPos]
 	cp 15
-	jp z,.setSprite
+	jp z,CheckButton
 	inc a
 	ld [wJoyPadPos],a
 
@@ -331,12 +377,15 @@ MainLoop:
 
 	ld de,wJoyPadXLR
 	mCopyScrollRoad
-	jp .setSprite
+	jp .setSmokeTbl
 
 .jLeft
+	ld a,2
+	ld [wCarSprite],a
+	mJoypadWait
 	ld a,[wJoyPadPos]
 	cp 1
-	jr z,.setSprite
+	jp z,SetSprite
 	dec a
 	ld [wJoyPadPos],a
 
@@ -351,30 +400,116 @@ MainLoop:
 	dec h
 	ld a,h
 	ld [wJoyPadPosAddr],a
+
 .setWJoyPadXLR
 	ld de,wJoyPadXLR
 	mCopyScrollRoad
-	jr .setSprite
+.setSmokeTbl
+	ld hl,CarSmokeTbl
+	ld a,[wJoyPadPos]
+	add a,l
+	ld l,a
+	ld a,[hl]
+	ld [wSmokeTbl],a
 
-.setSprite
+CheckButton:
+	ld a,[wJoypad]
+	bit JBitButtonA,a
+	jr nz,.jButtonA
+	bit JBitButtonB,a
+	jr nz,.jButtonB
+
+	mCarShiftWait
+	cp 0
+	jr z,.setShift
+	dec a
+	ld [wCarShift],a
+	jr .setShift
+
+.jButtonA
+	mCarShiftWait
+	cp CarShiftMax
+	jr z,.setShift
+	inc a
+	ld [wCarShift],a
+
+.setShift
+	mCarShift
+	mSetEngineSound
+	jr SetSprite
+
+.jButtonB
+
+DecWCarShiftWait:
+	dec a
+	ld [wCarShiftWait],a
+
+SetSprite:
+	ld a,[wCarSprite]
+	ld c,a
+	ld a,[wCarShift]
+	cp 0
+	jr z,.draw
+	ld a,[wCarSmoke]
+	ld d,a
+	cp 0
+	jr z,.draw
+	inc c
+.draw
+	ld a,c
+	rlca
+	rlca
+	ld c,a
+	ld b,HIGH(CarSpriteTbl)
 	ld hl,wShadowOAM
+	;smoke
+	ld a,d
+	cp 0
+	jr nz,.drawCar
+	ld a,[wSmokeTbl]
+	sub 1
+	jr c,.drawCar ; (255) 0 skip
+	jr z,.setSmokeRight ; (0) 1 right
+	ld d,a
 	ld a,CarPosY
-	ld e,a
 	ld [hli],a ; Y Position
-	ld a,CarPosX
+	ld a,CarPosX-3
 	ld [hli],a ; X Position
-	ld a,0
+	ld a,20
 	ld [hli],a ; Tile Index
 	ld a,0
 	ld [hli],a ; Attributes/Flags
-	;
+	ld a,d
+	cp 2 ; (3) left/right
+	jr nz,.drawCar
+.setSmokeRight
+	ld a,CarPosY
+	ld [hli],a
+	ld a,CarPosX+8+3
+	ld [hli],a
+	ld a,20
+	ld [hli],a
+	ld a,0|OAMF_XFLIP
+	ld [hli],a
+.drawCar
+	ld a,CarPosY
+	ld [hli],a
+	ld a,CarPosX
+	ld [hli],a
+	ld a,[bc]
+	ld [hli],a
+	inc c
+	ld a,[bc]
+	ld [hli],a
+	inc c
 	ld a,CarPosY
 	ld [hli],a
 	ld a,CarPosX+8
 	ld [hli],a
-	ld a,2
+	ld a,[bc]
 	ld [hli],a
-	ld a,0
+	inc c
+	ld a,[bc]
 	ld [hli],a
 
 	mCalcWSCX
@@ -390,6 +525,7 @@ SetOAM:
 	xor a
 	ld [wVBlankDone],a
 	ld [wMainLoopFlg],a
+	ld [wCarSprite],a
 
 	mSetOAM
 	jp MainLoop

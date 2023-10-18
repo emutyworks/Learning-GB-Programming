@@ -6,5 +6,5 @@ then
 fi 
 
 rgbasm -l -H -o $1.o $1.asm
-rgblink -o $2.gbc $1.o
+rgblink -t -o $2.gbc $1.o
 rgbfix -v -p 0 -C $2.gbc
