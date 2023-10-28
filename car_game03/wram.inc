@@ -3,14 +3,14 @@ wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
 
 SECTION "State",WRAM0
 wJoyPadPos: ds 1
-wJoyPadPosAddr: ds 2
 wJoypadWait: ds 1
 wRoadPTbl: ds 1
 wRoadPWaitDef: ds 1
-wRoadPMode: ds 1
+wRoadPMode: ds 2
 wRoadPCnt: ds 1
-wRoadPNum: ds 1
 wRoadPWait: ds 1
+wRoadPLRCnt: ds 1
+
 wRoadPos: ds 1
 wJoypad: ds 1
 wVBlankDone: ds 1
@@ -19,8 +19,12 @@ wCarSprite: ds 1
 wCarSmoke: ds 1
 wCarSpeed: ds 1
 wCarSpeedWait: ds 1
+wCarGear: ds 1
+wCarGearY: ds 1
 wCarShift: ds 1
 wCarShiftWait: ds 1
+wCarCForce: ds 1
+wCarCForceWait: ds 1
 wCarScroll: ds 1
 wAddScroll: ds 1
 wEngineSound: ds 1

@@ -1,5 +1,5 @@
 ;
-; I used this Website/Document as a reference to create "main.asm".
+; I used this Website/Document as a reference to create it.
 ;
 ; Lesson P21 - Sound on the Gameboy and GBC
 ; https://www.chibiakumas.com/z80/platform3.php#LessonP21
@@ -91,8 +91,8 @@ Start:
 	ld [wRoadPWaitDef],a
 	ld [wRoadPMode],a
 	ld [wRoadPCnt],a
-	ld [wRoadPNum],a
 	ld [wRoadPWait],a
+	ld [wRoadPLRCnt],a
 	ld [wRoadPos],a
 	ld [wVBlankDone],a
 	ld [wMainLoopFlg],a
@@ -100,8 +100,12 @@ Start:
 	ld [wCarSmoke],a
 	ld [wCarSpeed],a
 	ld [wCarSpeedWait],a
+	ld [wCarGear],a
+	ld [wCarGearY],a
 	ld [wCarShift],a
 	ld [wCarShiftWait],a
+	ld [wCarCForce],a
+	ld [wCarCForceWait],a
 	ld [wCarScroll],a
 	ld [wAddScroll],a
 	ld [wEngineSound],a
@@ -180,15 +184,6 @@ Start:
 	ld hl,wJoyPadXLR
 	ld c,ScrollRoadSize
 	call SetScrollTbl
-	ld hl,wJoyPadPosAddr
-	ld a,HIGH(ScrollLRCenterTbl)
-	ld [hli],a
-	ld a,LOW(ScrollLRCenterTbl)
-	ld [hli],a
-
-	xor a
-	ld [wVBlankDone],a
-	ld [wMainLoopFlg],a
 
 	; Set Sound
 	ld a,%00010001 ; -LLL-RRR Channel volume
@@ -209,10 +204,17 @@ Start:
 	ld a,$FF ; Sound Length
 	ldh [$FF1B],a
 
+	ld a,GearHiY
+	ld [wCarGearY],a
+	ld a,GearHi
+	ld [wCarGear],a
+
 MainLoop:
 	ld a,[wMainLoopFlg]
 	cp 1
 	jp z,SetOAM
+
+	mCheckJoypad
 
 	ld a,[wCarSmoke]
 	inc a
@@ -225,8 +227,7 @@ MainLoop:
 	jr z,.setSpeed
 	dec a
 	ld [wCarSpeedWait],a
-	jp .setRoadPos
-
+	jp SetRoadPos
 
 .setSpeed
 	ld a,[wCarSpeed]
@@ -234,7 +235,7 @@ MainLoop:
 	ld a,[wCarScroll]
 	ld [wAddScroll],a
 	cp 0
-	jp z,.setRoadPos
+	jp z,SetRoadPos
 
 	;RoadPatternTbl
 	ld a,[wRoadPWait]
@@ -242,81 +243,131 @@ MainLoop:
 	jr z,.decRoadPCnt
 	dec a
 	ld [wRoadPWait],a
-	jp .setRoadPos
+	jp SetRoadPos
 
 .decRoadPCnt
 	ld a,[wRoadPCnt]
 	cp 0
-	jp z,.setRoadPTbl
+	jp z,SetRoadPTbl
 	dec a
 	ld [wRoadPCnt],a
 
+	xor a
+	ld [wCarCForce],a
+
 	mInitWRoadXLR
 	ld a,[wRoadPMode]
-	cp RPBU
-	jp z,.setRoadPBgUp
-	cp RPBD
-	jp z,.setRoadPBgDown
-	cp RPRL
-	jp z,.setRoadPRoadLeft
-	cp RPRR
-	jp z,.setRoadPRoadRight
-	cp RPUD
-	jp z,.setRoadPRoadUpDown
-.setRoadPWait
+	ld l,a
+	ld a,[wRoadPMode+1]
+	ld h,a
+	jp hl
+
+SetRoadPWait:
 	ld a,[wRoadPWaitDef]
 	ld [wRoadPWait],a
-	jp .setRoadPos
+	jp SetRoadPos
 
-.setRoadPRoadUpDown
-	ld a,[wRoadPNum]
-	rrca
-	rrca
-	rrca
-	ld h,HIGH(ScrollUpDnTbl)
+;SetRoadPUpDown:
+;	ld a,[wRoadPNum]
+;	rrca
+;	rrca
+;	rrca
+;	ld h,HIGH(ScrollUpDnTbl)
+;	ld l,a
+;	ld de,wRoadYUD
+;	mCopyScrollRoad
+;	jr SetRoadPWait
+
+SetRoadPLeft:
+	mSetCarCForceL
+	ld a,[wBgX]
+	dec a
+	ld hl,wBgX
+	mSetWBG
+	ld de,wRoadXLR
+	ld h,HIGH(ScrollLeftTbl)
+	ld a,[wRoadPLRCnt]
 	ld l,a
-	ld de,wRoadYUD
+	cp $E0
+	jr z,.skip
+	add a,$20
+	ld [wRoadPLRCnt],a
+.skip
 	mCopyScrollRoad
-	jr .setRoadPWait
+	jp SetRoadPWait
 
-.setRoadPRoadLeft
+SetRoadPLeftSt:
+	mSetCarCForceL
 	ld a,[wBgX]
 	dec a
 	ld hl,wBgX
 	mSetWBG
 	ld de,wRoadXLR
-	ld hl,ScrollLeftTbl
+	ld h,HIGH(ScrollLeftTbl)
+	ld a,[wRoadPLRCnt]
+	ld l,a
+	cp 0
+	jr z,.skip
+	sub a,$20
+	ld [wRoadPLRCnt],a
+.skip
 	mCopyScrollRoad
-	jp .setRoadPWait
+	jp SetRoadPWait
 
-.setRoadPRoadRight
+SetRoadPRight:
+	mSetCarCForceR
 	ld a,[wBgX]
 	inc a
 	ld hl,wBgX
 	mSetWBG
 	ld de,wRoadXLR
-	ld hl,ScrollRightTbl
+	ld h,HIGH(ScrollRightTbl)
+	ld a,[wRoadPLRCnt]
+	ld l,a
+	cp $E0
+	jr z,.skip
+	add a,$20
+	ld [wRoadPLRCnt],a
+.skip
 	mCopyScrollRoad
-	jp .setRoadPWait
+	jp SetRoadPWait
 
-.setRoadPBgUp
+SetRoadPRightSt:
+	mSetCarCForceR
+	ld a,[wBgX]
+	inc a
+	ld hl,wBgX
+	mSetWBG
+	ld de,wRoadXLR
+	ld h,HIGH(ScrollRightTbl)
+	ld a,[wRoadPLRCnt]
+	ld l,a
+	cp 0
+	jr z,.skip
+	sub a,$20
+	ld [wRoadPLRCnt],a
+.skip
+	mCopyScrollRoad
+	jp SetRoadPWait
+
+SetRoadPBgUp:
 	ld a,[wBgY]
 	inc a
 	ld hl,wBgY
 	mSetWBG
-	jp .setRoadPWait
+	jp SetRoadPWait
 
-.setRoadPBgDown
+SetRoadPBgDown:
 	ld a,[wBgY]
 	dec a
 	ld hl,wBgY
 	mSetWBG
-	jp .setRoadPWait
+	jp SetRoadPWait
 
-.setRoadPTbl
+SetRoadPTbl:
 	ld a,[wRoadPTbl]
 	inc a
-	and %00001111
+	and %00000111
 	ld [wRoadPTbl],a
 	rlca
 	rlca
@@ -325,13 +376,13 @@ MainLoop:
 	ld a,[hli]
 	ld [wRoadPMode],a
 	ld a,[hli]
-	ld [wRoadPWaitDef],a
+	ld [wRoadPMode+1],a
 	ld a,[hli]
 	ld [wRoadPCnt],a
 	ld a,[hl]
-	ld [wRoadPNum],a
+	ld [wRoadPWaitDef],a
 
-.setRoadPos
+SetRoadPos:
 	ld a,[wAddScroll]
 	ld d,a
 	ld a,[wRoadPos]
@@ -346,65 +397,79 @@ MainLoop:
 	xor a
 	ld [wAddScroll],a
 
-	mCheckJoypad
 	ld a,[wJoypad]
+	bit JBitUp,a
+	jp nz,.jGearHi
+	bit JBitDown,a
+	jp nz,.jGearLow
 	bit JBitRight,a
 	jp nz,.jRight
 	bit JBitLeft,a
 	jp nz,.jLeft
-	jp CheckButton
+	jp SetWJoyPadXLR
+
+.jGearHi
+	ld a,GearHiY
+	ld [wCarGearY],a
+	ld a,1
+	ld [wCarGear],a
+	ld a,[wCarShift]
+	cp 0
+	jr z,SetWJoyPadXLR
+	ld a,GearHiShift
+	ld [wCarShift],a
+	jr SetWJoyPadXLR
+.jGearLow
+	ld a,GearLowY
+	ld [wCarGearY],a
+	xor a
+	ld [wCarGear],a
+	jr SetWJoyPadXLR
 
 .jRight
 	ld a,4
 	ld [wCarSprite],a
+	ld a,[wCarCForce]
+	cp CarCForceRight
+	jr z,SetWJoyPadXLR
 	mJoypadWait
 	ld a,[wJoyPadPos]
 	cp 15
-	jp z,CheckButton
+	jr z,SetWJoyPadXLR
 	inc a
 	ld [wJoyPadPos],a
-
-	ld a,[wJoyPadPosAddr]
-	ld h,a
-	ld a,[wJoyPadPosAddr+1]
-	ld l,a
-	ld de,ScrollRoadSize
-	add HL,de
-	ld a,h
-	ld [wJoyPadPosAddr],a
-	ld a,l
-	ld [wJoyPadPosAddr+1],a
-
-	ld de,wJoyPadXLR
-	mCopyScrollRoad
-	jp .setSmokeTbl
-
+	jr SetWJoyPadXLR
 .jLeft
 	ld a,2
 	ld [wCarSprite],a
+	ld a,[wCarCForce]
+	cp CarCForceLeft
+	jr z,SetWJoyPadXLR
 	mJoypadWait
 	ld a,[wJoyPadPos]
 	cp 1
-	jp z,SetSprite
+	jr z,SetWJoyPadXLR
 	dec a
 	ld [wJoyPadPos],a
 
-	ld a,[wJoyPadPosAddr]
+SetWJoyPadXLR:
+	ld a,[wJoyPadPos]
+	ld d,a
+	and %00000111
+	ld e,a
+	xor d
+	rrca
+	rrca
+	rrca
+	add a,HIGH(ScrollLRTbl)
 	ld h,a
-	ld a,[wJoyPadPosAddr+1]
-	sub ScrollRoadSize
-	ld [wJoyPadPosAddr+1],a
+	ld a,e
+	rrca
+	rrca
+	rrca
 	ld l,a
-	cp $e0
-	jr nz,.setWJoyPadXLR
-	dec h
-	ld a,h
-	ld [wJoyPadPosAddr],a
-
-.setWJoyPadXLR
 	ld de,wJoyPadXLR
 	mCopyScrollRoad
-.setSmokeTbl
 	ld hl,CarSmokeTbl
 	ld a,[wJoyPadPos]
 	add a,l
@@ -416,10 +481,11 @@ CheckButton:
 	ld a,[wJoypad]
 	bit JBitButtonA,a
 	jr nz,.jButtonA
-	bit JBitButtonB,a
-	jr nz,.jButtonB
 
-	mCarShiftWait
+	ld a,[wCarShiftWait]
+	cp 0
+	jr nz,DecWCarShiftWait
+	ld a,[wCarShift]
 	cp 0
 	jr z,.setShift
 	dec a
@@ -427,18 +493,28 @@ CheckButton:
 	jr .setShift
 
 .jButtonA
-	mCarShiftWait
+	ld a,[wCarGear]
+	cp GearLow
+	jr z,.setLowShift
+
+	ld a,[wCarShiftWait]
+	cp 0
+	jr nz,DecWCarShiftWait
+	ld a,[wCarShift]
 	cp CarShiftMax
 	jr z,.setShift
 	inc a
+	jr .setWCarShift
+
+.setLowShift
+	ld a,GearLowShift
+.setWCarShift
 	ld [wCarShift],a
 
 .setShift
 	mCarShift
 	mSetEngineSound
 	jr SetSprite
-
-.jButtonB
 
 DecWCarShiftWait:
 	dec a
@@ -468,7 +544,7 @@ SetSprite:
 	jr nz,.drawCar
 	ld a,[wSmokeTbl]
 	sub 1
-	jr c,.drawCar ; (255) 0 skip
+	jr c,.drawCForceSmoke ; (255) 0 skip
 	jr z,.setSmokeRight ; (0) 1 right
 	ld d,a
 	ld a,CarPosY
@@ -481,7 +557,7 @@ SetSprite:
 	ld [hli],a ; Attributes/Flags
 	ld a,d
 	cp 2 ; (3) left/right
-	jr nz,.drawCar
+	jr nz,.drawCForceSmoke
 .setSmokeRight
 	ld a,CarPosY
 	ld [hli],a
@@ -491,7 +567,50 @@ SetSprite:
 	ld [hli],a
 	ld a,0|OAMF_XFLIP
 	ld [hli],a
+.drawCForceSmoke
+	ld a,[wCarCForce]
+	cp 0
+	jr z,.drawCar
+	ld a,CarPosY
+	ld [hli],a
+	ld a,CarPosX-1
+	ld [hli],a
+	ld a,22
+	ld [hli],a
+	ld a,0
+	ld [hli],a
+	ld a,CarPosY
+	ld [hli],a
+	ld a,CarPosX+8+1
+	ld [hli],a
+	ld a,22
+	ld [hli],a
+	ld a,0|OAMF_XFLIP
+	ld [hli],a
 .drawCar
+	;gear
+	ld a,[wCarGearY]
+	ld [hli],a
+	ld a,8*8
+	ld [hli],a
+	ld a,24
+	ld [hli],a
+	ld a,0
+	ld [hli],a
+	;speed
+	ld a,[wCarShift]
+	rlca
+	ld d,a
+	ld a,150
+	sub d
+	ld [hli],a
+	ld a,8*7
+	ld [hli],a
+	ld a,26
+	ld [hli],a
+	ld a,0
+	ld [hli],a
+	;car
 	ld a,CarPosY
 	ld [hli],a
 	ld a,CarPosX
@@ -511,6 +630,22 @@ SetSprite:
 	inc c
 	ld a,[bc]
 	ld [hli],a
+	;reset
+	xor a
+	ld [hli],a
+	ld [hli],a
+	inc l
+	inc l
+	ld [hli],a
+	ld [hli],a
+	inc l
+	inc l
+	ld [hli],a
+	ld [hli],a
+	inc l
+	inc l
+	ld [hli],a
+	ld [hl],a
 
 	mCalcWSCX
 

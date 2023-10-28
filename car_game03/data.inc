@@ -1,4 +1,7 @@
 SECTION "HBlank Scroll Position Table",ROM0[$2000]
+S0 EQU 128
+S1 EQU 80
+
 ScrollPosTbl:
 	;0
 	db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0,S0
@@ -46,15 +49,57 @@ ScrollUpDnTbl:
 
 SECTION "HBlank Scroll Left Table",ROM0[$2200]
 ScrollLeftTbl:
+	;0
+	db 7,6,5,4,3,3,3,3,3,3,2,2,2,1,1,1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;1
+	db 20,16,12,9,8,7,6,5,4,3,3,2,2,1,1,1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;2
+	db 25,20,16,12,9,8,7,6,5,4,3,3,2,2,1,1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;3
+	db 30,25,20,16,12,9,8,7,6,5,4,3,3,2,2,1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;4
+	db 35,30,25,20,16,12,9,8,7,6,5,4,3,3,2,2
+	db 2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,0
+	;5
+	db 40,35,30,25,20,16,12,9,8,7,6,5,4,3,3,2
+	db 2,2,2,2,1,1,1,1,1,1,1,1,1,1,1,0
+	;6
+	db 45,40,35,30,25,20,16,12,9,8,7,6,5,4,3,3
+	db 3,2,2,2,1,1,1,1,1,1,1,1,1,1,1,0
+	;7
 	db 50,45,40,35,30,25,20,16,12,9,8,7,6,5,4,3
-	db 2,2,2,1,0,0,0,0,0,0,0,0,0,0,0,0
-	;224
+	db 3,2,2,2,1,1,1,1,1,1,1,1,1,1,1,0
 
 SECTION "HBlank Scroll Right Table",ROM0[$2300]
 ScrollRightTbl:
+	;0
+	db -7,-6,-5,-4,-3,-3,-3,-3,-3,-3,-2,-2,-2,-1,-1,-1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;1
+	db -20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3,-2,-2,-1,-1,-1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;2
+	db -25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3,-2,-2,-1,-1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;3
+	db -30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3,-2,-2,-1
+	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;4
+	db -35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3,-2,-2
+	db -2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
+	;5
+	db -40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3,-2
+	db -2,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
+	;6
+	db -45,-40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3,-3
+	db -3,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
+	;7
 	db -50,-45,-40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3
-	db -2,-2,-2,-1,0,0,0,0,0,0,0,0,0,0,0,0
-	;224
+	db -3,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
 
 SECTION "HBlank Scroll LR Table",ROM0[$2400]
 ScrollLRTbl:
@@ -104,7 +149,7 @@ ScrollLRCenterTbl:
 	;14
 	db  0, 2, 4, 6, 8,10,11,13,15,17,19,21,23,25,27,29
 	db 31,32,34,36,38,40,42,44,46,48,50,52,53,55,57,59
-	;15	
+	;15
 	db  0, 3, 5, 8,10,13,15,18,20,23,26,28,31,33,36,38
 	db 41,44,46,49,51,54,56,59,61,64,67,69,72,74,77,79
 
@@ -112,16 +157,16 @@ SECTION "Car Speed/Smoke Table",ROM0[$2600]
 CarSpeedTbl:
 	;shift wait,loop wait,ScrollRoadSize,0
 	db 10,0,0,0
-	db 40,3,ScrollRoadSize,0
-	db 40,2,ScrollRoadSize,0
-	db 40,1,ScrollRoadSize,0
-	db 40,0,ScrollRoadSize,0
+	db 60,3,ScrollRoadSize,0
+	db 50,2,ScrollRoadSize,0
+	db 50,1,ScrollRoadSize,0
+	db 50,0,ScrollRoadSize,0
 	db 30,0,ScrollRoadSize*2,0 ;24
 CarSmokeTbl:
-	; 0:skip,1:right,2:left,3:left/right
-  ;   L               C             R
-	;   0 1 2 3 4 5 6 7 8 9 101112131415
-	db  3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3
+	;0:skip,1:right,2:left,3:left/right
+	;  L               C             R
+	;  0 1 2 3 4 5 6 7 8 9 101112131415
+	db 3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3
 	;216
 
 SECTION "Car Sprite Table",ROM0[$2700]
@@ -153,27 +198,25 @@ WaveData:
 WaveDataEnd:
 
 SECTION "Road Pattern Table",ROM0[$2900]
-RoadPatternTbl:
-	;mode,wait,cnt,num
-	;db RPRS,80,1,0 ;debug
-	;db RPRS,80,1,0
+RPTL EQU SetRoadPLeft    ; Turn Left
+RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
+RPTR EQU SetRoadPRight   ; Turn Right
+RPRS EQU SetRoadPRightSt ; Turn Right->Straight
+RPBU EQU SetRoadPBgUp    ; BG Up
+RPBD EQU SetRoadPBgDown  ; BG Down
+RPWT EQU SetRoadPWait    ; Wait
+;RPUD EQU 7 ; Road Up/Down
 
-	db RPUD,10,1,0
-	db RPUD,100,1,0 ;start
-	db RPBD,5,24,0
-	db RPUD,12,1,1
-	db RPUD,12,1,2
-	db RPUD,12,1,3
-	db RPUD,100,1,4
-	db RPUD,30,1,3
-	db RPUD,30,1,2
-	db RPUD,30,1,1
-	db RPUD,50,1,0
-	db RPBU,20,16,0
-	db RPRR,10,50,0
-	db RPRS,80,1,0
-	db RPRL,10,50,0
-	db RPBU,20,8,0
+RoadPatternTbl:
+	;mode,wait|cnt
+	dw RPWT,$3001
+	dw RPTL,$0450 ;start
+	dw RPLS,$0408
+	dw RPTR,$0450
+	dw RPRS,$0408
+	dw RPBD,$0a18
+	dw RPWT,$3001
+	dw RPBU,$0a18
 
 BGPalette:
 	dw 23454
@@ -193,7 +236,7 @@ BGPalette:
 
 	dw 0
 	dw 32767
-	dw 5854
+	dw 0
 	dw 505
 
 ObjPalette:
@@ -205,7 +248,7 @@ ObjPalette:
 	dw 15134
 	dw 8456
 	dw 24311
-	dw 505
+	dw 1023
 
 SECTION "tiles/sprites",ROM0[$6800]
 Sprites:

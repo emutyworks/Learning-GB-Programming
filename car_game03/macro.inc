@@ -129,23 +129,95 @@ ENDR
 	ld [de],a
 ENDM
 
+MACRO mSetCarCForceL
+	ld a,[wCarShift]
+	cp 4
+	jr z,.shift4\@
+	cp 5
+	jr z,.shift5\@
+	jr .skip\@
+.shift4\@
+	ld a,CarCForceLeft
+	ld [wCarCForce],a
+	ld a,[wJoypad]
+	bit JBitLeft,a
+	jr nz,.skip\@
+	jr .setPos\@
+.shift5\@
+	ld a,CarCForceLeft
+	ld [wCarCForce],a
+	ld a,[wJoypad]
+	bit JBitLeft,a
+	jr z,.setPos2\@
+.setPos\@
+	ld a,[wCarCForceWait]
+	cp 0
+	jr z,.setPos2\@
+	dec a
+	ld [wCarCForceWait],a
+	jr .skip\@
+.setPos2\@
+	ld a,[wJoyPadPos]
+	cp 15
+	jp z,.skip\@
+	inc a
+	ld [wJoyPadPos],a
+	ld a,CarCForceWait
+	ld [wCarCForceWait],a
+.skip\@
+ENDM
+
+MACRO mSetCarCForceR
+	ld a,[wCarShift]
+	cp 4
+	jr z,.shift4\@
+	cp 5
+	jr z,.shift5\@
+	jr .skip\@
+.shift4\@
+	ld a,CarCForceRight
+	ld [wCarCForce],a
+	ld a,[wJoypad]
+	bit JBitRight,a
+	jr nz,.skip\@
+	jr .setPos\@
+.shift5\@
+	ld a,CarCForceRight
+	ld [wCarCForce],a
+	ld a,[wJoypad]
+	bit JBitRight,a
+	jr z,.setPos2\@
+.setPos\@
+	ld a,[wCarCForceWait]
+	cp 0
+	jr z,.setPos2\@
+	dec a
+	ld [wCarCForceWait],a
+	jr .skip\@
+.setPos2\@
+	ld a,[wJoyPadPos]
+	cp 1
+	jp z,.skip\@
+	dec a
+	ld [wJoyPadPos],a
+	ld a,CarCForceWait
+	ld [wCarCForceWait],a
+.skip\@
+ENDM
+
 MACRO mJoypadWait
+	ld a,[wCarShift]
+	cp 0
+	jp z,SetWJoyPadXLR
 	ld a,[wJoypadWait]
 	cp 0
 	jr z,.next\@
 	dec a
 	ld [wJoypadWait],a
-	jp SetSprite
+	jp SetWJoyPadXLR
 .next\@
 	ld a,JoypadWait
 	ld [wJoypadWait],a
-ENDM
-
-MACRO mCarShiftWait
-	ld a,[wCarShiftWait]
-	cp 0
-	jr nz,DecWCarShiftWait
-	ld a,[wCarShift]
 ENDM
 
 MACRO mCarShift
@@ -157,7 +229,7 @@ MACRO mCarShift
 	ld [wCarShiftWait],a
 	ld a,[hli]
 	ld [wCarSpeed],a
-	ld a,[hli]
+	ld a,[hl]
 	ld [wCarScroll],a
 ENDM
 
