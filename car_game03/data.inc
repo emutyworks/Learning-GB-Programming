@@ -155,13 +155,13 @@ ScrollLRCenterTbl:
 
 SECTION "Car Speed/Smoke Table",ROM0[$2600]
 CarSpeedTbl:
-	;shift wait,loop wait,ScrollRoadSize,0
+	;shift wait,loop wait,ScrollRoadSize,RivalWait
 	db 10,0,0,0
 	db 60,3,ScrollRoadSize,0
-	db 50,2,ScrollRoadSize,0
-	db 50,1,ScrollRoadSize,0
-	db 50,0,ScrollRoadSize,0
-	db 30,0,ScrollRoadSize*2,0 ;24
+	db 50,2,ScrollRoadSize,3
+	db 50,1,ScrollRoadSize,8
+	db 50,0,ScrollRoadSize,50
+	db 30,0,ScrollRoadSize*2,7 ;24
 CarSmokeTbl:
 	;0:skip,1:right,2:left,3:left/right
 	;  L               C             R
@@ -180,7 +180,44 @@ CarSpriteTbl:
 	db 16,0,18,0
 	;232
 
-SECTION "Engine Sound Table",ROM0[$2800]
+SECTION "Rival Car Table",ROM0[$2800]
+RivalCarTbl:
+	;Y,X,Tile Index,flag
+	db   0, 0,40,0 ;0
+	db  82,84,40,0 ;1
+	db  83,84,40,0 ;2
+	db  84,84,40,0 ;3
+	db  85,84,44,0 ;4
+	db  86,84,44,0 ;5
+	db  87,84,44,0 ;6
+	db  88,80,48,1 ;7
+	db  89,80,48,1 ;8
+	db  90,80,48,1 ;9
+	db  91,80,48,1 ;10
+	db  92,80,52,1 ;11
+	db  93,80,52,1 ;12
+	db  94,80,52,1 ;13
+	db  95,80,52,1 ;14
+	db  96,80,56,1 ;15
+	db  97,80,56,1 ;16
+	db  98,80,56,1 ;17
+	db  99,80,56,1 ;18
+	db 100,80,56,1 ;19
+	db 101,80,56,1 ;20
+	db 102,80,60,1 ;21
+	db 103,80,60,1 ;22
+	db 104,80,60,1 ;23
+	db 105,80,60,1 ;24
+	db 106,80,60,1 ;25
+	db 107,80,60,1 ;26
+	db 108,80,60,1 ;27
+	db 109,80,60,1 ;28
+	db 110,80,60,1 ;29
+	db 111,80,60,1 ;30
+	db 112,80,60,1 ;31
+
+
+SECTION "Engine Sound Table",ROM0[$2900]
 SoundTbl:
 	;Output level,Frequency low,Hi,0
 	db %01000000,$40,%10000000,0
@@ -197,7 +234,7 @@ WaveData:
 	db $76,$65 ; 07,06,06,05
 WaveDataEnd:
 
-SECTION "Road Pattern Table",ROM0[$2900]
+SECTION "Road Pattern Table",ROM0[$3000]
 RPTL EQU SetRoadPLeft    ; Turn Left
 RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
 RPTR EQU SetRoadPRight   ; Turn Right
@@ -230,14 +267,9 @@ BGPalette:
 	dw 20190
 
 	dw 0
-	dw 31412
-	dw 5854
-	dw 505
-
-	dw 0
 	dw 32767
 	dw 0
-	dw 505
+	dw 31412
 
 ObjPalette:
 	dw 15134
@@ -246,9 +278,9 @@ ObjPalette:
 	dw 31
 
 	dw 15134
-	dw 8456
-	dw 24311
-	dw 1023
+	dw 0
+	dw 32767
+	dw 31374
 
 SECTION "tiles/sprites",ROM0[$6800]
 Sprites:

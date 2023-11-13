@@ -90,6 +90,7 @@ Start:
 	ld [wRoadPTbl],a
 	ld [wRoadPWaitDef],a
 	ld [wRoadPMode],a
+	ld [wRoadPMode+1],a
 	ld [wRoadPCnt],a
 	ld [wRoadPWait],a
 	ld [wRoadPLRCnt],a
@@ -110,6 +111,11 @@ Start:
 	ld [wAddScroll],a
 	ld [wEngineSound],a
 	ld [wSmokeTbl],a
+	ld [wRivalY],a
+	ld [wRivalX],a
+	ld [wRivalWaitDef],a
+	ld [wRivalWait],a
+	ld [wRivalTbl1],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM ;$8000
@@ -155,25 +161,25 @@ Start:
 	xor a
 	ld hl,wSCY
 	ld c,ScrollMaxSize
-	call SetScrollTbl
+	call SetWRam
 	ld hl,wSCX
 	ld c,ScrollMaxSize
-	call SetScrollTbl
+	call SetWRam
 	ld hl,wRoadYUD
 	ld c,ScrollRoadSize
-	call SetScrollTbl
+	call SetWRam
 	ld hl,wRoadXLR
 	ld c,ScrollRoadSize
-	call SetScrollTbl
+	call SetWRam
 	ld hl,wJoyPadXLR
 	ld c,ScrollRoadSize
-	call SetScrollTbl
+	call SetWRam
 
 	; Set Work RAM
 	ld a,StartBgScrollY
 	ld c,ScrollBgSize
 	ld hl,wBgY
-	call SetScrollTbl
+	call SetWRam
 
 	; Set Joypad
 	ld a,JoypadWait
@@ -183,7 +189,7 @@ Start:
 	xor a
 	ld hl,wJoyPadXLR
 	ld c,ScrollRoadSize
-	call SetScrollTbl
+	call SetWRam
 
 	; Set Sound
 	ld a,%00010001 ; -LLL-RRR Channel volume
@@ -221,7 +227,32 @@ MainLoop:
 	and %00000011
 	ld [wCarSmoke],a
 
-	;Set Speed
+SetRivalCar:
+	ld a,[wRivalWait]
+	cp 0
+	jr z,.setRivalCar
+	dec a
+	ld [wRivalWait],a
+	jr SetSpeed
+.setRivalCar
+	ld a,[wRivalWaitDef]
+	ld [wRivalWait],a
+	ld a,[wCarShift]
+	cp 5
+	jr z,.incRival
+	ld a,[wRivalTbl1]
+	cp 0
+	jr z,SetSpeed
+	dec a
+	ld [wRivalTbl1],a
+	jr SetSpeed
+.incRival
+	ld a,[wRivalTbl1]
+	inc a
+	and %00011111
+	ld [wRivalTbl1],a
+
+SetSpeed:
 	ld a,[wCarSpeedWait]
 	cp 0
 	jr z,.setSpeed
@@ -630,23 +661,63 @@ SetSprite:
 	inc c
 	ld a,[bc]
 	ld [hli],a
-	;reset
-	xor a
+	;rival
+	ld a,[wRivalTbl1]
+	cp 0
+	jr z,.skipRival
+	ld b,HIGH(wJoyPadXLR)
+	ld c,a
+	ld a,[bc]
+	ld e,a
+	ld b,HIGH(wRoadXLR)
+	ld a,[bc]
+	add e
+	ld e,a
+	ld a,c
+	ld b,HIGH(RivalCarTbl)
+	rlca
+	rlca
+	ld c,a
+	ld a,[bc]
+	ld [wRivalY],a
+	inc c
+	ld a,[bc]
+	sub e
+	ld [wRivalX],a
+	inc c
+	ld a,[bc]
+	ld d,a ;Tile Index
+	ld a,[wCarSmoke]
+	cp 0
+	jr z,.nonRivalCarSmoke
+	ld a,2
+	add a,d
+	ld d,a
+.nonRivalCarSmoke
+	inc c
+	ld a,[bc]
+	cp 0
+	jr z,.skipRivalRight
+	ld a,[wRivalY]
 	ld [hli],a
+	ld a,[wRivalX]
+	add a,8
 	ld [hli],a
+	ld [hl],d
 	inc l
-	inc l
+	ld a,1|OAMF_XFLIP
 	ld [hli],a
+.skipRivalRight
+	ld a,[wRivalY]
 	ld [hli],a
-	inc l
-	inc l
+	ld a,[wRivalX]
 	ld [hli],a
-	ld [hli],a
+	ld [hl],d
 	inc l
-	inc l
+	ld a,1
 	ld [hli],a
-	ld [hl],a
-
+.skipRival
+	mResetShadowOAM
 	mCalcWSCX
 
 	ld a,1
@@ -665,7 +736,7 @@ SetOAM:
 	mSetOAM
 	jp MainLoop
 
-SetScrollTbl:
+SetWRam:
 .loop
 	ld [hli],a
 	dec c

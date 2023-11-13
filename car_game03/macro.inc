@@ -57,6 +57,27 @@ MACRO mInitwShadowOAM
 	jr nz,.loop\@
 ENDM
 
+MACRO mResetShadowOAM
+	ld a,l
+	rrca
+	rrca
+	ld c,a
+	ld a,UseMaxOAM
+	sub c
+	cp 0
+	jr z,.skip\@
+	ld c,a
+	xor a
+.loop\@
+	ld [hli],a
+	ld [hli],a
+	inc l
+	inc l
+	dec c
+	jr nz,.loop\@
+.skip\@
+ENDM
+
 MACRO mCopyDMARoutine
 	ld hl,DMARoutine
 	ld b,DMARoutineEnd - DMARoutine ; Number of bytes to copy
@@ -229,8 +250,10 @@ MACRO mCarShift
 	ld [wCarShiftWait],a
 	ld a,[hli]
 	ld [wCarSpeed],a
-	ld a,[hl]
+	ld a,[hli]
 	ld [wCarScroll],a
+	ld a,[hl]
+	ld [wRivalWaitDef],a
 ENDM
 
 MACRO mSetEngineSound

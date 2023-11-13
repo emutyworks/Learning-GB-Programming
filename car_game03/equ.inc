@@ -7,6 +7,7 @@ JBitButtonB    EQU 5
 
 SBY            EQU 16 ; Screen Base Y
 SBX            EQU 8 ; Screen Base X
+UseMaxOAM      EQU 10
 CarPosY        EQU SBY+8*12
 CarPosX        EQU SBX+8*9
 CarShiftMax    EQU 5
@@ -30,5 +31,5 @@ ScrollBgSize   EQU 8*3
 ScrollRoadSize EQU 8*4
 ScrollMaxSize  EQU 154
 
-BGPaletteCnt   EQU 4*4
+BGPaletteCnt   EQU 4*3
 ObjPaletteCnt  EQU 4*2
