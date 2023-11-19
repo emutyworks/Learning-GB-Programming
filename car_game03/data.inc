@@ -28,24 +28,24 @@ ScrollPosTbl:
 	db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
 	db S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1,S0
 
-SECTION "HBlank Scroll Up/Down Table",ROM0[$2100]
-ScrollUpDnTbl:
-	;0
-	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-	;1
-	db -1,-2,-3,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-1,-1,-1
-	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-	;2
-	db -1,-2,-3,-4,-5,-6,-7,-8,-8,-8,-8,-7,-7,-6,-6,-5
-	db -5,-4,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0
-	;3
-	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-12,-12,-12,-11
-	db -11,-10,-9,-8,-7,-6,-5,-5,-3,-3,-2,-2,-1,-1,0,0
-	;4
-	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
-	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
-	;96
+;SECTION "HBlank Scroll Up/Down Table",ROM0[$2100]
+;ScrollUpDnTbl:
+;	;0
+;	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;	;1
+;	db -1,-2,-3,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-1,-1,-1
+;	db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+;	;2
+;	db -1,-2,-3,-4,-5,-6,-7,-8,-8,-8,-8,-7,-7,-6,-6,-5
+;	db -5,-4,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0
+;	;3
+;	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-12,-12,-12,-11
+;	db -11,-10,-9,-8,-7,-6,-5,-5,-3,-3,-2,-2,-1,-1,0,0
+;	;4
+;	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
+;	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
+;	;96
 
 SECTION "HBlank Scroll Left Table",ROM0[$2200]
 ScrollLeftTbl:
@@ -216,7 +216,6 @@ RivalCarTbl:
 	db 111,80,60,1 ;30
 	db 112,80,60,1 ;31
 
-
 SECTION "Engine Sound Table",ROM0[$2900]
 SoundTbl:
 	;Output level,Frequency low,Hi,0
@@ -234,7 +233,10 @@ WaveData:
 	db $76,$65 ; 07,06,06,05
 WaveDataEnd:
 
-SECTION "Road Pattern Table",ROM0[$3000]
+SECTION "Scenario Table",ROM0[$3000]
+;Scenario Pattern
+SPRC EQU SetSPRivalCar   ; Set Rival Car
+;Road Pattern
 RPTL EQU SetRoadPLeft    ; Turn Left
 RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
 RPTR EQU SetRoadPRight   ; Turn Right
@@ -242,17 +244,26 @@ RPRS EQU SetRoadPRightSt ; Turn Right->Straight
 RPBU EQU SetRoadPBgUp    ; BG Up
 RPBD EQU SetRoadPBgDown  ; BG Down
 RPWT EQU SetRoadPWait    ; Wait
-;RPUD EQU 7 ; Road Up/Down
+;RPUD EQU SetRoadPUpDown ; Up/Down
 
-RoadPatternTbl:
-	;mode,wait|cnt
+ScenarioTbl:
+	;SPRC: addr,palette(H8)|x(L8) + $01
+	;RPxx: addr,wait(16)|cnt(16)
 	dw RPWT,$3001
-	dw RPTL,$0450 ;start
+	dw RPWT,$6401 ;start
+	dw SPRC,$1601
+	dw RPWT,$6401
+	dw RPTL,$0450
+	dw SPRC,$1C01
 	dw RPLS,$0408
+	dw SPRC,$0601
 	dw RPTR,$0450
+	dw SPRC,$1C01
 	dw RPRS,$0408
+	dw SPRC,$0801
 	dw RPBD,$0a18
-	dw RPWT,$3001
+	dw SPRC,$1901
+	dw SPRC,$0C01
 	dw RPBU,$0a18
 
 BGPalette:
@@ -270,6 +281,11 @@ BGPalette:
 	dw 32767
 	dw 0
 	dw 31412
+
+	dw 0
+	dw 8456
+	dw 24311
+	dw 32767
 
 ObjPalette:
 	dw 15134

@@ -1,6 +1,9 @@
 ;
 ; I used this Website/Document as a reference to create it.
 ;
+; Z80 1バイトデータの分解 (Z80 1-byte data decomposition)
+; https://codeknowledge.livedoor.blog/archives/25232135.html
+;
 ; Lesson P21 - Sound on the Gameboy and GBC
 ; https://www.chibiakumas.com/z80/platform3.php#LessonP21
 ;
@@ -88,13 +91,13 @@ Start:
 	ld [wJoyPadPos],a
 	ld [wJoypadWait],a
 	ld [wRoadPTbl],a
-	ld [wRoadPWaitDef],a
-	ld [wRoadPMode],a
-	ld [wRoadPMode+1],a
 	ld [wRoadPCnt],a
 	ld [wRoadPWait],a
 	ld [wRoadPLRCnt],a
 	ld [wRoadPos],a
+	ld [wSPoint],a
+	ld [wSPoint+1],a
+	ld [wSParam],a
 	ld [wVBlankDone],a
 	ld [wMainLoopFlg],a
 	ld [wCarSprite],a
@@ -115,7 +118,11 @@ Start:
 	ld [wRivalX],a
 	ld [wRivalWaitDef],a
 	ld [wRivalWait],a
-	ld [wRivalTbl1],a
+	ld [wRivalPosZ],a
+	ld [wRivalPosX],a
+	ld [wRivalPal],a
+	ld [wRivalTbl],a
+	ld [wRivalCnt],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM ;$8000
@@ -165,14 +172,17 @@ Start:
 	ld hl,wSCX
 	ld c,ScrollMaxSize
 	call SetWRam
-	ld hl,wRoadYUD
-	ld c,ScrollRoadSize
-	call SetWRam
+	;ld hl,wRoadYUD
+	;ld c,ScrollRoadSize
+	;call SetWRam
 	ld hl,wRoadXLR
 	ld c,ScrollRoadSize
 	call SetWRam
 	ld hl,wJoyPadXLR
 	ld c,ScrollRoadSize
+	call SetWRam
+	ld hl,wRivalTblZ
+	ld c,4*3
 	call SetWRam
 
 	; Set Work RAM
@@ -230,28 +240,61 @@ MainLoop:
 SetRivalCar:
 	ld a,[wRivalWait]
 	cp 0
-	jr z,.setRivalCar
+	jr z,.set
 	dec a
 	ld [wRivalWait],a
-	jr SetSpeed
-.setRivalCar
+	jp SetSpeed
+.set
 	ld a,[wRivalWaitDef]
 	ld [wRivalWait],a
 	ld a,[wCarShift]
 	cp 5
-	jr z,.incRival
-	ld a,[wRivalTbl1]
+	ld hl,wRivalTblZ
+	jr z,.incPosZ
+REPT 3
+	ld a,[hl]
+	cp 0
+	jr z,.next\@
+	dec a
+	ld [hl],a
+.next\@
+	inc l
+ENDR
+	ld a,[hl]
 	cp 0
 	jr z,SetSpeed
 	dec a
-	ld [wRivalTbl1],a
+	ld [hl],a
 	jr SetSpeed
-.incRival
-	ld a,[wRivalTbl1]
+.incPosZ
+REPT 3
+	ld a,[hl]
+	cp 0
+	jr z,.next\@
 	inc a
 	and %00011111
-	ld [wRivalTbl1],a
-
+	ld [hl],a
+	cp 0
+	jr nz,.next\@
+	ld a,[wRivalCnt]
+	inc a
+	daa
+	ld [wRivalCnt],a
+.next\@
+	inc l
+ENDR
+	ld a,[hl]
+	cp 0
+	jr z,SetSpeed
+	inc a
+	and %00011111
+	ld [hl],a
+	cp 0
+	jr nz,SetSpeed
+	ld a,[wRivalCnt]
+	inc a
+	daa
+	ld [wRivalCnt],a
 SetSpeed:
 	ld a,[wCarSpeedWait]
 	cp 0
@@ -279,7 +322,7 @@ SetSpeed:
 .decRoadPCnt
 	ld a,[wRoadPCnt]
 	cp 0
-	jp z,SetRoadPTbl
+	jp z,SetScenarioTbl
 	dec a
 	ld [wRoadPCnt],a
 
@@ -287,14 +330,42 @@ SetSpeed:
 	ld [wCarCForce],a
 
 	mInitWRoadXLR
-	ld a,[wRoadPMode]
+	ld a,[wSPoint]
 	ld l,a
-	ld a,[wRoadPMode+1]
+	ld a,[wSPoint+1]
 	ld h,a
 	jp hl
 
+SetSPRivalCar:
+	ld a,[wRivalTbl]
+	inc a
+	and %00000011
+	ld [wRivalTbl],a
+	ld l,a
+	ld h,HIGH(wRivalTblZ)
+	ld a,[hl]
+	cp 0
+	jp nz,SetRoadPos
+	ld a,1
+	ld [hl],a
+	ld a,l
+	add a,4
+	ld l,a
+	ld a,[wSParam]
+	ld d,a
+	and %00001111
+	ld [hl],a ;x
+	ld a,l
+	add a,4
+	ld l,a
+	ld a,d
+	swap a
+	and %00001111
+	ld [hl],a ;pal
+	jp SetRoadPos
+
 SetRoadPWait:
-	ld a,[wRoadPWaitDef]
+	ld a,[wSParam]
 	ld [wRoadPWait],a
 	jp SetRoadPos
 
@@ -395,23 +466,23 @@ SetRoadPBgDown:
 	mSetWBG
 	jp SetRoadPWait
 
-SetRoadPTbl:
+SetScenarioTbl:
 	ld a,[wRoadPTbl]
 	inc a
-	and %00000111
+	and %00001111
 	ld [wRoadPTbl],a
 	rlca
 	rlca
 	ld l,a
-	ld h,HIGH(RoadPatternTbl)
+	ld h,HIGH(ScenarioTbl)
 	ld a,[hli]
-	ld [wRoadPMode],a
+	ld [wSPoint],a
 	ld a,[hli]
-	ld [wRoadPMode+1],a
+	ld [wSPoint+1],a
 	ld a,[hli]
 	ld [wRoadPCnt],a
 	ld a,[hl]
-	ld [wRoadPWaitDef],a
+	ld [wSParam],a
 
 SetRoadPos:
 	ld a,[wAddScroll]
@@ -423,7 +494,7 @@ SetRoadPos:
 	ld l,a
 	ld de,wRoadY
 	mCopyScrollRoad
-	mCalcWRoadY
+	;mCalcWRoadY
 
 	xor a
 	ld [wAddScroll],a
@@ -661,62 +732,12 @@ SetSprite:
 	inc c
 	ld a,[bc]
 	ld [hli],a
-	;rival
-	ld a,[wRivalTbl1]
-	cp 0
-	jr z,.skipRival
-	ld b,HIGH(wJoyPadXLR)
-	ld c,a
-	ld a,[bc]
-	ld e,a
-	ld b,HIGH(wRoadXLR)
-	ld a,[bc]
-	add e
-	ld e,a
-	ld a,c
-	ld b,HIGH(RivalCarTbl)
-	rlca
-	rlca
-	ld c,a
-	ld a,[bc]
-	ld [wRivalY],a
-	inc c
-	ld a,[bc]
-	sub e
-	ld [wRivalX],a
-	inc c
-	ld a,[bc]
-	ld d,a ;Tile Index
-	ld a,[wCarSmoke]
-	cp 0
-	jr z,.nonRivalCarSmoke
-	ld a,2
-	add a,d
-	ld d,a
-.nonRivalCarSmoke
-	inc c
-	ld a,[bc]
-	cp 0
-	jr z,.skipRivalRight
-	ld a,[wRivalY]
-	ld [hli],a
-	ld a,[wRivalX]
-	add a,8
-	ld [hli],a
-	ld [hl],d
-	inc l
-	ld a,1|OAMF_XFLIP
-	ld [hli],a
-.skipRivalRight
-	ld a,[wRivalY]
-	ld [hli],a
-	ld a,[wRivalX]
-	ld [hli],a
-	ld [hl],d
-	inc l
-	ld a,1
-	ld [hli],a
-.skipRival
+
+	mSetRivalCarSprite 0
+	mSetRivalCarSprite 1
+	mSetRivalCarSprite 2
+	mSetRivalCarSprite 3
+
 	mResetShadowOAM
 	mCalcWSCX
 
@@ -734,7 +755,100 @@ SetOAM:
 	ld [wCarSprite],a
 
 	mSetOAM
+
+	; Set Rival Car count
+	xor a
+	ldh [rVBK],a
+	ld a,[wRivalCnt]
+	ld d,a
+	and %11110000
+	ld e,a
+	xor d
+	add $40
+	ld [$9A00+10],a
+	ld a,e
+	swap a
+	add $40
+	ld [$9A00+9],a
 	jp MainLoop
+
+SetRivalCarSprite:
+	ld a,[wRivalPosZ]
+	ld c,a
+	push hl
+	ld a,[wRivalPosX]
+	ld d,a
+	and %00000111
+	ld e,a
+	xor d
+	rrca
+	rrca
+	rrca
+	add a,HIGH(ScrollLRTbl)
+	ld h,a
+	ld a,e
+	rrca
+	rrca
+	rrca
+	add a,c
+	ld l,a
+	ld a,[hl]
+	pop hl
+	ld e,a
+	ld b,HIGH(wJoyPadXLR)
+	ld a,[bc]
+	add a,e
+	ld e,a
+	ld b,HIGH(wRoadXLR)
+	ld a,[bc]
+	add a,e
+	ld e,a
+	;
+	ld a,c
+	ld b,HIGH(RivalCarTbl)
+	rlca
+	rlca
+	ld c,a
+	ld a,[bc]
+	ld [wRivalY],a
+	inc c
+	ld a,[bc]
+	sub e
+	ld [wRivalX],a
+	inc c
+	ld a,[bc]
+	ld d,a ;Tile Index
+	ld a,[wCarSmoke]
+	cp 0
+	jr z,.nonSmoke
+	ld a,2
+	add a,d
+	ld d,a
+.nonSmoke
+	inc c
+	ld a,[bc]
+	cp 0
+	jr z,.skip
+	ld a,[wRivalY]
+	ld [hli],a
+	ld a,[wRivalX]
+	add a,8
+	ld [hli],a
+	ld [hl],d
+	inc l
+	ld a,[wRivalPal]
+	or OAMF_XFLIP
+	ld [hli],a
+.skip
+	ld a,[wRivalY]
+	ld [hli],a
+	ld a,[wRivalX]
+	ld [hli],a
+	ld [hl],d
+	inc l
+	ld a,[wRivalPal]
+	ld [hli],a
+	ret
 
 SetWRam:
 .loop

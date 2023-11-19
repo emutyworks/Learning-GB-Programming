@@ -275,3 +275,16 @@ MACRO mSetEngineSound
 	ldh [$FF1E],a ; Frequency hi
 .exit\@
 ENDM
+
+MACRO mSetRivalCarSprite
+	ld a,[wRivalTblZ+\1]
+	cp 0
+	jr z,.skip\@
+	ld [wRivalPosZ],a
+	ld a,[wRivalTblX+\1]
+	ld [wRivalPosX],a
+	ld a,[wRivalTblPal+\1]
+	ld [wRivalPal],a
+	call SetRivalCarSprite
+.skip\@
+ENDM
