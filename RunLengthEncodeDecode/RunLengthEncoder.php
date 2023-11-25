@@ -30,7 +30,7 @@ do{
   $cnt = 2;
   while(1){
     $val_past = array_shift($in_array);
-    if($val_next!=$val_past || $cnt==256){
+    if($val_next!=$val_past || $cnt==255){
       echo ":$cnt\n";
       $out_array[] = dechex($cnt);
       break;
