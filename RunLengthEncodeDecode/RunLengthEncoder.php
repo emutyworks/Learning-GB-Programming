@@ -41,7 +41,7 @@ do{
   }
 }while(count($in_array)!=0);
 
-echo "----\ntotal: ".count($out_array)." bytes\n";
+echo "\n----\ntotal: ".count($out_array)." bytes\n";
 
 $bin = null;
 for($i=0; $i<count($out_array); $i++){
