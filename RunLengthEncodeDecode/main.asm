@@ -94,9 +94,9 @@ CopyDecompressionData:
 	inc de
 	ld [hli],a
 .start
-	dec l
+	dec hl
 	ld a,[hl]
-	inc l
+	inc hl
 	push bc
 .loop
 	ld b,a
