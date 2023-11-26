@@ -94,6 +94,9 @@ CopyDecompressionData:
 	inc de
 	ld [hli],a
 .start
+	dec l
+	ld a,[hl]
+	inc l
 	push bc
 .loop
 	ld b,a
@@ -121,16 +124,10 @@ CopyDecompressionData:
 	pop bc
 	ld a,b
 	cp d
-	dec l
-	ld a,[hl]
-	inc l
 	jr nz,.start
 	ld a,c
 	cp e
-	dec l
-	ld a,[hl]
-	inc l
-	jr nz,.start
+	jr nc,.start
 	ret
 
 WaitVBlank:
