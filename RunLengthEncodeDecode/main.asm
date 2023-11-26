@@ -90,13 +90,10 @@ CopyDecompressionData:
 	;ld hl,<write address>
 	;ld de,<data address>
 	;ld bc,<data end address>
+.start
 	ld a,[de]
 	inc de
 	ld [hli],a
-.start
-	dec hl
-	ld a,[hl]
-	inc hl
 	push bc
 .loop
 	ld b,a
