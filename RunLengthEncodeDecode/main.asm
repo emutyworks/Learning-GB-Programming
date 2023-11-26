@@ -56,13 +56,13 @@ Start:
 	ldh [rVBK],a ; BG Map Attributes
 	ld hl,_SCRN0 ; write address
 	ld de,BgTileMap1 ; data address
-	ld bc,BgTileMap1End ; data end address
+	ld bc,BgTileMap1End-1 ; data end address
 	call CopyDecompressionData
 	xor a
 	ldh [rVBK],a ; Tile Indexes
 	ld hl,_SCRN0
 	ld de,BgTileMap0
-	ld bc,BgTileMap0End
+	ld bc,BgTileMap0End-1
 	call CopyDecompressionData
 
 	; Set Map data (No decompression version)
