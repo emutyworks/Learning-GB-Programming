@@ -85,7 +85,6 @@ Start:
 MainLoop:
 	jp MainLoop
 
-; *This code has not been optimized yet. =D
 CopyDecompressionData:
 	;ld hl,<write address>
 	;ld de,<data address>
