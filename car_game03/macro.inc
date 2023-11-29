@@ -114,22 +114,22 @@ REPT ScrollBgSize
 ENDR
 ENDM
 
-MACRO mCalcWRoadY
-	ld hl,wRoadYUD
-	ld de,wRoadY
-REPT ScrollRoadSize-1
-	ld c,[hl]
-	ld a,[de]
-	add a,c
-	ld [de],a
-	inc l
-	inc e
-ENDR
-	ld c,[hl]
-	ld a,[de]
-	add a,c
-	ld [de],a
-ENDM
+;MACRO mCalcWRoadY
+;	ld hl,wRoadYUD
+;	ld de,wRoadY
+;REPT ScrollRoadSize-1
+;	ld c,[hl]
+;	ld a,[de]
+;	add a,c
+;	ld [de],a
+;	inc l
+;	inc e
+;ENDR
+;	ld c,[hl]
+;	ld a,[de]
+;	add a,c
+;	ld [de],a
+;ENDM
 
 MACRO mCalcWSCX
 	ld de,wRoadX
@@ -263,9 +263,10 @@ MACRO mSetEngineSound
 	cp c
 	jr z,.exit\@
 	ld [wEngineSound],a
-	ld h,HIGH(SoundTbl)
 	rlca
 	rlca
+	ld hl,SoundTbl
+	add a,l
 	ld l,a
 	ld a,[hli]
 	ldh [$FF1C],a ; Output level

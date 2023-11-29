@@ -16,7 +16,7 @@ CarCForceLeft  EQU 1
 CarCForceRight EQU 2
 
 GearHi         EQU 1
-GearHiY        EQU 139
+GearHiY        EQU 128
 GearHiShift    EQU 3
 GearLow        EQU 0
 GearLowY       EQU 145
@@ -31,5 +31,5 @@ ScrollBgSize   EQU 8*3
 ScrollRoadSize EQU 8*4
 ScrollMaxSize  EQU 154
 
-BGPaletteCnt   EQU 4*4
+BGPaletteCnt   EQU 4*5
 ObjPaletteCnt  EQU 4*2

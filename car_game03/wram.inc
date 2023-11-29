@@ -37,6 +37,9 @@ wRivalPosX: ds 1
 wRivalPal: ds 1
 wRivalTbl: ds 1
 wRivalCnt: ds 1
+wLapTimeMS: ds 1
+wLapTimeS: ds 1
+wLapTimeM: ds 1
 
 SECTION "Rival Car Scenario Table",WRAM0[$C100]
 wRivalTblZ: ds 4

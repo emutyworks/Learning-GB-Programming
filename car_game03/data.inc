@@ -47,7 +47,7 @@ ScrollPosTbl:
 ;	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
 ;	;96
 
-SECTION "HBlank Scroll Left Table",ROM0[$2200]
+SECTION "HBlank Scroll Left Table",ROM0[$2100]
 ScrollLeftTbl:
 	;0
 	db 7,6,5,4,3,3,3,3,3,3,2,2,2,1,1,1
@@ -74,7 +74,7 @@ ScrollLeftTbl:
 	db 50,45,40,35,30,25,20,16,12,9,8,7,6,5,4,3
 	db 3,2,2,2,1,1,1,1,1,1,1,1,1,1,1,0
 
-SECTION "HBlank Scroll Right Table",ROM0[$2300]
+SECTION "HBlank Scroll Right Table",ROM0[$2200]
 ScrollRightTbl:
 	;0
 	db -7,-6,-5,-4,-3,-3,-3,-3,-3,-3,-2,-2,-2,-1,-1,-1
@@ -101,7 +101,7 @@ ScrollRightTbl:
 	db -50,-45,-40,-35,-30,-25,-20,-16,-12,-9,-8,-7,-6,-5,-4,-3
 	db -3,-2,-2,-2,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,0
 
-SECTION "HBlank Scroll LR Table",ROM0[$2400]
+SECTION "HBlank Scroll LR Table",ROM0[$2300]
 ScrollLRTbl:
 	;0
 	db  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0
@@ -153,7 +153,7 @@ ScrollLRCenterTbl:
 	db  0, 3, 5, 8,10,13,15,18,20,23,26,28,31,33,36,38
 	db 41,44,46,49,51,54,56,59,61,64,67,69,72,74,77,79
 
-SECTION "Car Speed/Smoke Table",ROM0[$2600]
+SECTION "Car Speed/Smoke Table",ROM0[$2500]
 CarSpeedTbl:
 	;shift wait,loop wait,ScrollRoadSize,RivalWait
 	db 10,0,0,0
@@ -166,10 +166,7 @@ CarSmokeTbl:
 	;0:skip,1:right,2:left,3:left/right
 	;  L               C             R
 	;  0 1 2 3 4 5 6 7 8 9 101112131415
-	db 3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3
-	;216
-
-SECTION "Car Sprite Table",ROM0[$2700]
+	db 3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3 ;16
 CarSpriteTbl:
 	;Tile Index,Attributes/Flags,Tile Index,Attributes/Flags
 	db 0,0,0,0|OAMF_XFLIP ;0 straight
@@ -177,10 +174,23 @@ CarSpriteTbl:
 	db 4,0,6,0 ;2 left
 	db 8,0,10,0
 	db 12,0,14,0 ;4 right
-	db 16,0,18,0
-	;232
+	db 16,0,18,0 ;24
+SoundTbl:
+	;Output level,Frequency low,Hi,0
+	db %01000000,$40,%10000000,0
+	db %00100000,$60,%10000000,0
+	db %00100000,$7F,%10000000,0
+	db %00100000,$9F,%10000001,0
+	db %00100000,$bf,%10000010,0
+	db %00100000,$FF,%10000011,0 ;24
+WaveData:
+	db $12,$56 ; 1,2,5,6
+	db $BC,$DC ; 11,12,13,12
+	db $DB,$DD ; 13,11,13,13
+	db $CE,$A9 ; 12,14,10,09
+	db $76,$65 ; 07,06,06,05 ;10
+WaveDataEnd:
 
-SECTION "Rival Car Table",ROM0[$2800]
 RivalCarTbl:
 	;Y,X,Tile Index,flag
 	db   0, 0,40,0 ;0
@@ -214,26 +224,24 @@ RivalCarTbl:
 	db 109,80,60,1 ;28
 	db 110,80,60,1 ;29
 	db 111,80,60,1 ;30
-	db 112,80,60,1 ;31
+	db 112,80,60,1 ;31 ;128
+	;30
 
-SECTION "Engine Sound Table",ROM0[$2900]
-SoundTbl:
-	;Output level,Frequency low,Hi,0
-	db %01000000,$40,%10000000,0
-	db %00100000,$60,%10000000,0
-	db %00100000,$7F,%10000000,0
-	db %00100000,$9F,%10000001,0
-	db %00100000,$bf,%10000010,0
-	db %00100000,$FF,%10000011,0
-WaveData:
-	db $12,$56 ; 1,2,5,6
-	db $BC,$DC ; 11,12,13,12
-	db $DB,$DD ; 13,11,13,13
-	db $CE,$A9 ; 12,14,10,09
-	db $76,$65 ; 07,06,06,05
-WaveDataEnd:
+SECTION "Dashboard GB Table",ROM0[$2600]
+CounterDBGTbl:
+	db 64,65 ;0
+	db 66,67 ;1
+	db 68,69 ;2
+	db 68,70 ;3
+	db 71,72 ;4
+	db 73,70 ;5
+	db 73,74 ;6
+	db 75,67 ;7
+	db 76,74 ;8
+	db 76,70 ;9
+	;236
 
-SECTION "Scenario Table",ROM0[$3000]
+SECTION "Scenario Table",ROM0[$2700]
 ;Scenario Pattern
 SPRC EQU SetSPRivalCar   ; Set Rival Car
 ;Road Pattern
@@ -254,12 +262,12 @@ ScenarioTbl:
 	dw SPRC,$1601
 	dw RPWT,$6401
 	dw RPTL,$0450
-	dw SPRC,$1C01
 	dw RPLS,$0408
+	dw SPRC,$1C01
 	dw SPRC,$0601
 	dw RPTR,$0450
-	dw SPRC,$1C01
 	dw RPRS,$0408
+	dw SPRC,$1C01
 	dw SPRC,$0801
 	dw RPBD,$0a18
 	dw SPRC,$1901
@@ -283,9 +291,14 @@ BGPalette:
 	dw 31412
 
 	dw 0
-	dw 8456
-	dw 24311
+	dw 15680
+	dw 25492
 	dw 32767
+
+	dw 0
+	dw 8456
+	dw 32767
+	dw 1023
 
 ObjPalette:
 	dw 15134
@@ -298,19 +311,33 @@ ObjPalette:
 	dw 32767
 	dw 31374
 
-SECTION "tiles/sprites",ROM0[$6800]
+; [Compressed data] | [Uncompressed]| [Source]       | [Created tool]
+;---------------------------------------------------------------------
+; sprites_comp.bin  | sprites.bin   | sprites.gbr    | GBMB
+; tiles_comp.bin    | tiles.bin     | tiles.gbr      | GBTD
+; bg_tile0_comp.bin | bg_tile0.bin  | map_editor.txt | GBCMapEditor
+; bg_tile1_comp.bin | bg_tile1.bin  | map_editor.txt | GBCMapEditor
+;
+; - Compressed data creation command.
+; php convBin.php 
+; *RunLengthEncoder.php is executed inside convBin.php.
+;
+; - Related documents
+; Run-length encode binary data with php and decode it with assembly code.
+; https://github.com/emutyworks/Learning-GB-Programming/wiki/RunLengthEncodeDecode
+
 Sprites:
-	INCBIN "sprites.bin" ;$800
+	INCBIN "sprites_comp.bin"
 SpritesEnd:
 
 Tiles:
-	INCBIN "tiles.bin" ;$800
+	INCBIN "tiles_comp.bin"
 TilesEnd:
 
 BgTileMap0: ; Tile Indexes
-	INCLUDE "bg_tile0.inc" ;$400
+	INCBIN "bg_tile0_comp.bin"
 BgTileMap0End:
 
 BgTileMap1: ; BG Map Attributes
-	INCLUDE "bg_tile1.inc" ;$400
+	INCBIN "bg_tile1_comp.bin"
 BgTileMap1End:

@@ -1,6 +1,9 @@
 ;
 ; I used this Website/Document as a reference to create it.
 ;
+; Run-length encoding
+; https://en.wikipedia.org/wiki/Run-length_encoding
+;
 ; Z80 1バイトデータの分解 (Z80 1-byte data decomposition)
 ; https://codeknowledge.livedoor.blog/archives/25232135.html
 ;
@@ -123,30 +126,33 @@ Start:
 	ld [wRivalPal],a
 	ld [wRivalTbl],a
 	ld [wRivalCnt],a
+	ld [wLapTimeMS],a
+	ld [wLapTimeS],a
+	ld [wLapTimeM],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM ;$8000
 	ld de,Sprites
-	ld bc,SpritesEnd - Sprites
-	call CopyData
+	ld bc,SpritesEnd-1
+	call CopyDecompressionData
 	ld hl,_VRAM+$1000 ;$9000
 	ld de,Tiles
-	ld bc,TilesEnd - Tiles
-	call CopyData
+	ld bc,TilesEnd-1
+	call CopyDecompressionData
 
 	; Set Map data
 	ld a,1
 	ldh [rVBK],a ; BG Map Attributes
 	ld hl,_SCRN0
 	ld de,BgTileMap1
-	ld bc,BgTileMap1End - BgTileMap1
-	call CopyData
+	ld bc,BgTileMap1End-1
+	call CopyDecompressionData
 	xor a
 	ldh [rVBK],a ; Tile Indexes
 	ld hl,_SCRN0
 	ld de,BgTileMap0
-	ld bc,BgTileMap0End - BgTileMap0
-	call CopyData
+	ld bc,BgTileMap0End-1
+	call CopyDecompressionData
 
 	ld a,LCDCF_ON|LCDCB_BLKS|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
 	ldh [rLCDC],a
@@ -236,6 +242,28 @@ MainLoop:
 	inc a
 	and %00000011
 	ld [wCarSmoke],a
+
+LapTime:
+	ld a,[wLapTimeMS]
+	inc a
+	daa
+	ld [wLapTimeMS],a
+	cp $60
+	jr nz,SetRivalCar
+	xor a
+	ld [wLapTimeMS],a
+	ld a,[wLapTimeS]
+	inc a
+	daa
+	ld [wLapTimeS],a
+	cp $60
+	jr nz,SetRivalCar
+	xor a
+	ld [wLapTimeS],a
+	ld a,[wLapTimeM]
+	inc a
+	daa
+	ld [wLapTimeM],a
 
 SetRivalCar:
 	ld a,[wRivalWait]
@@ -511,6 +539,9 @@ SetRoadPos:
 	jp SetWJoyPadXLR
 
 .jGearHi
+	ld a,[wCarGear]
+	cp 1
+	jp z,SetWJoyPadXLR
 	ld a,GearHiY
 	ld [wCarGearY],a
 	ld a,1
@@ -637,8 +668,9 @@ SetSprite:
 	ld a,c
 	rlca
 	rlca
+	ld bc,CarSpriteTbl
+	add a,c
 	ld c,a
-	ld b,HIGH(CarSpriteTbl)
 	ld hl,wShadowOAM
 	;smoke
 	ld a,d
@@ -693,7 +725,7 @@ SetSprite:
 	;gear
 	ld a,[wCarGearY]
 	ld [hli],a
-	ld a,8*8
+	ld a,8*14
 	ld [hli],a
 	ld a,24
 	ld [hli],a
@@ -706,9 +738,9 @@ SetSprite:
 	ld a,150
 	sub d
 	ld [hli],a
-	ld a,8*7
+	ld a,8*13
 	ld [hli],a
-	ld a,26
+	ld a,24
 	ld [hli],a
 	ld a,0
 	ld [hli],a
@@ -756,20 +788,67 @@ SetOAM:
 
 	mSetOAM
 
-	; Set Rival Car count
+SetDashboardBG:
+DBG1  EQU $99C0 ;14
+DBG2  EQU $99E0 ;15
+DBG3  EQU $9A00 ;16
+DBG4  EQU $9A20 ;17
+BGNUM EQU 86
+
 	xor a
 	ldh [rVBK],a
+	; Lap time
+	;m
+	ld a,[wLapTimeM]
+	add a,BGNUM
+	ld [DBG3+1],a
+	;s
+	ld a,[wLapTimeS]
+	ld d,a
+	and %11110000
+	ld e,a
+	xor d
+	add a,BGNUM
+	ld [DBG3+4],a ;01
+	ld a,e
+	swap a
+	add a,BGNUM
+	ld [DBG3+3],a ;10
+	;ms
+	ld a,[wLapTimeMS]
+	ld d,a
+	and %11110000
+	ld e,a
+	xor d
+	add a,BGNUM
+	ld [DBG3+6],a ;01
+	ld a,e
+	swap a
+	add a,BGNUM
+	ld [DBG3+5],a ;10
+
+	; Set Rival Car count
 	ld a,[wRivalCnt]
 	ld d,a
 	and %11110000
 	ld e,a
 	xor d
-	add $40
-	ld [$9A00+10],a
+	ld h,HIGH(CounterDBGTbl)
+	rlca
+	ld l,a
+	ld a,[hli]
+	ld [DBG2+10],a
+	ld a,[hl]
+	ld [DBG3+10],a
 	ld a,e
 	swap a
-	add $40
-	ld [$9A00+9],a
+	ld h,HIGH(CounterDBGTbl)
+	rlca
+	ld l,a
+	ld a,[hli]
+	ld [DBG2+9],a
+	ld a,[hl]
+	ld [DBG3+9],a
 	jp MainLoop
 
 SetRivalCarSprite:
@@ -805,9 +884,10 @@ SetRivalCarSprite:
 	ld e,a
 	;
 	ld a,c
-	ld b,HIGH(RivalCarTbl)
 	rlca
 	rlca
+	ld bc,RivalCarTbl
+	add a,c
 	ld c,a
 	ld a,[bc]
 	ld [wRivalY],a
@@ -885,6 +965,47 @@ DMARoutine:
 	jr nz,.loop
 	ret
 DMARoutineEnd:
+
+CopyDecompressionData:
+	;ld hl,<write address>
+	;ld de,<data address>
+	;ld bc,<data end address>
+.start
+	ld a,[de]
+	inc de
+	ld [hli],a
+	push bc
+.loop
+	ld b,a
+	ld a,[de]
+	cp b
+	jr z,.next
+	inc de
+	ld [hli],a
+	jr .loop
+.next
+	inc de
+	ld [hli],a
+	ld a,[de]
+	inc de
+	sub 2
+	cp 0
+	jr z,.skip
+	ld c,a
+	ld a,b
+.copy
+	ld [hli],a
+	dec c
+	jr nz,.copy
+.skip
+	pop bc
+	ld a,b
+	cp d
+	jr nz,.start
+	ld a,c
+	cp e
+	jr nc,.start
+	ret
 
 INCLUDE "data.inc"
 INCLUDE "wram.inc"
