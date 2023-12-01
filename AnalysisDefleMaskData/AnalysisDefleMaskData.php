@@ -2,7 +2,7 @@
 /*
 Analaysis DefleMask Module Format Data *I've only implemented it halfway.
 
-Only SYSTEM_SET = 0x04 (SYSTEM_GAMEBOY)
+This tool only targets SYSTEM_GAMEBOY (SYSTEM_SET = 0x04)
 
 Reference:
 - Specs for DMF (DefleMask Module Format, for DefleMask v1.0.0 and above)
@@ -40,6 +40,7 @@ $d = array();
 $d['FORMAT_FLAGS'] = hex2bin($str);
 $d['File_Version'] = hexdec(array_shift($in_array));
 $d['SYSTEM_SET'] = array_shift($in_array);
+$d['SYSTEM_TOTAL_CHANNELS'] = 4;
 
 $cnt = hexdec(array_shift($in_array));
 $d['VISUAL_INFORMATION']['SongNameCharsCount'] = $cnt;
@@ -71,6 +72,7 @@ for($i=0; $i<4; $i++){
 $d['MODULE_INFORMATION']['TOTAL_ROWS_PER_PATTERN'] = hexdec($num);
 $d['MODULE_INFORMATION']['TOTAL_ROWS_IN_PATTERN_MATRIX'] = hexdec(array_shift($in_array));
 
+echo "*This tool only targets SYSTEM_GAMEBOY (SYSTEM_SET = 0x04)\n";
 print_r($d);
 
 
