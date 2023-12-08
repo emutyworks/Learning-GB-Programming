@@ -3,7 +3,7 @@
 Convert from DMF format to data for assembly program.
 
 Example:
-php convDMF2Hex.php test.dmf test.inc
+php convDMF2Hex.php test.dmf
 */
 include "init.php";
 include "MusicalScaleTbl.php";
