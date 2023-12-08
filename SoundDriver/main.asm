@@ -12,6 +12,7 @@
 INCLUDE "hardware.inc"
 
 SoundWait EQU 30 ; 120 bpm
+;SoundWait EQU 60 ; 60 bpm
 
 SECTION "VBlank Handler",ROM0[$40]
 	push af
@@ -41,7 +42,6 @@ Start:
 	ldh [rSCX],a
 	ld [wVBlankDone],a
 	ld [wSoundWait],a
-	ld [wTestLoop],a
 
 	ld a,LCDCF_ON
 	ldh [rLCDC],a
@@ -56,6 +56,8 @@ Start:
 	call InitSoundDriver
 	ld a,SoundWait
 	ld [wSoundWait],a
+
+	ld de,SoundDataTbl
 
 MainLoop:
 	ld a,[wVBlankDone]
@@ -72,23 +74,26 @@ MainLoop:
 	jp MainLoop
 
 .playSound
-	ld a,[wTestLoop]
-	cp 72
+	ld a,[de]
+	cp $FF
 	jr z,MainLoop
+	inc de
 
+	call PlaySound
 	ld a,SoundWait
 	ld [wSoundWait],a
-	call PlaySound
-
-	ld a,[wTestLoop]
-	inc a
-	ld [wTestLoop],a
-
+	
 	jp MainLoop
 
 INCLUDE "gb_sound_driver.inc"
+;
+; Creating musical_scale_tbl.inc and sound_data_tbl.inc
+; php tools/convDMF2Hex.php tools/test.dmf
+;
+INCLUDE "musical_scale_tbl.inc"
+INCLUDE "sound_data_tbl.inc"
+
 
 SECTION "State",WRAM0
 wVBlankDone: ds 1
 wSoundWait: ds 1
-wTestLoop: ds 1
