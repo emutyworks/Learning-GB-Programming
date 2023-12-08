@@ -1,6 +1,6 @@
 <?php
 /*
-Analaysis DefleMask Module Format Data *I've only implemented it halfway.
+Analaysis DefleMask Module Format Data
 
 This tool only targets SYSTEM_GAMEBOY (SYSTEM_SET = 0x04)
 
