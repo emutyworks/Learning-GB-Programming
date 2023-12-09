@@ -38,6 +38,13 @@ for($i=0; $i<count($list); $i++){
 }
 
 $list = $d['PATTERNS_DATA']['SQ1'][0]['PATTERN_MATRIX'];
+
+var_dump($list);
+
+
+exit;
+
+
 $hex = array();
 for($i=0; $i<count($list); $i++){
   $note = substr($list[$i]['NoteForThisIndex'],0,2);
@@ -47,8 +54,13 @@ for($i=0; $i<count($list); $i++){
     $note = '00';
     $octave = sprintf("%02d",((int)$octave)+1);
   }
+
   $key = $note.$octave;
-  $hex[] = "$".str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT); 
+  if(!isset($musical_scale_tbl[$key])){
+    echo 'Please include '.$check_musical_scale_tbl[$key].' in $musical_scale_tbl.'."\n";
+    exit;
+  }
+  $hex[] = "$".str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT);
 
   //debug
   echo 'note+octave:'.$key.' '.$musical_scale_tbl[$key]."\n";
