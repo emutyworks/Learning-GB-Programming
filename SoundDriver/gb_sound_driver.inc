@@ -14,16 +14,17 @@ InitSoundDriver:
 	ld a,%00000000     ; Channel 1 length timer & duty cycle
 	ldh [rAUD1LEN],a   ; Bit 7-6 - Wave duty            (Read/Write)
 	                   ; Bit 5-0 - Initial length timer (Write Only)
-	;ld a,%00000000     ; Channel 1 volume & envelope
-	ld a,%11100011
+	ld a,%00000000     ; Channel 1 volume & envelope
 	ldh [rAUD1ENV],a   ; Bit 7-4 - Initial volume of envelope (0-F) (0=No Sound)
 	                   ; Bit 3   - Envelope direction (0=Decrease, 1=Increase)
 	                   ; Bit 2-0 - Sweep pace (0=No Sweep)
 	ret
 
 PlaySound:
+	ld a,[de]
+	cp $FF
+	jr z,.soundOff
 	ld h,HIGH(MusicalScaleTbl)
-	;ld hl,MusicalScaleTbl
 	rlca
 	ld l,a
 	ld a,[hli]
@@ -31,4 +32,14 @@ PlaySound:
 	ld a,[hli]
 	or %10000000
 	ldh [rAUD1HIGH],a ; Channel 1 wavelength high & control
+
+	inc de
+	ld a,[de]
+	or %00000011
+	ldh [rAUD1ENV],a
+	inc de
+	ret
+.soundOff
+	xor a
+	ldh [rAUD1ENV],a
 	ret

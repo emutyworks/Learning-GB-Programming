@@ -38,10 +38,13 @@ for($i=0; $i<count($list); $i++){
 }
 
 $list = $d['PATTERNS_DATA']['SQ1'][0]['PATTERN_MATRIX'];
+//var_dump($list); exit;
+
 $hex = array();
 for($i=0; $i<count($list); $i++){
   $note = substr($list[$i]['NoteForThisIndex'],0,2);
   $octave = substr($list[$i]['OctaveForThisIndex'],0,2);
+  $volume = substr($list[$i]['VolumeForThisIndex'],1,1).'0';
 
   if($note=='0c'){
     $note = '00';
@@ -53,15 +56,19 @@ for($i=0; $i<count($list); $i++){
     echo 'Please include '.$check_musical_scale_tbl[$key].' in $musical_scale_tbl.'."\n";
     exit;
   }
-  $hex[] = "$".str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT);
+  $hex[] = '$'.str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT).",$$volume";
 
   //debug
-  echo 'note+octave:'.$key.' '.$musical_scale_tbl[$key]."\n";
+  echo 'note+octave,volume:'.$key.",$volume ".$musical_scale_tbl[$key]."\n";
 }
 
+//exit;
 $out  = 'SECTION "Sound Data Table",ROM0[$2100]'."\n";
 $out .= "SoundDataTbl:\n";
-$out .= " db ".implode(",",$hex).",\$FF\n";
+for($i=0; $i<count($hex); $i++){
+  $out .= " db ".$hex[$i]."\n";
+}
+$out .= " db \$FF\n";
 file_put_contents('sound_data_tbl.inc', $out);
 
 // Create musical_scale_tbl.inc
@@ -69,10 +76,6 @@ $out  = 'SECTION "Musical Scale Table",ROM0[$2000]'."\n";
 $out .= "MusicalScaleTbl:\n";
 $out .= implode("\n",array_values($musical_scale_tbl));
 file_put_contents('musical_scale_tbl.inc', $out);
-
-/*
-%xx543210 - Scale 0-63
-*/
 
 ?>
 
