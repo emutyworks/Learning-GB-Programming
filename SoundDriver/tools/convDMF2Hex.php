@@ -38,13 +38,6 @@ for($i=0; $i<count($list); $i++){
 }
 
 $list = $d['PATTERNS_DATA']['SQ1'][0]['PATTERN_MATRIX'];
-
-var_dump($list);
-
-
-exit;
-
-
 $hex = array();
 for($i=0; $i<count($list); $i++){
   $note = substr($list[$i]['NoteForThisIndex'],0,2);
