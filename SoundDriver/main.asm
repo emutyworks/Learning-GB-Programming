@@ -74,11 +74,6 @@ MainLoop:
 	jp MainLoop
 
 .playSound
-	ld a,[de]
-	cp $FF
-	jr z,MainLoop
-	inc de
-
 	call PlaySound
 	ld a,SoundWait
 	ld [wSoundWait],a
@@ -92,7 +87,6 @@ INCLUDE "gb_sound_driver.inc"
 ;
 INCLUDE "musical_scale_tbl.inc"
 INCLUDE "sound_data_tbl.inc"
-
 
 SECTION "State",WRAM0
 wVBlankDone: ds 1
