@@ -24,6 +24,13 @@ PlaySound:
 	ld a,[de]
 	cp $FF
 	jr z,.soundOff
+	cp 0
+	jr z,.skip
+	or %00000100
+	ldh [rAUD1ENV],a
+	inc de
+	ld a,[de]
+	inc de
 	ld h,HIGH(MusicalScaleTbl)
 	rlca
 	ld l,a
@@ -32,13 +39,13 @@ PlaySound:
 	ld a,[hli]
 	or %10000000
 	ldh [rAUD1HIGH],a ; Channel 1 wavelength high & control
+	ret
 
+.skip
 	inc de
-	ld a,[de]
-	or %00000011
-	ldh [rAUD1ENV],a
 	inc de
 	ret
+
 .soundOff
 	xor a
 	ldh [rAUD1ENV],a

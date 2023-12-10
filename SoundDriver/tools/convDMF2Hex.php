@@ -52,14 +52,19 @@ for($i=0; $i<count($list); $i++){
   }
 
   $key = $note.$octave;
-  if(!isset($musical_scale_tbl[$key])){
+  if(!isset($musical_scale_tbl[$key]) && $key!='0000'){
     echo 'Please include '.$check_musical_scale_tbl[$key].' in $musical_scale_tbl.'."\n";
     exit;
   }
-  $hex[] = '$'.str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT).",$$volume";
 
-  //debug
-  echo 'note+octave,volume:'.$key.",$volume ".$musical_scale_tbl[$key]."\n";
+  if($key!='0000'){
+    $hex[] = "$$volume,$".str_pad(dechex($note_hash[$key]),2,0,STR_PAD_LEFT);
+    $s = $musical_scale_tbl[$key];
+  }else{
+    $hex[] = "$00,$00";
+    $s = 'empty';
+  }
+  echo 'note+octave,volume:'.$key.",$volume ".$s."\n";
 }
 
 //exit;

@@ -11,8 +11,7 @@
 
 INCLUDE "hardware.inc"
 
-SoundWait EQU 30 ; 120 bpm
-;SoundWait EQU 60 ; 60 bpm
+SoundWait EQU 7
 
 SECTION "VBlank Handler",ROM0[$40]
 	push af
