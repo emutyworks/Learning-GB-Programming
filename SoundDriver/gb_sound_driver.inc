@@ -1,4 +1,29 @@
 InitSoundDriver:
+	;Create wMusicalScaleTbl
+	ld bc,MusicalScaleTbl
+	ld hl,wMusicalScaleTbl
+.next
+	ld a,[bc]
+	ld d,a
+	and %00011111
+	ld e,a ;cnt
+	xor d
+	swap a
+	rrca
+	ld d,a
+	inc bc
+.loop
+	ld a,[bc] ;wavelength low
+	ld [hli],a
+	ld [hl],d ;wavelength high
+	inc hl
+	inc bc
+	dec e
+	jr nz,.loop
+	ld a,d
+	cp 7
+	jr nz,.next
+
 	ld a,%01110111     ; -LLL-RRR Master volume & VIN panning
 	ldh [rAUDVOL],a
 	ld a,%11111111     ; LLLLRRRR Sound panning
@@ -31,7 +56,7 @@ PlaySound:
 	inc de
 	ld a,[de]
 	inc de
-	ld h,HIGH(MusicalScaleTbl)
+	ld h,HIGH(wMusicalScaleTbl)
 	rlca
 	ld l,a
 	ld a,[hli]

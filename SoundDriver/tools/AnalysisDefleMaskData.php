@@ -15,7 +15,7 @@ php AnalysisDefleMaskData.php test.dmf test.bin
 */
 
 if(count($argv)<3){
-	echo "Usage: php AnalysisDefleMaskData.php <input filename(dmf)> <output filename(bin)>\n";
+	print "Usage: php AnalysisDefleMaskData.php <input filename(dmf)> <output filename(bin)>\n";
 	exit;
 }
 
@@ -199,7 +199,7 @@ for($i=0; $i<$cnt; $i++){
 }
 
 if(!isset($mode_conv)){
-	echo "*This tool only targets SYSTEM_GAMEBOY (SYSTEM_SET = 0x04)\n";
+	print "*This tool only targets SYSTEM_GAMEBOY (SYSTEM_SET = 0x04)\n";
 	print_r($d);
 }
 

@@ -1,6 +1,9 @@
 ;
 ; I used this Website/Document as a reference to create it.
 ;
+; Z80 1バイトデータの分解 (Z80 1-byte data decomposition)
+; https://codeknowledge.livedoor.blog/archives/25232135.html
+;
 ; Lesson P21 - Sound on the Gameboy and GBC
 ; https://www.chibiakumas.com/z80/platform3.php#LessonP21
 ; https://www.youtube.com/watch?v=LCPLGkYJk5M
@@ -88,5 +91,6 @@ INCLUDE "musical_scale_tbl.inc"
 INCLUDE "sound_data_tbl.inc"
 
 SECTION "State",WRAM0
+wMusicalScaleTbl: ds 128
 wVBlankDone: ds 1
 wSoundWait: ds 1

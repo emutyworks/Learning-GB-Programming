@@ -1,4 +1,3 @@
-SECTION "Sound Data Table",ROM0[$2100]
 SoundDataTbl:
  db $e0,$24
  db $00,$00
