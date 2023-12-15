@@ -72,4 +72,4 @@ wJoyPadXLR: ds ScrollRoadSize ;32
 
 SECTION "HRAM Variables",HRAM
 hOAMDMA:
-	ds DMARoutineEnd - DMARoutine ; Reserve space to copy the routine to
+  ds DMARoutineEnd - DMARoutine ; Reserve space to copy the routine to

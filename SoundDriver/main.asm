@@ -17,70 +17,70 @@ INCLUDE "hardware.inc"
 SoundWait EQU 7
 
 SECTION "VBlank Handler",ROM0[$40]
-	push af
-	ld a,1
-	ld [wVBlankDone],a
-	pop af
-	reti
+  push af
+  ld a,1
+  ld [wVBlankDone],a
+  pop af
+  reti
 
 SECTION "Header",ROM0[$100]
 
 EntryPoint:
-	di
-	jp Start
+  di
+  jp Start
 
 REPT $150 - $104
-	db 0
+  db 0
 ENDR
 
 SECTION "Start",ROM0[$150]
 
 Start:
-	xor a
-	ldh [rLCDC],a
-	ldh [rIE],a
-	ldh [rIF],a
-	ldh [rSCY],a
-	ldh [rSCX],a
-	ld [wVBlankDone],a
-	ld [wSoundWait],a
+  xor a
+  ldh [rLCDC],a
+  ldh [rIE],a
+  ldh [rIF],a
+  ldh [rSCY],a
+  ldh [rSCX],a
+  ld [wVBlankDone],a
+  ld [wSoundWait],a
 
-	ld a,LCDCF_ON
-	ldh [rLCDC],a
+  ld a,LCDCF_ON
+  ldh [rLCDC],a
 
-	ld a,IEF_VBLANK
-	ldh [rIE],a
-	xor a
-	ei
-	ldh [rIF],a
+  ld a,IEF_VBLANK
+  ldh [rIE],a
+  xor a
+  ei
+  ldh [rIF],a
 
-	; Set Sound driver
-	call InitSoundDriver
-	ld a,SoundWait
-	ld [wSoundWait],a
+  ; Set Sound driver
+  call InitSoundDriver
+  ld a,SoundWait
+  ld [wSoundWait],a
 
-	ld de,SoundDataTbl
+  ld de,SoundDataTbl
 
 MainLoop:
-	ld a,[wVBlankDone]
-	cp 1
-	jp nz,MainLoop
-	xor a
-	ld [wVBlankDone],a
+  ld a,[wVBlankDone]
+  cp 1
+  jp nz,MainLoop
+  xor a
+  ld [wVBlankDone],a
 
-	ld a,[wSoundWait]
-	cp 0
-	jr z,.playSound
-	dec a
-	ld [wSoundWait],a
-	jp MainLoop
+  ld a,[wSoundWait]
+  cp 0
+  jr z,.playSound
+  dec a
+  ld [wSoundWait],a
+  jp MainLoop
 
 .playSound
-	call PlaySound
-	ld a,SoundWait
-	ld [wSoundWait],a
-	
-	jp MainLoop
+  call PlaySound
+  ld a,SoundWait
+  ld [wSoundWait],a
+  
+  jp MainLoop
 
 INCLUDE "gb_sound_driver.inc"
 ;

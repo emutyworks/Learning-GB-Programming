@@ -2,7 +2,7 @@
 
 if [ -z "$2" ] 
 then
-	echo "Usage: ./a.sh <.asm filename> <.gb filename>"
+  echo "Usage: ./a.sh <.asm filename> <.gb filename>"
 fi 
 
 rgbasm -l -H -o $1.o $1.asm

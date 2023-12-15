@@ -9,8 +9,8 @@ include "init.php";
 include "MusicalScaleTbl.php";
 
 if(count($argv)<2){
-	print "Usage: php convDMF2Hex.php <input filename(dmf)>\n";
-	exit;
+  print "Usage: php convDMF2Hex.php <input filename(dmf)>\n";
+  exit;
 }
 $argv[2] = 'no_file.bin';
 $mode_conv = 1;
@@ -70,9 +70,9 @@ for($i=0; $i<count($list); $i++){
 //exit;
 $rows = "SoundDataTbl:\n";
 for($i=0; $i<count($hex); $i++){
-  $rows .= " db ".$hex[$i]."\n";
+  $rows .= "  db ".$hex[$i]."\n";
 }
-$rows .= " db \$FF\n";
+$rows .= "  db \$FF\n";
 file_put_contents('sound_data_tbl.inc', $rows);
 
 // Create musical_scale_tbl.inc
@@ -87,7 +87,7 @@ foreach ($musical_scale_tbl as $key => $val) {
     $cnt++;
     $row[] = $val[1];
   }else{
-    array_unshift($row,sprintf(" db $%s ;%s*32+%s",str_pad(dechex($hi_old*32+$cnt),2,0,STR_PAD_LEFT),$hi_old,$cnt));
+    array_unshift($row,sprintf("  db $%s ;%s*32+%s",str_pad(dechex($hi_old*32+$cnt),2,0,STR_PAD_LEFT),$hi_old,$cnt));
     $rows = array_merge($rows,$row);
     $cnt = 1;
     $row = array();
@@ -95,7 +95,7 @@ foreach ($musical_scale_tbl as $key => $val) {
     $hi_old = $hi_now;
   }
 }
-array_unshift($row,sprintf(" db $%s ;%s*32+%s",str_pad(dechex($hi_old*32+$cnt),2,0,STR_PAD_LEFT),$hi_old,$cnt));
+array_unshift($row,sprintf("  db $%s ;%s*32+%s",str_pad(dechex($hi_old*32+$cnt),2,0,STR_PAD_LEFT),$hi_old,$cnt));
 $rows = array_merge($rows,$row);
 $out  = sprintf("MusicalScaleTbl: ; total %s bytes (-%s bytes)\n",count($rows),128-count($rows));
 $out .= implode("\n",$rows);

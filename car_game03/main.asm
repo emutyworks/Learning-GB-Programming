@@ -28,765 +28,765 @@ INCLUDE "equ.inc"
 INCLUDE "macro.inc"
 
 SECTION "VBlank Handler",ROM0[$40]
-	push af
-	ld a,1
-	ld [wVBlankDone],a
-	pop af
-	reti
+  push af
+  ld a,1
+  ld [wVBlankDone],a
+  pop af
+  reti
 
 SECTION	"HBlank Handler",ROM0[$48]
 HBlankHandler:
-	push af
-	push hl
-	ldh a,[rLY]
-	ld l,a
-	ld h,HIGH(wSCY)
-	ld a,[hl]
-	ldh [rSCY],a
-	ld h,HIGH(wSCX)
-	ld a,[hl]
-	ldh [rSCX],a
-	pop hl
-	pop af
-	reti
+  push af
+  push hl
+  ldh a,[rLY]
+  ld l,a
+  ld h,HIGH(wSCY)
+  ld a,[hl]
+  ldh [rSCY],a
+  ld h,HIGH(wSCX)
+  ld a,[hl]
+  ldh [rSCX],a
+  pop hl
+  pop af
+  reti
 
 SECTION "Header",ROM0[$100]
 
 EntryPoint:
-	di
-	jr Start
+  di
+  jr Start
 
 REPT $150 - $104
-	db 0
+  db 0
 ENDR
 
 SECTION "Start",ROM0[$150]
 
 Start:
-	mCopyDMARoutine ; move DMA subroutine to HRAM
-	mWaitVBlank
+  mCopyDMARoutine ; move DMA subroutine to HRAM
+  mWaitVBlank
 
-	; Set BG Palette
-	ld a,%10000000 ; Palette 0, Auto increment after writing
-	ldh [rBCPS],a
-	ld c,BGPaletteCnt
-	ld hl,BGPalette
-	ld de,rBCPD
-	call SetPalette
+  ; Set BG Palette
+  ld a,%10000000 ; Palette 0, Auto increment after writing
+  ldh [rBCPS],a
+  ld c,BGPaletteCnt
+  ld hl,BGPalette
+  ld de,rBCPD
+  call SetPalette
 
-	; Set Object Palette
-	ld a,%10000000
-	ldh [rOCPS],a
-	ld c,ObjPaletteCnt
-	ld hl,ObjPalette
-	ld de,rOCPD
-	call SetPalette
+  ; Set Object Palette
+  ld a,%10000000
+  ldh [rOCPS],a
+  ld c,ObjPaletteCnt
+  ld hl,ObjPalette
+  ld de,rOCPD
+  call SetPalette
 
-	xor a
-	ldh [rLCDC],a
-	ldh [rIE],a
-	ldh [rIF],a
-	ldh [rSTAT],a
-	ldh [rSVBK],a
-	ldh [rSCY],a
-	ldh [rSCX],a
-	ld [wJoypad],a
-	ld [wJoyPadPos],a
-	ld [wJoypadWait],a
-	ld [wRoadPTbl],a
-	ld [wRoadPCnt],a
-	ld [wRoadPWait],a
-	ld [wRoadPLRCnt],a
-	ld [wRoadPos],a
-	ld [wSPoint],a
-	ld [wSPoint+1],a
-	ld [wSParam],a
-	ld [wVBlankDone],a
-	ld [wMainLoopFlg],a
-	ld [wCarSprite],a
-	ld [wCarSmoke],a
-	ld [wCarSpeed],a
-	ld [wCarSpeedWait],a
-	ld [wCarGear],a
-	ld [wCarGearY],a
-	ld [wCarShift],a
-	ld [wCarShiftWait],a
-	ld [wCarCForce],a
-	ld [wCarCForceWait],a
-	ld [wCarScroll],a
-	ld [wAddScroll],a
-	ld [wEngineSound],a
-	ld [wSmokeTbl],a
-	ld [wRivalY],a
-	ld [wRivalX],a
-	ld [wRivalWaitDef],a
-	ld [wRivalWait],a
-	ld [wRivalPosZ],a
-	ld [wRivalPosX],a
-	ld [wRivalPal],a
-	ld [wRivalTbl],a
-	ld [wRivalCnt],a
-	ld [wLapTimeMS],a
-	ld [wLapTimeS],a
-	ld [wLapTimeM],a
+  xor a
+  ldh [rLCDC],a
+  ldh [rIE],a
+  ldh [rIF],a
+  ldh [rSTAT],a
+  ldh [rSVBK],a
+  ldh [rSCY],a
+  ldh [rSCX],a
+  ld [wJoypad],a
+  ld [wJoyPadPos],a
+  ld [wJoypadWait],a
+  ld [wRoadPTbl],a
+  ld [wRoadPCnt],a
+  ld [wRoadPWait],a
+  ld [wRoadPLRCnt],a
+  ld [wRoadPos],a
+  ld [wSPoint],a
+  ld [wSPoint+1],a
+  ld [wSParam],a
+  ld [wVBlankDone],a
+  ld [wMainLoopFlg],a
+  ld [wCarSprite],a
+  ld [wCarSmoke],a
+  ld [wCarSpeed],a
+  ld [wCarSpeedWait],a
+  ld [wCarGear],a
+  ld [wCarGearY],a
+  ld [wCarShift],a
+  ld [wCarShiftWait],a
+  ld [wCarCForce],a
+  ld [wCarCForceWait],a
+  ld [wCarScroll],a
+  ld [wAddScroll],a
+  ld [wEngineSound],a
+  ld [wSmokeTbl],a
+  ld [wRivalY],a
+  ld [wRivalX],a
+  ld [wRivalWaitDef],a
+  ld [wRivalWait],a
+  ld [wRivalPosZ],a
+  ld [wRivalPosX],a
+  ld [wRivalPal],a
+  ld [wRivalTbl],a
+  ld [wRivalCnt],a
+  ld [wLapTimeMS],a
+  ld [wLapTimeS],a
+  ld [wLapTimeM],a
 
-	; Set Sprites/Tiles data
-	ld hl,_VRAM ;$8000
-	ld de,Sprites
-	ld bc,SpritesEnd-1
-	call CopyDecompressionData
-	ld hl,_VRAM+$1000 ;$9000
-	ld de,Tiles
-	ld bc,TilesEnd-1
-	call CopyDecompressionData
+  ; Set Sprites/Tiles data
+  ld hl,_VRAM ;$8000
+  ld de,Sprites
+  ld bc,SpritesEnd-1
+  call CopyDecompressionData
+  ld hl,_VRAM+$1000 ;$9000
+  ld de,Tiles
+  ld bc,TilesEnd-1
+  call CopyDecompressionData
 
-	; Set Map data
-	ld a,1
-	ldh [rVBK],a ; BG Map Attributes
-	ld hl,_SCRN0
-	ld de,BgTileMap1
-	ld bc,BgTileMap1End-1
-	call CopyDecompressionData
-	xor a
-	ldh [rVBK],a ; Tile Indexes
-	ld hl,_SCRN0
-	ld de,BgTileMap0
-	ld bc,BgTileMap0End-1
-	call CopyDecompressionData
+  ; Set Map data
+  ld a,1
+  ldh [rVBK],a ; BG Map Attributes
+  ld hl,_SCRN0
+  ld de,BgTileMap1
+  ld bc,BgTileMap1End-1
+  call CopyDecompressionData
+  xor a
+  ldh [rVBK],a ; Tile Indexes
+  ld hl,_SCRN0
+  ld de,BgTileMap0
+  ld bc,BgTileMap0End-1
+  call CopyDecompressionData
 
-	ld a,LCDCF_ON|LCDCB_BLKS|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
-	ldh [rLCDC],a
+  ld a,LCDCF_ON|LCDCB_BLKS|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
+  ldh [rLCDC],a
 
-	mInitwShadowOAM
+  mInitwShadowOAM
 
-	; Set up the lcdc int
-	ld a,STATF_LYC|STATF_MODE00
-	ldh [rSTAT],a
+  ; Set up the lcdc int
+  ld a,STATF_LYC|STATF_MODE00
+  ldh [rSTAT],a
 
-	; Enable the interrupts
-	ld a,IEF_VBLANK|IEF_STAT
-	ldh [rIE],a
-	xor a
-	ei
-	ldh [rIF],a
+  ; Enable the interrupts
+  ld a,IEF_VBLANK|IEF_STAT
+  ldh [rIE],a
+  xor a
+  ei
+  ldh [rIF],a
 
-	; Init Work RAM
-	xor a
-	ld hl,wSCY
-	ld c,ScrollMaxSize
-	call SetWRam
-	ld hl,wSCX
-	ld c,ScrollMaxSize
-	call SetWRam
-	;ld hl,wRoadYUD
-	;ld c,ScrollRoadSize
-	;call SetWRam
-	ld hl,wRoadXLR
-	ld c,ScrollRoadSize
-	call SetWRam
-	ld hl,wJoyPadXLR
-	ld c,ScrollRoadSize
-	call SetWRam
-	ld hl,wRivalTblZ
-	ld c,4*3
-	call SetWRam
+  ; Init Work RAM
+  xor a
+  ld hl,wSCY
+  ld c,ScrollMaxSize
+  call SetWRam
+  ld hl,wSCX
+  ld c,ScrollMaxSize
+  call SetWRam
+  ;ld hl,wRoadYUD
+  ;ld c,ScrollRoadSize
+  ;call SetWRam
+  ld hl,wRoadXLR
+  ld c,ScrollRoadSize
+  call SetWRam
+  ld hl,wJoyPadXLR
+  ld c,ScrollRoadSize
+  call SetWRam
+  ld hl,wRivalTblZ
+  ld c,4*3
+  call SetWRam
 
-	; Set Work RAM
-	ld a,StartBgScrollY
-	ld c,ScrollBgSize
-	ld hl,wBgY
-	call SetWRam
+  ; Set Work RAM
+  ld a,StartBgScrollY
+  ld c,ScrollBgSize
+  ld hl,wBgY
+  call SetWRam
 
-	; Set Joypad
-	ld a,JoypadWait
-	ld [wJoypadWait],a
-	ld a,JoyPadPos
-	ld [wJoyPadPos],a
-	xor a
-	ld hl,wJoyPadXLR
-	ld c,ScrollRoadSize
-	call SetWRam
+  ; Set Joypad
+  ld a,JoypadWait
+  ld [wJoypadWait],a
+  ld a,JoyPadPos
+  ld [wJoyPadPos],a
+  xor a
+  ld hl,wJoyPadXLR
+  ld c,ScrollRoadSize
+  call SetWRam
 
-	; Set Sound
-	ld a,%00010001 ; -LLL-RRR Channel volume
-	ldh [$FF24],a
-	ld a,%11111111 ; Channel Sound output terminal
-	ldh [$FF25],a
-	ld a,%10000000 ; Sound on/off
-	ldh [$FF26],a
+  ; Set Sound
+  ld a,%00010001 ; -LLL-RRR Channel volume
+  ldh [$FF24],a
+  ld a,%11111111 ; Channel Sound output terminal
+  ldh [$FF25],a
+  ld a,%10000000 ; Sound on/off
+  ldh [$FF26],a
 
-	; Set Wave Data
-	ld hl,$FF30
-	ld de,WaveData
-	ld bc,WaveDataEnd - WaveData
-	call CopyData
+  ; Set Wave Data
+  ld hl,$FF30
+  ld de,WaveData
+  ld bc,WaveDataEnd - WaveData
+  call CopyData
 
-	ld a,%10000000 ; Wave Output on/off
-	ldh [$FF1A],a
-	ld a,$FF ; Sound Length
-	ldh [$FF1B],a
+  ld a,%10000000 ; Wave Output on/off
+  ldh [$FF1A],a
+  ld a,$FF ; Sound Length
+  ldh [$FF1B],a
 
-	ld a,GearHiY
-	ld [wCarGearY],a
-	ld a,GearHi
-	ld [wCarGear],a
+  ld a,GearHiY
+  ld [wCarGearY],a
+  ld a,GearHi
+  ld [wCarGear],a
 
 MainLoop:
-	ld a,[wMainLoopFlg]
-	cp 1
-	jp z,SetOAM
+  ld a,[wMainLoopFlg]
+  cp 1
+  jp z,SetOAM
 
-	mCheckJoypad
+  mCheckJoypad
 
-	ld a,[wCarSmoke]
-	inc a
-	and %00000011
-	ld [wCarSmoke],a
+  ld a,[wCarSmoke]
+  inc a
+  and %00000011
+  ld [wCarSmoke],a
 
 LapTime:
-	ld a,[wLapTimeMS]
-	inc a
-	daa
-	ld [wLapTimeMS],a
-	cp $60
-	jr nz,SetRivalCar
-	xor a
-	ld [wLapTimeMS],a
-	ld a,[wLapTimeS]
-	inc a
-	daa
-	ld [wLapTimeS],a
-	cp $60
-	jr nz,SetRivalCar
-	xor a
-	ld [wLapTimeS],a
-	ld a,[wLapTimeM]
-	inc a
-	daa
-	ld [wLapTimeM],a
+  ld a,[wLapTimeMS]
+  inc a
+  daa
+  ld [wLapTimeMS],a
+  cp $60
+  jr nz,SetRivalCar
+  xor a
+  ld [wLapTimeMS],a
+  ld a,[wLapTimeS]
+  inc a
+  daa
+  ld [wLapTimeS],a
+  cp $60
+  jr nz,SetRivalCar
+  xor a
+  ld [wLapTimeS],a
+  ld a,[wLapTimeM]
+  inc a
+  daa
+  ld [wLapTimeM],a
 
 SetRivalCar:
-	ld a,[wRivalWait]
-	cp 0
-	jr z,.set
-	dec a
-	ld [wRivalWait],a
-	jp SetSpeed
+  ld a,[wRivalWait]
+  cp 0
+  jr z,.set
+  dec a
+  ld [wRivalWait],a
+  jp SetSpeed
 .set
-	ld a,[wRivalWaitDef]
-	ld [wRivalWait],a
-	ld a,[wCarShift]
-	cp 5
-	ld hl,wRivalTblZ
-	jr z,.incPosZ
+  ld a,[wRivalWaitDef]
+  ld [wRivalWait],a
+  ld a,[wCarShift]
+  cp 5
+  ld hl,wRivalTblZ
+  jr z,.incPosZ
 REPT 3
-	ld a,[hl]
-	cp 0
-	jr z,.next\@
-	dec a
-	ld [hl],a
+  ld a,[hl]
+  cp 0
+  jr z,.next\@
+  dec a
+  ld [hl],a
 .next\@
-	inc l
+  inc l
 ENDR
-	ld a,[hl]
-	cp 0
-	jr z,SetSpeed
-	dec a
-	ld [hl],a
-	jr SetSpeed
+  ld a,[hl]
+  cp 0
+  jr z,SetSpeed
+  dec a
+  ld [hl],a
+  jr SetSpeed
 .incPosZ
 REPT 3
-	ld a,[hl]
-	cp 0
-	jr z,.next\@
-	inc a
-	and %00011111
-	ld [hl],a
-	cp 0
-	jr nz,.next\@
-	ld a,[wRivalCnt]
-	inc a
-	daa
-	ld [wRivalCnt],a
+  ld a,[hl]
+  cp 0
+  jr z,.next\@
+  inc a
+  and %00011111
+  ld [hl],a
+  cp 0
+  jr nz,.next\@
+  ld a,[wRivalCnt]
+  inc a
+  daa
+  ld [wRivalCnt],a
 .next\@
-	inc l
+  inc l
 ENDR
-	ld a,[hl]
-	cp 0
-	jr z,SetSpeed
-	inc a
-	and %00011111
-	ld [hl],a
-	cp 0
-	jr nz,SetSpeed
-	ld a,[wRivalCnt]
-	inc a
-	daa
-	ld [wRivalCnt],a
+  ld a,[hl]
+  cp 0
+  jr z,SetSpeed
+  inc a
+  and %00011111
+  ld [hl],a
+  cp 0
+  jr nz,SetSpeed
+  ld a,[wRivalCnt]
+  inc a
+  daa
+  ld [wRivalCnt],a
 SetSpeed:
-	ld a,[wCarSpeedWait]
-	cp 0
-	jr z,.setSpeed
-	dec a
-	ld [wCarSpeedWait],a
-	jp SetRoadPos
+  ld a,[wCarSpeedWait]
+  cp 0
+  jr z,.setSpeed
+  dec a
+  ld [wCarSpeedWait],a
+  jp SetRoadPos
 
 .setSpeed
-	ld a,[wCarSpeed]
-	ld [wCarSpeedWait],a
-	ld a,[wCarScroll]
-	ld [wAddScroll],a
-	cp 0
-	jp z,SetRoadPos
+  ld a,[wCarSpeed]
+  ld [wCarSpeedWait],a
+  ld a,[wCarScroll]
+  ld [wAddScroll],a
+  cp 0
+  jp z,SetRoadPos
 
-	;RoadPatternTbl
-	ld a,[wRoadPWait]
-	cp 0
-	jr z,.decRoadPCnt
-	dec a
-	ld [wRoadPWait],a
-	jp SetRoadPos
+  ;RoadPatternTbl
+  ld a,[wRoadPWait]
+  cp 0
+  jr z,.decRoadPCnt
+  dec a
+  ld [wRoadPWait],a
+  jp SetRoadPos
 
 .decRoadPCnt
-	ld a,[wRoadPCnt]
-	cp 0
-	jp z,SetScenarioTbl
-	dec a
-	ld [wRoadPCnt],a
+  ld a,[wRoadPCnt]
+  cp 0
+  jp z,SetScenarioTbl
+  dec a
+  ld [wRoadPCnt],a
 
-	xor a
-	ld [wCarCForce],a
+  xor a
+  ld [wCarCForce],a
 
-	mInitWRoadXLR
-	ld a,[wSPoint]
-	ld l,a
-	ld a,[wSPoint+1]
-	ld h,a
-	jp hl
+  mInitWRoadXLR
+  ld a,[wSPoint]
+  ld l,a
+  ld a,[wSPoint+1]
+  ld h,a
+  jp hl
 
 SetSPRivalCar:
-	ld a,[wRivalTbl]
-	inc a
-	and %00000011
-	ld [wRivalTbl],a
-	ld l,a
-	ld h,HIGH(wRivalTblZ)
-	ld a,[hl]
-	cp 0
-	jp nz,SetRoadPos
-	ld a,1
-	ld [hl],a
-	ld a,l
-	add a,4
-	ld l,a
-	ld a,[wSParam]
-	ld d,a
-	and %00001111
-	ld [hl],a ;x
-	ld a,l
-	add a,4
-	ld l,a
-	ld a,d
-	swap a
-	and %00001111
-	ld [hl],a ;pal
-	jp SetRoadPos
+  ld a,[wRivalTbl]
+  inc a
+  and %00000011
+  ld [wRivalTbl],a
+  ld l,a
+  ld h,HIGH(wRivalTblZ)
+  ld a,[hl]
+  cp 0
+  jp nz,SetRoadPos
+  ld a,1
+  ld [hl],a
+  ld a,l
+  add a,4
+  ld l,a
+  ld a,[wSParam]
+  ld d,a
+  and %00001111
+  ld [hl],a ;x
+  ld a,l
+  add a,4
+  ld l,a
+  ld a,d
+  swap a
+  and %00001111
+  ld [hl],a ;pal
+  jp SetRoadPos
 
 SetRoadPWait:
-	ld a,[wSParam]
-	ld [wRoadPWait],a
-	jp SetRoadPos
+  ld a,[wSParam]
+  ld [wRoadPWait],a
+  jp SetRoadPos
 
 ;SetRoadPUpDown:
-;	ld a,[wRoadPNum]
-;	rrca
-;	rrca
-;	rrca
-;	ld h,HIGH(ScrollUpDnTbl)
-;	ld l,a
-;	ld de,wRoadYUD
-;	mCopyScrollRoad
-;	jr SetRoadPWait
+;  ld a,[wRoadPNum]
+;  rrca
+;  rrca
+;  rrca
+;  ld h,HIGH(ScrollUpDnTbl)
+;  ld l,a
+;  ld de,wRoadYUD
+;  mCopyScrollRoad
+;  jr SetRoadPWait
 
 SetRoadPLeft:
-	mSetCarCForceL
-	ld a,[wBgX]
-	dec a
-	ld hl,wBgX
-	mSetWBG
-	ld de,wRoadXLR
-	ld h,HIGH(ScrollLeftTbl)
-	ld a,[wRoadPLRCnt]
-	ld l,a
-	cp $E0
-	jr z,.skip
-	add a,$20
-	ld [wRoadPLRCnt],a
+  mSetCarCForceL
+  ld a,[wBgX]
+  dec a
+  ld hl,wBgX
+  mSetWBG
+  ld de,wRoadXLR
+  ld h,HIGH(ScrollLeftTbl)
+  ld a,[wRoadPLRCnt]
+  ld l,a
+  cp $E0
+  jr z,.skip
+  add a,$20
+  ld [wRoadPLRCnt],a
 .skip
-	mCopyScrollRoad
-	jp SetRoadPWait
+  mCopyScrollRoad
+  jp SetRoadPWait
 
 SetRoadPLeftSt:
-	mSetCarCForceL
-	ld a,[wBgX]
-	dec a
-	ld hl,wBgX
-	mSetWBG
-	ld de,wRoadXLR
-	ld h,HIGH(ScrollLeftTbl)
-	ld a,[wRoadPLRCnt]
-	ld l,a
-	cp 0
-	jr z,.skip
-	sub a,$20
-	ld [wRoadPLRCnt],a
+  mSetCarCForceL
+  ld a,[wBgX]
+  dec a
+  ld hl,wBgX
+  mSetWBG
+  ld de,wRoadXLR
+  ld h,HIGH(ScrollLeftTbl)
+  ld a,[wRoadPLRCnt]
+  ld l,a
+  cp 0
+  jr z,.skip
+  sub a,$20
+  ld [wRoadPLRCnt],a
 .skip
-	mCopyScrollRoad
-	jp SetRoadPWait
+  mCopyScrollRoad
+  jp SetRoadPWait
 
 SetRoadPRight:
-	mSetCarCForceR
-	ld a,[wBgX]
-	inc a
-	ld hl,wBgX
-	mSetWBG
-	ld de,wRoadXLR
-	ld h,HIGH(ScrollRightTbl)
-	ld a,[wRoadPLRCnt]
-	ld l,a
-	cp $E0
-	jr z,.skip
-	add a,$20
-	ld [wRoadPLRCnt],a
+  mSetCarCForceR
+  ld a,[wBgX]
+  inc a
+  ld hl,wBgX
+  mSetWBG
+  ld de,wRoadXLR
+  ld h,HIGH(ScrollRightTbl)
+  ld a,[wRoadPLRCnt]
+  ld l,a
+  cp $E0
+  jr z,.skip
+  add a,$20
+  ld [wRoadPLRCnt],a
 .skip
-	mCopyScrollRoad
-	jp SetRoadPWait
+  mCopyScrollRoad
+  jp SetRoadPWait
 
 SetRoadPRightSt:
-	mSetCarCForceR
-	ld a,[wBgX]
-	inc a
-	ld hl,wBgX
-	mSetWBG
-	ld de,wRoadXLR
-	ld h,HIGH(ScrollRightTbl)
-	ld a,[wRoadPLRCnt]
-	ld l,a
-	cp 0
-	jr z,.skip
-	sub a,$20
-	ld [wRoadPLRCnt],a
+  mSetCarCForceR
+  ld a,[wBgX]
+  inc a
+  ld hl,wBgX
+  mSetWBG
+  ld de,wRoadXLR
+  ld h,HIGH(ScrollRightTbl)
+  ld a,[wRoadPLRCnt]
+  ld l,a
+  cp 0
+  jr z,.skip
+  sub a,$20
+  ld [wRoadPLRCnt],a
 .skip
-	mCopyScrollRoad
-	jp SetRoadPWait
+  mCopyScrollRoad
+  jp SetRoadPWait
 
 SetRoadPBgUp:
-	ld a,[wBgY]
-	inc a
-	ld hl,wBgY
-	mSetWBG
-	jp SetRoadPWait
+  ld a,[wBgY]
+  inc a
+  ld hl,wBgY
+  mSetWBG
+  jp SetRoadPWait
 
 SetRoadPBgDown:
-	ld a,[wBgY]
-	dec a
-	ld hl,wBgY
-	mSetWBG
-	jp SetRoadPWait
+  ld a,[wBgY]
+  dec a
+  ld hl,wBgY
+  mSetWBG
+  jp SetRoadPWait
 
 SetScenarioTbl:
-	ld a,[wRoadPTbl]
-	inc a
-	and %00001111
-	ld [wRoadPTbl],a
-	rlca
-	rlca
-	ld l,a
-	ld h,HIGH(ScenarioTbl)
-	ld a,[hli]
-	ld [wSPoint],a
-	ld a,[hli]
-	ld [wSPoint+1],a
-	ld a,[hli]
-	ld [wRoadPCnt],a
-	ld a,[hl]
-	ld [wSParam],a
+  ld a,[wRoadPTbl]
+  inc a
+  and %00001111
+  ld [wRoadPTbl],a
+  rlca
+  rlca
+  ld l,a
+  ld h,HIGH(ScenarioTbl)
+  ld a,[hli]
+  ld [wSPoint],a
+  ld a,[hli]
+  ld [wSPoint+1],a
+  ld a,[hli]
+  ld [wRoadPCnt],a
+  ld a,[hl]
+  ld [wSParam],a
 
 SetRoadPos:
-	ld a,[wAddScroll]
-	ld d,a
-	ld a,[wRoadPos]
-	add a,d
-	ld [wRoadPos],a
-	ld h,HIGH(ScrollPosTbl)
-	ld l,a
-	ld de,wRoadY
-	mCopyScrollRoad
-	;mCalcWRoadY
+  ld a,[wAddScroll]
+  ld d,a
+  ld a,[wRoadPos]
+  add a,d
+  ld [wRoadPos],a
+  ld h,HIGH(ScrollPosTbl)
+  ld l,a
+  ld de,wRoadY
+  mCopyScrollRoad
+  ;mCalcWRoadY
 
-	xor a
-	ld [wAddScroll],a
+  xor a
+  ld [wAddScroll],a
 
-	ld a,[wJoypad]
-	bit JBitUp,a
-	jp nz,.jGearHi
-	bit JBitDown,a
-	jp nz,.jGearLow
-	bit JBitRight,a
-	jp nz,.jRight
-	bit JBitLeft,a
-	jp nz,.jLeft
-	jp SetWJoyPadXLR
+  ld a,[wJoypad]
+  bit JBitUp,a
+  jp nz,.jGearHi
+  bit JBitDown,a
+  jp nz,.jGearLow
+  bit JBitRight,a
+  jp nz,.jRight
+  bit JBitLeft,a
+  jp nz,.jLeft
+  jp SetWJoyPadXLR
 
 .jGearHi
-	ld a,[wCarGear]
-	cp 1
-	jp z,SetWJoyPadXLR
-	ld a,GearHiY
-	ld [wCarGearY],a
-	ld a,1
-	ld [wCarGear],a
-	ld a,[wCarShift]
-	cp 0
-	jr z,SetWJoyPadXLR
-	ld a,GearHiShift
-	ld [wCarShift],a
-	jr SetWJoyPadXLR
+  ld a,[wCarGear]
+  cp 1
+  jp z,SetWJoyPadXLR
+  ld a,GearHiY
+  ld [wCarGearY],a
+  ld a,1
+  ld [wCarGear],a
+  ld a,[wCarShift]
+  cp 0
+  jr z,SetWJoyPadXLR
+  ld a,GearHiShift
+  ld [wCarShift],a
+  jr SetWJoyPadXLR
 .jGearLow
-	ld a,GearLowY
-	ld [wCarGearY],a
-	xor a
-	ld [wCarGear],a
-	jr SetWJoyPadXLR
+  ld a,GearLowY
+  ld [wCarGearY],a
+  xor a
+  ld [wCarGear],a
+  jr SetWJoyPadXLR
 
 .jRight
-	ld a,4
-	ld [wCarSprite],a
-	ld a,[wCarCForce]
-	cp CarCForceRight
-	jr z,SetWJoyPadXLR
-	mJoypadWait
-	ld a,[wJoyPadPos]
-	cp 15
-	jr z,SetWJoyPadXLR
-	inc a
-	ld [wJoyPadPos],a
-	jr SetWJoyPadXLR
+  ld a,4
+  ld [wCarSprite],a
+  ld a,[wCarCForce]
+  cp CarCForceRight
+  jr z,SetWJoyPadXLR
+  mJoypadWait
+  ld a,[wJoyPadPos]
+  cp 15
+  jr z,SetWJoyPadXLR
+  inc a
+  ld [wJoyPadPos],a
+  jr SetWJoyPadXLR
 .jLeft
-	ld a,2
-	ld [wCarSprite],a
-	ld a,[wCarCForce]
-	cp CarCForceLeft
-	jr z,SetWJoyPadXLR
-	mJoypadWait
-	ld a,[wJoyPadPos]
-	cp 1
-	jr z,SetWJoyPadXLR
-	dec a
-	ld [wJoyPadPos],a
+  ld a,2
+  ld [wCarSprite],a
+  ld a,[wCarCForce]
+  cp CarCForceLeft
+  jr z,SetWJoyPadXLR
+  mJoypadWait
+  ld a,[wJoyPadPos]
+  cp 1
+  jr z,SetWJoyPadXLR
+  dec a
+  ld [wJoyPadPos],a
 
 SetWJoyPadXLR:
-	ld a,[wJoyPadPos]
-	ld d,a
-	and %00000111
-	ld e,a
-	xor d
-	rrca
-	rrca
-	rrca
-	add a,HIGH(ScrollLRTbl)
-	ld h,a
-	ld a,e
-	rrca
-	rrca
-	rrca
-	ld l,a
-	ld de,wJoyPadXLR
-	mCopyScrollRoad
-	ld hl,CarSmokeTbl
-	ld a,[wJoyPadPos]
-	add a,l
-	ld l,a
-	ld a,[hl]
-	ld [wSmokeTbl],a
+  ld a,[wJoyPadPos]
+  ld d,a
+  and %00000111
+  ld e,a
+  xor d
+  rrca
+  rrca
+  rrca
+  add a,HIGH(ScrollLRTbl)
+  ld h,a
+  ld a,e
+  rrca
+  rrca
+  rrca
+  ld l,a
+  ld de,wJoyPadXLR
+  mCopyScrollRoad
+  ld hl,CarSmokeTbl
+  ld a,[wJoyPadPos]
+  add a,l
+  ld l,a
+  ld a,[hl]
+  ld [wSmokeTbl],a
 
 CheckButton:
-	ld a,[wJoypad]
-	bit JBitButtonA,a
-	jr nz,.jButtonA
+  ld a,[wJoypad]
+  bit JBitButtonA,a
+  jr nz,.jButtonA
 
-	ld a,[wCarShiftWait]
-	cp 0
-	jr nz,DecWCarShiftWait
-	ld a,[wCarShift]
-	cp 0
-	jr z,.setShift
-	dec a
-	ld [wCarShift],a
-	jr .setShift
+  ld a,[wCarShiftWait]
+  cp 0
+  jr nz,DecWCarShiftWait
+  ld a,[wCarShift]
+  cp 0
+  jr z,.setShift
+  dec a
+  ld [wCarShift],a
+  jr .setShift
 
 .jButtonA
-	ld a,[wCarGear]
-	cp GearLow
-	jr z,.setLowShift
+  ld a,[wCarGear]
+  cp GearLow
+  jr z,.setLowShift
 
-	ld a,[wCarShiftWait]
-	cp 0
-	jr nz,DecWCarShiftWait
-	ld a,[wCarShift]
-	cp CarShiftMax
-	jr z,.setShift
-	inc a
-	jr .setWCarShift
+  ld a,[wCarShiftWait]
+  cp 0
+  jr nz,DecWCarShiftWait
+  ld a,[wCarShift]
+  cp CarShiftMax
+  jr z,.setShift
+  inc a
+  jr .setWCarShift
 
 .setLowShift
-	ld a,GearLowShift
+  ld a,GearLowShift
 .setWCarShift
-	ld [wCarShift],a
+  ld [wCarShift],a
 
 .setShift
-	mCarShift
-	mSetEngineSound
-	jr SetSprite
+  mCarShift
+  mSetEngineSound
+  jr SetSprite
 
 DecWCarShiftWait:
-	dec a
-	ld [wCarShiftWait],a
+  dec a
+  ld [wCarShiftWait],a
 
 SetSprite:
-	ld a,[wCarSprite]
-	ld c,a
-	ld a,[wCarShift]
-	cp 0
-	jr z,.draw
-	ld a,[wCarSmoke]
-	ld d,a
-	cp 0
-	jr z,.draw
-	inc c
+  ld a,[wCarSprite]
+  ld c,a
+  ld a,[wCarShift]
+  cp 0
+  jr z,.draw
+  ld a,[wCarSmoke]
+  ld d,a
+  cp 0
+  jr z,.draw
+  inc c
 .draw
-	ld a,c
-	rlca
-	rlca
-	ld bc,CarSpriteTbl
-	add a,c
-	ld c,a
-	ld hl,wShadowOAM
-	;smoke
-	ld a,d
-	cp 0
-	jr nz,.drawCar
-	ld a,[wSmokeTbl]
-	sub 1
-	jr c,.drawCForceSmoke ; (255) 0 skip
-	jr z,.setSmokeRight ; (0) 1 right
-	ld d,a
-	ld a,CarPosY
-	ld [hli],a ; Y Position
-	ld a,CarPosX-3
-	ld [hli],a ; X Position
-	ld a,20
-	ld [hli],a ; Tile Index
-	ld a,0
-	ld [hli],a ; Attributes/Flags
-	ld a,d
-	cp 2 ; (3) left/right
-	jr nz,.drawCForceSmoke
+  ld a,c
+  rlca
+  rlca
+  ld bc,CarSpriteTbl
+  add a,c
+  ld c,a
+  ld hl,wShadowOAM
+  ;smoke
+  ld a,d
+  cp 0
+  jr nz,.drawCar
+  ld a,[wSmokeTbl]
+  sub 1
+  jr c,.drawCForceSmoke ; (255) 0 skip
+  jr z,.setSmokeRight ; (0) 1 right
+  ld d,a
+  ld a,CarPosY
+  ld [hli],a ; Y Position
+  ld a,CarPosX-3
+  ld [hli],a ; X Position
+  ld a,20
+  ld [hli],a ; Tile Index
+  ld a,0
+  ld [hli],a ; Attributes/Flags
+  ld a,d
+  cp 2 ; (3) left/right
+  jr nz,.drawCForceSmoke
 .setSmokeRight
-	ld a,CarPosY
-	ld [hli],a
-	ld a,CarPosX+8+3
-	ld [hli],a
-	ld a,20
-	ld [hli],a
-	ld a,0|OAMF_XFLIP
-	ld [hli],a
+  ld a,CarPosY
+  ld [hli],a
+  ld a,CarPosX+8+3
+  ld [hli],a
+  ld a,20
+  ld [hli],a
+  ld a,0|OAMF_XFLIP
+  ld [hli],a
 .drawCForceSmoke
-	ld a,[wCarCForce]
-	cp 0
-	jr z,.drawCar
-	ld a,CarPosY
-	ld [hli],a
-	ld a,CarPosX-1
-	ld [hli],a
-	ld a,22
-	ld [hli],a
-	ld a,0
-	ld [hli],a
-	ld a,CarPosY
-	ld [hli],a
-	ld a,CarPosX+8+1
-	ld [hli],a
-	ld a,22
-	ld [hli],a
-	ld a,0|OAMF_XFLIP
-	ld [hli],a
+  ld a,[wCarCForce]
+  cp 0
+  jr z,.drawCar
+  ld a,CarPosY
+  ld [hli],a
+  ld a,CarPosX-1
+  ld [hli],a
+  ld a,22
+  ld [hli],a
+  ld a,0
+  ld [hli],a
+  ld a,CarPosY
+  ld [hli],a
+  ld a,CarPosX+8+1
+  ld [hli],a
+  ld a,22
+  ld [hli],a
+  ld a,0|OAMF_XFLIP
+  ld [hli],a
 .drawCar
-	;gear
-	ld a,[wCarGearY]
-	ld [hli],a
-	ld a,8*14
-	ld [hli],a
-	ld a,24
-	ld [hli],a
-	ld a,0
-	ld [hli],a
-	;speed
-	ld a,[wCarShift]
-	rlca
-	ld d,a
-	ld a,150
-	sub d
-	ld [hli],a
-	ld a,8*13
-	ld [hli],a
-	ld a,24
-	ld [hli],a
-	ld a,0
-	ld [hli],a
-	;car
-	ld a,CarPosY
-	ld [hli],a
-	ld a,CarPosX
-	ld [hli],a
-	ld a,[bc]
-	ld [hli],a
-	inc c
-	ld a,[bc]
-	ld [hli],a
-	inc c
-	ld a,CarPosY
-	ld [hli],a
-	ld a,CarPosX+8
-	ld [hli],a
-	ld a,[bc]
-	ld [hli],a
-	inc c
-	ld a,[bc]
-	ld [hli],a
+  ;gear
+  ld a,[wCarGearY]
+  ld [hli],a
+  ld a,8*14
+  ld [hli],a
+  ld a,24
+  ld [hli],a
+  ld a,0
+  ld [hli],a
+  ;speed
+  ld a,[wCarShift]
+  rlca
+  ld d,a
+  ld a,150
+  sub d
+  ld [hli],a
+  ld a,8*13
+  ld [hli],a
+  ld a,24
+  ld [hli],a
+  ld a,0
+  ld [hli],a
+  ;car
+  ld a,CarPosY
+  ld [hli],a
+  ld a,CarPosX
+  ld [hli],a
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,CarPosY
+  ld [hli],a
+  ld a,CarPosX+8
+  ld [hli],a
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
 
-	mSetRivalCarSprite 0
-	mSetRivalCarSprite 1
-	mSetRivalCarSprite 2
-	mSetRivalCarSprite 3
+  mSetRivalCarSprite 0
+  mSetRivalCarSprite 1
+  mSetRivalCarSprite 2
+  mSetRivalCarSprite 3
 
-	mResetShadowOAM
-	mCalcWSCX
+  mResetShadowOAM
+  mCalcWSCX
 
-	ld a,1
-	ld [wMainLoopFlg],a
-	jp MainLoop
+  ld a,1
+  ld [wMainLoopFlg],a
+  jp MainLoop
 
 SetOAM:
-	ld a,[wVBlankDone]
-	cp 1
-	jp nz,MainLoop
-	xor a
-	ld [wVBlankDone],a
-	ld [wMainLoopFlg],a
-	ld [wCarSprite],a
+  ld a,[wVBlankDone]
+  cp 1
+  jp nz,MainLoop
+  xor a
+  ld [wVBlankDone],a
+  ld [wMainLoopFlg],a
+  ld [wCarSprite],a
 
-	mSetOAM
+  mSetOAM
 
 SetDashboardBG:
 DBG1  EQU $99C0 ;14
@@ -795,217 +795,217 @@ DBG3  EQU $9A00 ;16
 DBG4  EQU $9A20 ;17
 BGNUM EQU 86
 
-	xor a
-	ldh [rVBK],a
-	; Lap time
-	;m
-	ld a,[wLapTimeM]
-	add a,BGNUM
-	ld [DBG3+1],a
-	;s
-	ld a,[wLapTimeS]
-	ld d,a
-	and %11110000
-	ld e,a
-	xor d
-	add a,BGNUM
-	ld [DBG3+4],a ;01
-	ld a,e
-	swap a
-	add a,BGNUM
-	ld [DBG3+3],a ;10
-	;ms
-	ld a,[wLapTimeMS]
-	ld d,a
-	and %11110000
-	ld e,a
-	xor d
-	add a,BGNUM
-	ld [DBG3+6],a ;01
-	ld a,e
-	swap a
-	add a,BGNUM
-	ld [DBG3+5],a ;10
+  xor a
+  ldh [rVBK],a
+  ; Lap time
+  ;m
+  ld a,[wLapTimeM]
+  add a,BGNUM
+  ld [DBG3+1],a
+  ;s
+  ld a,[wLapTimeS]
+  ld d,a
+  and %11110000
+  ld e,a
+  xor d
+  add a,BGNUM
+  ld [DBG3+4],a ;01
+  ld a,e
+  swap a
+  add a,BGNUM
+  ld [DBG3+3],a ;10
+  ;ms
+  ld a,[wLapTimeMS]
+  ld d,a
+  and %11110000
+  ld e,a
+  xor d
+  add a,BGNUM
+  ld [DBG3+6],a ;01
+  ld a,e
+  swap a
+  add a,BGNUM
+  ld [DBG3+5],a ;10
 
-	; Set Rival Car count
-	ld a,[wRivalCnt]
-	ld d,a
-	and %11110000
-	ld e,a
-	xor d
-	ld h,HIGH(CounterDBGTbl)
-	rlca
-	ld l,a
-	ld a,[hli]
-	ld [DBG2+10],a
-	ld a,[hl]
-	ld [DBG3+10],a
-	ld a,e
-	swap a
-	ld h,HIGH(CounterDBGTbl)
-	rlca
-	ld l,a
-	ld a,[hli]
-	ld [DBG2+9],a
-	ld a,[hl]
-	ld [DBG3+9],a
-	jp MainLoop
+  ; Set Rival Car count
+  ld a,[wRivalCnt]
+  ld d,a
+  and %11110000
+  ld e,a
+  xor d
+  ld h,HIGH(CounterDBGTbl)
+  rlca
+  ld l,a
+  ld a,[hli]
+  ld [DBG2+10],a
+  ld a,[hl]
+  ld [DBG3+10],a
+  ld a,e
+  swap a
+  ld h,HIGH(CounterDBGTbl)
+  rlca
+  ld l,a
+  ld a,[hli]
+  ld [DBG2+9],a
+  ld a,[hl]
+  ld [DBG3+9],a
+  jp MainLoop
 
 SetRivalCarSprite:
-	ld a,[wRivalPosZ]
-	ld c,a
-	push hl
-	ld a,[wRivalPosX]
-	ld d,a
-	and %00000111
-	ld e,a
-	xor d
-	rrca
-	rrca
-	rrca
-	add a,HIGH(ScrollLRTbl)
-	ld h,a
-	ld a,e
-	rrca
-	rrca
-	rrca
-	add a,c
-	ld l,a
-	ld a,[hl]
-	pop hl
-	ld e,a
-	ld b,HIGH(wJoyPadXLR)
-	ld a,[bc]
-	add a,e
-	ld e,a
-	ld b,HIGH(wRoadXLR)
-	ld a,[bc]
-	add a,e
-	ld e,a
-	;
-	ld a,c
-	rlca
-	rlca
-	ld bc,RivalCarTbl
-	add a,c
-	ld c,a
-	ld a,[bc]
-	ld [wRivalY],a
-	inc c
-	ld a,[bc]
-	sub e
-	ld [wRivalX],a
-	inc c
-	ld a,[bc]
-	ld d,a ;Tile Index
-	ld a,[wCarSmoke]
-	cp 0
-	jr z,.nonSmoke
-	ld a,2
-	add a,d
-	ld d,a
+  ld a,[wRivalPosZ]
+  ld c,a
+  push hl
+  ld a,[wRivalPosX]
+  ld d,a
+  and %00000111
+  ld e,a
+  xor d
+  rrca
+  rrca
+  rrca
+  add a,HIGH(ScrollLRTbl)
+  ld h,a
+  ld a,e
+  rrca
+  rrca
+  rrca
+  add a,c
+  ld l,a
+  ld a,[hl]
+  pop hl
+  ld e,a
+  ld b,HIGH(wJoyPadXLR)
+  ld a,[bc]
+  add a,e
+  ld e,a
+  ld b,HIGH(wRoadXLR)
+  ld a,[bc]
+  add a,e
+  ld e,a
+  ;
+  ld a,c
+  rlca
+  rlca
+  ld bc,RivalCarTbl
+  add a,c
+  ld c,a
+  ld a,[bc]
+  ld [wRivalY],a
+  inc c
+  ld a,[bc]
+  sub e
+  ld [wRivalX],a
+  inc c
+  ld a,[bc]
+  ld d,a ;Tile Index
+  ld a,[wCarSmoke]
+  cp 0
+  jr z,.nonSmoke
+  ld a,2
+  add a,d
+  ld d,a
 .nonSmoke
-	inc c
-	ld a,[bc]
-	cp 0
-	jr z,.skip
-	ld a,[wRivalY]
-	ld [hli],a
-	ld a,[wRivalX]
-	add a,8
-	ld [hli],a
-	ld [hl],d
-	inc l
-	ld a,[wRivalPal]
-	or OAMF_XFLIP
-	ld [hli],a
+  inc c
+  ld a,[bc]
+  cp 0
+  jr z,.skip
+  ld a,[wRivalY]
+  ld [hli],a
+  ld a,[wRivalX]
+  add a,8
+  ld [hli],a
+  ld [hl],d
+  inc l
+  ld a,[wRivalPal]
+  or OAMF_XFLIP
+  ld [hli],a
 .skip
-	ld a,[wRivalY]
-	ld [hli],a
-	ld a,[wRivalX]
-	ld [hli],a
-	ld [hl],d
-	inc l
-	ld a,[wRivalPal]
-	ld [hli],a
-	ret
+  ld a,[wRivalY]
+  ld [hli],a
+  ld a,[wRivalX]
+  ld [hli],a
+  ld [hl],d
+  inc l
+  ld a,[wRivalPal]
+  ld [hli],a
+  ret
 
 SetWRam:
 .loop
-	ld [hli],a
-	dec c
-	jr nz,.loop
-	ret
+  ld [hli],a
+  dec c
+  jr nz,.loop
+  ret
 
 SetPalette:
 .loop
-	ld a,[hli]
-	ld [de],a
-	ld a,[hli]
-	ld [de],a
-	dec c
-	jr nz,.loop
-	ret
+  ld a,[hli]
+  ld [de],a
+  ld a,[hli]
+  ld [de],a
+  dec c
+  jr nz,.loop
+  ret
 
 CopyData:
-	ld a,[de] ; Grab 1 byte from the source
-	ld [hli],a ; Place it at the destination, incrementing hl
-	inc de ; Move to next byte
-	dec bc ; Decrement count
-	ld a,b ; Check if count is 0, since `dec bc` doesn't update flags
-	or c
-	jr nz,CopyData
-	ret
+  ld a,[de] ; Grab 1 byte from the source
+  ld [hli],a ; Place it at the destination, incrementing hl
+  inc de ; Move to next byte
+  dec bc ; Decrement count
+  ld a,b ; Check if count is 0, since `dec bc` doesn't update flags
+  or c
+  jr nz,CopyData
+  ret
 
 DMARoutine:
-	ldh [rDMA],a
-	ld a,40
+  ldh [rDMA],a
+  ld a,40
 .loop
-	dec a
-	jr nz,.loop
-	ret
+  dec a
+  jr nz,.loop
+  ret
 DMARoutineEnd:
 
 CopyDecompressionData:
-	;ld hl,<write address>
-	;ld de,<data address>
-	;ld bc,<data end address>
+  ;ld hl,<write address>
+  ;ld de,<data address>
+  ;ld bc,<data end address>
 .start
-	ld a,[de]
-	inc de
-	ld [hli],a
-	push bc
+  ld a,[de]
+  inc de
+  ld [hli],a
+  push bc
 .loop
-	ld b,a
-	ld a,[de]
-	cp b
-	jr z,.next
-	inc de
-	ld [hli],a
-	jr .loop
+  ld b,a
+  ld a,[de]
+  cp b
+  jr z,.next
+  inc de
+  ld [hli],a
+  jr .loop
 .next
-	inc de
-	ld [hli],a
-	ld a,[de]
-	inc de
-	sub 2
-	cp 0
-	jr z,.skip
-	ld c,a
-	ld a,b
+  inc de
+  ld [hli],a
+  ld a,[de]
+  inc de
+  sub 2
+  cp 0
+  jr z,.skip
+  ld c,a
+  ld a,b
 .copy
-	ld [hli],a
-	dec c
-	jr nz,.copy
+  ld [hli],a
+  dec c
+  jr nz,.copy
 .skip
-	pop bc
-	ld a,b
-	cp d
-	jr nz,.start
-	ld a,c
-	cp e
-	jr nc,.start
-	ret
+  pop bc
+  ld a,b
+  cp d
+  jr nz,.start
+  ld a,c
+  cp e
+  jr nc,.start
+  ret
 
 INCLUDE "data.inc"
 INCLUDE "wram.inc"
