@@ -1,16 +1,62 @@
+InitSoundData:
+  ld bc,SoundDataTbl
+  ld hl,wSoundDataTbl
+.next
+  ld a,[bc]
+  cp $FF
+  jr z,.setEndData
+  ld d,a
+  and %00001111
+  ld e,a ;right
+  xor d
+  swap a
+  ld d,a ;left
+  inc bc
+  cp $C
+  jr z,.setEmpty
+  cp $D
+  jr z,.setMusicalScalePos
+  ; set volume,note
+  ld a,d
+  swap a
+  ld [hli],a
+  ld a,[wMusicalScalePos]
+  add a,e
+  ld [hli],a
+  jr .next
+
+.setEmpty
+  xor a
+.setEmptyLoop
+  ld [hli],a
+  ld [hli],a
+  dec e
+  jr nz,.setEmptyLoop
+  jr .next
+.setMusicalScalePos
+  push hl
+  ld hl,MusicalScalePosTbl
+  ld a,l
+  add a,e
+  ld l,a
+  ld a,[hl]
+  ld [wMusicalScalePos],a
+  pop hl
+  jr .next
+.setEndData
+  ld a,$ff
+  ld [hl],a
+  ret
+
 InitSoundDriver:
   ;Create wMusicalScaleTbl
   ld bc,MusicalScaleTbl
   ld hl,wMusicalScaleTbl
+  ld d,$ff
 .next
+  inc d
   ld a,[bc]
-  ld d,a
-  and %00011111
-  ld e,a ;cnt
-  xor d
-  swap a
-  rrca
-  ld d,a
+  ld e,a
   inc bc
 .loop
   ld a,[bc] ;wavelength low
@@ -40,6 +86,7 @@ InitSoundDriver:
   ldh [rAUD1LEN],a   ; Bit 7-6 - Wave duty            (Read/Write)
                      ; Bit 5-0 - Initial length timer (Write Only)
   ld a,%00000000     ; Channel 1 volume & envelope
+  ;ld a,%11110000     ; Channel 1 volume & envelope
   ldh [rAUD1ENV],a   ; Bit 7-4 - Initial volume of envelope (0-F) (0=No Sound)
                      ; Bit 3   - Envelope direction (0=Decrease, 1=Increase)
                      ; Bit 2-0 - Sweep pace (0=No Sweep)
@@ -75,3 +122,6 @@ PlaySound:
   xor a
   ldh [rAUD1ENV],a
   ret
+
+MusicalScalePosTbl:
+  db 0,12,24,36,48,60

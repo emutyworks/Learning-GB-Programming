@@ -55,11 +55,12 @@ Start:
   ldh [rIF],a
 
   ; Set Sound driver
+  call InitSoundData
   call InitSoundDriver
   ld a,SoundWait
   ld [wSoundWait],a
 
-  ld de,SoundDataTbl
+  ld de,wSoundDataTbl
 
 MainLoop:
   ld a,[wVBlankDone]
@@ -83,14 +84,16 @@ MainLoop:
   jp MainLoop
 
 INCLUDE "gb_sound_driver.inc"
+INCLUDE "musical_scale_tbl.inc"
 ;
-; Creating musical_scale_tbl.inc and sound_data_tbl.inc
+; Creating sound_data_tbl.inc
 ; php tools/convDMF2Hex.php tools/test.dmf
 ;
-INCLUDE "musical_scale_tbl.inc"
 INCLUDE "sound_data_tbl.inc"
 
 SECTION "State",WRAM0
-wMusicalScaleTbl: ds 128
+wMusicalScaleTbl: ds 144
+wMusicalScalePos: ds 1
+wSoundDataTbl: ds 255
 wVBlankDone: ds 1
 wSoundWait: ds 1
