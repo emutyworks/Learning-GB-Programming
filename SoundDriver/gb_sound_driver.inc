@@ -3,22 +3,20 @@ InitSoundData:
   ld hl,wSoundDataTbl
 .next
   ld a,[bc]
-  cp $FF
+  cp $ff
   jr z,.setEndData
   ld d,a
   and %00001111
   ld e,a ;right
   xor d
-  swap a
   ld d,a ;left
   inc bc
-  cp $C
+  cp $C0
   jr z,.setEmpty
-  cp $D
+  cp $D0
   jr z,.setMusicalScalePos
   ; set volume,note
   ld a,d
-  swap a
   ld [hli],a
   ld a,[wMusicalScalePos]
   add a,e
@@ -34,18 +32,15 @@ InitSoundData:
   jr nz,.setEmptyLoop
   jr .next
 .setMusicalScalePos
-  push hl
-  ld hl,MusicalScalePosTbl
-  ld a,l
+  ld d,HIGH(MusicalScalePosTbl)
+  ld a,LOW(MusicalScalePosTbl)
   add a,e
-  ld l,a
-  ld a,[hl]
+  ld e,a
+  ld a,[de]
   ld [wMusicalScalePos],a
-  pop hl
   jr .next
 .setEndData
-  ld a,$ff
-  ld [hl],a
+  ld [hl],$ff
   ret
 
 InitSoundDriver:
@@ -86,7 +81,6 @@ InitSoundDriver:
   ldh [rAUD1LEN],a   ; Bit 7-6 - Wave duty            (Read/Write)
                      ; Bit 5-0 - Initial length timer (Write Only)
   ld a,%00000000     ; Channel 1 volume & envelope
-  ;ld a,%11110000     ; Channel 1 volume & envelope
   ldh [rAUD1ENV],a   ; Bit 7-4 - Initial volume of envelope (0-F) (0=No Sound)
                      ; Bit 3   - Envelope direction (0=Decrease, 1=Increase)
                      ; Bit 2-0 - Sweep pace (0=No Sweep)
@@ -94,7 +88,7 @@ InitSoundDriver:
 
 PlaySound:
   ld a,[de]
-  cp $FF
+  cp $ff
   jr z,.soundOff
   cp 0
   jr z,.skip
