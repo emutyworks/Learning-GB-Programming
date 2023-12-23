@@ -42,6 +42,7 @@ Start:
   ldh [rIF],a
   ldh [rSCY],a
   ldh [rSCX],a
+  ldh [hEmptyCnt],a
   ld [wVBlankDone],a
   ld [wSoundWait],a
 
@@ -60,7 +61,7 @@ Start:
   ld a,SoundWait
   ld [wSoundWait],a
 
-  ld de,wSoundDataTbl
+  ld bc,wSoundDataTbl
 
 MainLoop:
   ld a,[wVBlankDone]
@@ -85,15 +86,14 @@ MainLoop:
 
 INCLUDE "gb_sound_driver.inc"
 INCLUDE "musical_scale_tbl.inc"
-;
-; Creating sound_data_tbl.inc
-; php tools/convDMF2Hex.php tools/test.dmf
-;
 INCLUDE "sound_data_tbl.inc"
 
 SECTION "State",WRAM0
 wMusicalScaleTbl: ds 144
 wMusicalScalePos: ds 1
+wSoundWait: ds 1
 wSoundDataTbl: ds 255
 wVBlankDone: ds 1
-wSoundWait: ds 1
+
+SECTION "HRAM Variables",HRAM
+hEmptyCnt: ds 1

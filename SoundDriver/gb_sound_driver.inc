@@ -1,35 +1,45 @@
+;GBSD_VENVELOPE EQU $C0
+GBSD_ENVELOPE EQU $C0
+GBSD_OCTAVE    EQU $D0
+GBSD_EMPTY     EQU $E0
+GBSD_NOTE      EQU $F0
+GBSD_ENDDATA   EQU $FF
+
 InitSoundData:
   ld bc,SoundDataTbl
   ld hl,wSoundDataTbl
 .next
   ld a,[bc]
-  cp $ff
+  inc bc
+  cp GBSD_ENDDATA
   jr z,.setEndData
+  cp GBSD_ENVELOPE
+  jr z,.setEnvelope
   ld d,a
   and %00001111
-  ld e,a ;right
+  ld e,a ;low
   xor d
-  ld d,a ;left
-  inc bc
-  cp $C0
-  jr z,.setEmpty
-  cp $D0
+  ld d,a ;hi
+  cp GBSD_OCTAVE
   jr z,.setMusicalScalePos
-  ; set volume,note
-  ld a,d
-  ld [hli],a
+  cp GBSD_NOTE
+  jr z,.setNote
+  cp GBSD_EMPTY
+  jr z,.setEmpty
+  ; Set Note/Volume
   ld a,[wMusicalScalePos]
-  add a,e
+  swap d
+  add a,d
+  ld [hli],a
+  ld a,e
+  swap a
   ld [hli],a
   jr .next
-
-.setEmpty
-  xor a
-.setEmptyLoop
+.setNote
+  ld a,[wMusicalScalePos]
+  add a,e
+  or %10000000
   ld [hli],a
-  ld [hli],a
-  dec e
-  jr nz,.setEmptyLoop
   jr .next
 .setMusicalScalePos
   ld d,HIGH(MusicalScalePosTbl)
@@ -39,8 +49,21 @@ InitSoundData:
   ld a,[de]
   ld [wMusicalScalePos],a
   jr .next
+.setEnvelope
+  ld [hli],a
+  ld a,[bc]
+  inc bc
+  ld [hli],a
+  ;ld a,[bc]
+  ;inc bc
+  ;ld [hli],a
+  jr .next
+.setEmpty
+  or e
+  ld [hli],a
+  jr .next
 .setEndData
-  ld [hl],$ff
+  ld [hl],GBSD_ENDDATA
   ret
 
 InitSoundDriver:
@@ -65,56 +88,104 @@ InitSoundDriver:
   cp 7
   jr nz,.next
 
-  ld a,%01110111     ; -LLL-RRR Master volume & VIN panning
-  ldh [rAUDVOL],a
-  ld a,%11111111     ; LLLLRRRR Sound panning
-  ldh [rAUDTERM],a
-  ld a,%10000000     ; x------- Sound on/off
-  ldh [rAUDENA],a
-  ld a,%00000000     ; Channel 1 sweep
-  ldh [rAUD1SWEEP],a ; Bit 6-4 - Sweep pace
-                     ; Bit 3   - Sweep increase/decrease
-                     ;            0: Addition    (wavelength increases)
-                     ;            1: Subtraction (wavelength decreases)
-                     ; Bit 2-0 - Sweep slope control (n: 0-7)
-  ld a,%00000000     ; Channel 1 length timer & duty cycle
-  ldh [rAUD1LEN],a   ; Bit 7-6 - Wave duty            (Read/Write)
-                     ; Bit 5-0 - Initial length timer (Write Only)
-  ld a,%00000000     ; Channel 1 volume & envelope
-  ldh [rAUD1ENV],a   ; Bit 7-4 - Initial volume of envelope (0-F) (0=No Sound)
-                     ; Bit 3   - Envelope direction (0=Decrease, 1=Increase)
-                     ; Bit 2-0 - Sweep pace (0=No Sweep)
+  ;Init registers
+  ld a,%01110111
+  ldh [rAUDVOL],a    ; -LLL-RRR Output level
+  ld a,%11111111
+  ldh [rAUDTERM],a   ; Sound output terminal
+  ld a,%10000000
+  ldh [rAUDENA],a    ; All sound on/off
+  ld a,%00111111
+  ldh [rAUD1LEN],a   ; Sound length/Wave pattern duty
+  xor a
+  ldh [rAUD1SWEEP],a ; Sweep register
+  ldh [rAUD1ENV],a   ; Envelope
   ret
 
 PlaySound:
-  ld a,[de]
-  cp $ff
-  jr z,.soundOff
+  ; - Data format
+  ; $C0,$xx: Set Envelope
+  ; $E0-$Ef: Set Empty (1-16)
+  ; %7xxxxxxx or 0-71: Set Musical scale
+  ; 0-71,$00-$f0: Set Note/Volume
+  ; $FF: End of data
+.next
+  ldh a,[hEmptyCnt]
   cp 0
-  jr z,.skip
-  or %00000100
-  ldh [rAUD1ENV],a
-  inc de
-  ld a,[de]
-  inc de
+  jr nz,.decEmpty
+  ld a,[bc]
+  cp GBSD_ENDDATA
+  jr z,.endData
+  cp GBSD_ENVELOPE
+  jr z,.setEnvelope
+  ld d,a
+  and %00001111
+  ld e,a ;low
+  xor d
+  ld d,a ;hi
+  cp GBSD_EMPTY
+  jr z,.setEmpty
+  bit 7,a
+  jr nz,.setMScale
+  ; Set Note/Volume
+  inc bc
+  and %0111000
+  or e
   ld h,HIGH(wMusicalScaleTbl)
   rlca
   ld l,a
   ld a,[hli]
-  ldh [rAUD1LOW],a ; Channel 1 wavelength low
+  ldh [rAUD1LOW],a ; Frequency low byte
   ld a,[hli]
-  or %10000000
-  ldh [rAUD1HIGH],a ; Channel 1 wavelength high & control
-  ret
-
-.skip
-  inc de
-  inc de
-  ret
-
-.soundOff
-  xor a
+  or %10000000 ; Initial (when set, sound restarts)
+  ldh [rAUD1HIGH],a ; Frequency high byte
+  ld a,[bc]
+  inc bc
+  ld d,a
+  ldh a,[rAUD1ENV]
+  or d
   ldh [rAUD1ENV],a
+  ret
+.setMScale
+  inc bc
+  and %0111000
+  or e
+  ld h,HIGH(wMusicalScaleTbl)
+  rlca
+  ld l,a
+  ld a,[hli]
+  ldh [rAUD1LOW],a ; Frequency low byte
+  ld a,[hli]
+  or %10000000 ; Initial (when set, sound restarts)
+  ldh [rAUD1HIGH],a ; Frequency high byte
+  ret
+.setEmpty
+  inc bc
+  ld a,e
+  cp 0
+  ret z
+  ldh [hEmptyCnt],a
+  ret
+.decEmpty
+  dec a
+  ldh [hEmptyCnt],a
+  ret
+.setEnvelope
+  inc bc
+  ld a,[bc]
+  inc bc
+  ldh [rAUD1ENV],a
+  ;ldh a,[rAUD1LEN]
+  ;and %11000000
+  ;ld d,a
+  ;ld a,[bc]
+  ;inc bc
+  ;or d
+  ;ldh [rAUD1LEN],a
+  jr .next
+.endData
+  xor a
+  ;ldh [rAUD1ENV],a
   ret
 
 MusicalScalePosTbl:

@@ -1,33 +1,39 @@
 SoundDataTbl:
-; $Cx empty: x = $1-$f
-; $Dx octave: x = $0-$5 (2-7)
-; $FF end of data
-;
-; $xx
-;  |+ note: $0-$b (C,C#,D,D#,E,F,F#,G,G#,A,A#,B)
-;  + volume: $0-$f
-;
-; Total 22 bytes of data, Uses 97 bytes of WRAM
-  db $D3 ;change to 5 octaves
-  db $f0 ; volume,note
-  db $C1 ;empty count
-  db $f0 ; volume,note
-  db $f0 ; volume,note
-  db $f0 ; volume,note
-  db $C1 ;empty count
-  db $f4 ; volume,note
-  db $C1 ;empty count
-  db $f4 ; volume,note
-  db $f4 ; volume,note
-  db $f4 ; volume,note
-  db $C1 ;empty count
-  db $f5 ; volume,note
-  db $D2 ;change to 4 octaves
-  db $Cb ;empty count
-  db $f0 ; volume,note
-  db $C7 ;empty count
-  db $f0 ; volume,note
-  db $C7 ;empty count
-  db $f5 ; volume,note
-  db $C7 ; empty count
+  ; - Generating "sound_data_tbl.inc".
+  ; php tools/convDMF2Hex.php tools/test.dmf
+  ;
+  ; - Data format
+  ; $C0,$xx: Set Envelope
+  ; $D0-$D5: Set Octave (2-7)
+  ; $E0-$Ef: Set Empty (1-16)
+  ; $xx: Set Volume/Note
+  ;  |+ $0-$f Volume (0-15)
+  ;  +- $0-$b Note (C,C#,D,D#,E,F,F#,G,G#,A,A#,B)
+  ; $F0-$Fb: Set Note
+  ; $FF: End of data
+  ;
+  ; *Total 25 bytes of data, Uses 23 bytes of WRAM
+  db $C0,$f1 ; Set Envelope
+  db $D3 ; Set Octave
+  db $F0
+  db $E0 ; Set Empty
+  db $F0
+  db $F0
+  db $F0
+  db $E0 ; Set Empty
+  db $F4
+  db $E0 ; Set Empty
+  db $F4
+  db $F4
+  db $F4
+  db $E0 ; Set Empty
+  db $F5
+  db $D2 ; Set Octave
+  db $Ea ; Set Empty
+  db $F0
+  db $E6 ; Set Empty
+  db $F0
+  db $E6 ; Set Empty
+  db $F5
+  db $E6 ; Set Empty
   db $FF
