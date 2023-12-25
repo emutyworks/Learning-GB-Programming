@@ -42,6 +42,7 @@ Start:
   ldh [rIF],a
   ldh [rSCY],a
   ldh [rSCX],a
+  ldh [hMusicalScalePos],a
   ldh [hEmptyCnt],a
   ld [wVBlankDone],a
   ld [wSoundWait],a
@@ -56,12 +57,11 @@ Start:
   ldh [rIF],a
 
   ; Set Sound driver
-  call InitSoundData
   call InitSoundDriver
   ld a,SoundWait
   ld [wSoundWait],a
 
-  ld bc,wSoundDataTbl
+  ld bc,SoundDataTbl
 
 MainLoop:
   ld a,[wVBlankDone]
@@ -90,10 +90,9 @@ INCLUDE "sound_data_tbl.inc"
 
 SECTION "State",WRAM0
 wMusicalScaleTbl: ds 144
-wMusicalScalePos: ds 1
 wSoundWait: ds 1
-wSoundDataTbl: ds 255
 wVBlankDone: ds 1
 
 SECTION "HRAM Variables",HRAM
+hMusicalScalePos: ds 1
 hEmptyCnt: ds 1

@@ -12,5 +12,5 @@ SoundDataTbl:
   ; $F0-$Fb: Set Note
   ; $FF: End of data
   ;
-  ; *Total {{TOTAL_BYTES}} bytes of data, Uses {{USES_WRAM}} bytes of WRAM
+  ; *Total {{TOTAL_BYTES}} bytes of data.
 {{DATA}}

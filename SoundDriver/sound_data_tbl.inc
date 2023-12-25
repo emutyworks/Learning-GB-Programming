@@ -12,7 +12,7 @@ SoundDataTbl:
   ; $F0-$Fb: Set Note
   ; $FF: End of data
   ;
-  ; *Total 25 bytes of data, Uses 23 bytes of WRAM
+  ; *Total 25 bytes of data.
   db $C0,$f1 ; Set Envelope
   db $D3 ; Set Octave
   db $F0

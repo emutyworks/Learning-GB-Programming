@@ -22,7 +22,7 @@ $hex = array();
 $octave_old = null;
 $empty_cnt = -1;
 $total_bytes = 0;
-$uses_wram = 0;
+//$uses_wram = 0;
 for($i=0; $i<count($list); $i++){
   $note = substr($list[$i]['NoteForThisIndex'],1,1);
   $octave = (int)substr($list[$i]['OctaveForThisIndex'],1,1);
@@ -47,10 +47,10 @@ for($i=0; $i<count($list); $i++){
     $low = dechex(($row['EnvelopeDirection'] << 3) + $row['EnvelopeLength']);
     $hex[] = sprintf("%s,\$%s ; Set Envelope",SD_ENVELOPE,$hi.$low);
     $total_bytes += 2;
-    $uses_wram += 2;
+    //$uses_wram += 2;
     //$hex[] = sprintf("%s,\$%s,\$%s ; Set Volume Envelope",SD_VOLUMEENVELOPE,$hi.$low,dec2hex($row['SoundLength']));
     //$total_bytes += 3;
-    print_r($row);
+    //print_r($row);
   }
 
   // Set Octave
@@ -81,21 +81,21 @@ for($i=0; $i<count($list); $i++){
           $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
           $empty_cnt -= SD_EMPTY_CNT_MAX;
           $total_bytes++;
-          $uses_wram++;
+          //$uses_wram++;
         }else{
           $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
           $total_bytes++;
-          $uses_wram++;
+          //$uses_wram++;
           $empty_cnt = -1;
         }
       }while($empty_cnt>-1);
       $hex[] = $row;
       $total_bytes++;
-      $uses_wram++;
+      //$uses_wram++;
     }else{
       $hex[] = $row;
       $total_bytes++;
-      $uses_wram++;
+      //$uses_wram++;
     }
   }
 }
@@ -106,11 +106,11 @@ if($empty_cnt!=-1){
       $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
       $empty_cnt -= SD_EMPTY_CNT_MAX;
       $total_bytes++;
-      $uses_wram++;
+      //$uses_wram++;
     }else{
       $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
       $total_bytes++;
-      $uses_wram++;
+      //$uses_wram++;
       $empty_cnt = -1;
     }
   }while($empty_cnt>-1);
@@ -126,15 +126,20 @@ for($i=0; $i<count($hex); $i++){
 }
 $rows .= sprintf("  db %s\n",SD_ENDDATA);
 $total_bytes++;
-$uses_wram++;
+//$uses_wram++;
 
-printf("*Total %s bytes of data, Uses %s bytes of WRAM\n",$total_bytes,$uses_wram);
+printf("*Total %s bytes of data.\n",$total_bytes);
+//printf("*Total %s bytes of data, Uses %s bytes of WRAM\n",$total_bytes,$uses_wram);
 
 $tpl = file_get_contents(dirname(__FILE__).'/templates/sound_data_tbl.inc');
 $out = str_replace('{{TOTAL_BYTES}}',$total_bytes,$tpl);
-$out = str_replace('{{USES_WRAM}}',$uses_wram,$out);
+//$out = str_replace('{{USES_WRAM}}',$uses_wram,$out);
 $out = str_replace('{{DATA}}',$rows,$out);
 file_put_contents(FN_SOUND_DATA_TBL,$out);
+
+/* templates
+  ; *Total {{TOTAL_BYTES}} bytes of data, Uses {{USES_WRAM}} bytes of WRAM
+*/
 
 /*
 [INSTRUMENTS_DATA][0][PER_SYSTEM_DATA]=> Array
