@@ -42,8 +42,10 @@ Start:
   ldh [rIF],a
   ldh [rSCY],a
   ldh [rSCX],a
-  ldh [hMusicalScalePos],a
-  ldh [hEmptyCnt],a
+  ldh [hMusicalScalePos1],a
+  ldh [hMusicalScalePos2],a
+  ldh [hEmptyCnt1],a
+  ldh [hEmptyCnt2],a
   ld [wVBlankDone],a
   ld [wSoundWait],a
 
@@ -60,8 +62,6 @@ Start:
   call InitSoundDriver
   ld a,SoundWait
   ld [wSoundWait],a
-
-  ld bc,SoundDataTbl
 
 MainLoop:
   ld a,[wVBlankDone]
@@ -81,18 +81,20 @@ MainLoop:
   call PlaySound
   ld a,SoundWait
   ld [wSoundWait],a
-  
+
   jp MainLoop
 
-INCLUDE "gb_sound_driver.inc"
-INCLUDE "musical_scale_tbl.inc"
-INCLUDE "sound_data_tbl.inc"
+INCLUDE "gbsd.inc"
 
 SECTION "State",WRAM0
 wMusicalScaleTbl: ds 144
 wSoundWait: ds 1
 wVBlankDone: ds 1
+wSQ1SoundData: ds 2
+wSQ2SoundData: ds 2
 
 SECTION "HRAM Variables",HRAM
-hMusicalScalePos: ds 1
-hEmptyCnt: ds 1
+hMusicalScalePos1: ds 1
+hMusicalScalePos2: ds 1
+hEmptyCnt1: ds 1
+hEmptyCnt2: ds 1

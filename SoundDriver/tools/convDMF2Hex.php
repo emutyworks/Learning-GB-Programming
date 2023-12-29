@@ -16,130 +16,18 @@ $mode_conv = 1;
 include 'AnalysisDefleMaskData.php';
 
 // Generate sound_data_tbl.inc
-$list = $d['PATTERNS_DATA']['SQ1'][0]['PATTERN_MATRIX'];
-
-$hex = array();
-$octave_old = null;
-$empty_cnt = -1;
 $total_bytes = 0;
-//$uses_wram = 0;
-for($i=0; $i<count($list); $i++){
-  $note = substr($list[$i]['NoteForThisIndex'],1,1);
-  $octave = (int)substr($list[$i]['OctaveForThisIndex'],1,1);
-  if($list[$i]['VolumeForThisIndex']!='ffff'){
-    $volume = substr($list[$i]['VolumeForThisIndex'],1,1);
-  }else{
-    $volume = null;
-  }
-  if($list[$i]['InstrumentForThisIndex']!='ffff'){
-    $instrument = hexdec(substr($list[$i]['InstrumentForThisIndex'],0,2));
-  }else{
-    $instrument = null;
-  }
 
-//printf("%s:%s|%s|%s|%s\n",$i,$note,$octave,$volume,$instrument);
-//continue;
-
-  // Set Volume Envelope
-  if($instrument!==null){
-    $row = $d['INSTRUMENTS_DATA'][$instrument]['PER_SYSTEM_DATA'];
-    $hi = dechex($row['EnvelopeVolume']);
-    $low = dechex(($row['EnvelopeDirection'] << 3) + $row['EnvelopeLength']);
-    $hex[] = sprintf("%s,\$%s ; Set Envelope",SD_ENVELOPE,$hi.$low);
-    $total_bytes += 2;
-    //$uses_wram += 2;
-    //$hex[] = sprintf("%s,\$%s,\$%s ; Set Volume Envelope",SD_VOLUMEENVELOPE,$hi.$low,dec2hex($row['SoundLength']));
-    //$total_bytes += 3;
-    //print_r($row);
-  }
-
-  // Set Octave
-  if($note=='c'){
-    $note = '0';
-    $octave = $octave + 1;
-  }
-  if($octave>=2 && $octave<=7 && $octave_old!=$octave){
-    $hex[] = sprintf("%s%s ; Set Octave",SD_OCTAVE,$octave-2,$octave);
-    $octave_old = $octave;
-    $total_bytes++;
-  }
-  
-  // Set Note
-  if($volume===null){
-    $row = sprintf("%s%s",SD_NOTE,$note);
-  }else{
-    $row = sprintf("%s%s",$note,$volume);
-  }
-
-  // Set Empty
-  if($note.$octave=='00'){
-    $empty_cnt++;
-  }else{
-    if($empty_cnt!=-1){
-      do{
-        if($empty_cnt>=SD_EMPTY_CNT_MAX){
-          $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
-          $empty_cnt -= SD_EMPTY_CNT_MAX;
-          $total_bytes++;
-          //$uses_wram++;
-        }else{
-          $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
-          $total_bytes++;
-          //$uses_wram++;
-          $empty_cnt = -1;
-        }
-      }while($empty_cnt>-1);
-      $hex[] = $row;
-      $total_bytes++;
-      //$uses_wram++;
-    }else{
-      $hex[] = $row;
-      $total_bytes++;
-      //$uses_wram++;
-    }
-  }
-}
-// Set Empty
-if($empty_cnt!=-1){
-  do{
-    if($empty_cnt>=SD_EMPTY_CNT_MAX){
-      $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
-      $empty_cnt -= SD_EMPTY_CNT_MAX;
-      $total_bytes++;
-      //$uses_wram++;
-    }else{
-      $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
-      $total_bytes++;
-      //$uses_wram++;
-      $empty_cnt = -1;
-    }
-  }while($empty_cnt>-1);
-}
-
-for($i=0; $i<count($hex); $i++){
-  printf("$%s\n",$hex[$i]);
-}
-
-$rows = null;
-for($i=0; $i<count($hex); $i++){
-  $rows .= "  db $".$hex[$i]."\n";
-}
-$rows .= sprintf("  db %s\n",SD_ENDDATA);
-$total_bytes++;
-//$uses_wram++;
+$rows1 = getPatternsData('SQ1',$d,$total_bytes);
+$rows2 = getPatternsData('SQ2',$d,$total_bytes);
 
 printf("*Total %s bytes of data.\n",$total_bytes);
-//printf("*Total %s bytes of data, Uses %s bytes of WRAM\n",$total_bytes,$uses_wram);
 
-$tpl = file_get_contents(dirname(__FILE__).'/templates/sound_data_tbl.inc');
+$tpl = file_get_contents(dirname(__FILE__).'/templates/'.FN_SOUND_DATA_TBL);
 $out = str_replace('{{TOTAL_BYTES}}',$total_bytes,$tpl);
-//$out = str_replace('{{USES_WRAM}}',$uses_wram,$out);
-$out = str_replace('{{DATA}}',$rows,$out);
+$out = str_replace('{{DATA_SQ1}}',$rows1,$out);
+$out = str_replace('{{DATA_SQ2}}',$rows2,$out);
 file_put_contents(FN_SOUND_DATA_TBL,$out);
-
-/* templates
-  ; *Total {{TOTAL_BYTES}} bytes of data, Uses {{USES_WRAM}} bytes of WRAM
-*/
 
 /*
 [INSTRUMENTS_DATA][0][PER_SYSTEM_DATA]=> Array
