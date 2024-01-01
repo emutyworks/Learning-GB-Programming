@@ -38,7 +38,7 @@ function getPatternsData($key,$d,&$total_bytes){
     }
 
     // Set Volume Envelope
-    if($instrument!==null){
+    if($instrument!==null && $key!='WAV'){
       $row = $d['INSTRUMENTS_DATA'][$instrument]['PER_SYSTEM_DATA'];
       $hi = dechex($row['EnvelopeVolume']);
       $low = dechex(($row['EnvelopeDirection'] << 3) + $row['EnvelopeLength']);
@@ -58,7 +58,7 @@ function getPatternsData($key,$d,&$total_bytes){
     }
     
     // Set Note
-    if($volume===null){
+    if($volume===null || $key=='WAV'){
       $row = sprintf("%s%s",SD_NOTE,$note);
     }else{
       $row = sprintf("%s%s",$note,$volume);

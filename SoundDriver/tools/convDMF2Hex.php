@@ -18,15 +18,30 @@ include 'AnalysisDefleMaskData.php';
 // Generate sound_data_tbl.inc
 $total_bytes = 0;
 
-$rows1 = getPatternsData('SQ1',$d,$total_bytes);
-$rows2 = getPatternsData('SQ2',$d,$total_bytes);
+$sq1 = getPatternsData('SQ1',$d,$total_bytes);
+$sq2 = getPatternsData('SQ2',$d,$total_bytes);
+$wav = getPatternsData('WAV',$d,$total_bytes);
+
+$wave_data = null;
+if(isset($d['WAVETABLES_DATA'][0]['WavetableData'])){
+  $wavetable = $d['WAVETABLES_DATA'][0]['WavetableData'];
+
+  $hex = array();
+  for($i=0; $i<count($wavetable); $i+=2){
+    $hex[] = "$".dechex($wavetable[$i]).dechex($wavetable[$i+1]);
+  }
+  $wave_data = sprintf("  db %s",implode(",",$hex));
+  $total_bytes += 16;
+}
 
 printf("*Total %s bytes of data.\n",$total_bytes);
 
 $tpl = file_get_contents(dirname(__FILE__).'/templates/'.FN_SOUND_DATA_TBL);
 $out = str_replace('{{TOTAL_BYTES}}',$total_bytes,$tpl);
-$out = str_replace('{{DATA_SQ1}}',$rows1,$out);
-$out = str_replace('{{DATA_SQ2}}',$rows2,$out);
+$out = str_replace('{{DATA_SQ1}}',$sq1,$out);
+$out = str_replace('{{DATA_SQ2}}',$sq2,$out);
+$out = str_replace('{{DATA_WAV}}',$wav,$out);
+$out = str_replace('{{DATA_WAVE_DATA}}',$wave_data,$out);
 file_put_contents(FN_SOUND_DATA_TBL,$out);
 
 /*

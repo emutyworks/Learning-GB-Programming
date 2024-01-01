@@ -16,6 +16,16 @@ InitSoundDriver:
   ld [wSQ2SoundData],a
   ld a,LOW(SQ2SoundDataTbl)
   ld [wSQ2SoundData+1],a
+  ld a,HIGH(WavSoundDataTbl)
+  ld [wWavSoundData],a
+  ld a,LOW(WavSoundDataTbl)
+  ld [wWavSoundData+1],a
+
+  ; Set Wave Data
+  ld hl,$FF30
+  ld de,WaveData
+  ld bc,WaveDataEnd - WaveData
+  call CopyData
 
   ;Create wMusicalScaleTbl
   ld bc,MusicalScaleTbl
@@ -45,9 +55,14 @@ InitSoundDriver:
   ldh [rAUDTERM],a   ; Sound output terminal
   ld a,%10000000
   ldh [rAUDENA],a    ; All sound on/off
+  ldh [rAUD3ENA],a   ; Sound on/off
+  ld a,%00100000
+  ldh [rAUD3LEVEL],a ; Select output level
   ld a,%00111111
   ldh [rAUD1LEN],a   ; Sound length/Wave pattern duty
   ldh [rAUD2LEN],a
+  ld a,%11111111
+  ldh [rAUD3LEN],a   ; Sound length
   xor a
   ldh [rAUD1SWEEP],a ; Sweep register
   ldh [rAUD1ENV],a   ; Envelope
@@ -55,8 +70,19 @@ InitSoundDriver:
   ret
 
 PlaySound:
-  mSetSoundData 1
-  mSetSoundData 2
+  mSetSQxSoundData 1
+  mSetSQxSoundData 2
+  mSetWavSoundData
+  ret
+
+CopyData:
+  ld a,[de]
+  ld [hli],a
+  inc de
+  dec bc
+  ld a,b
+  or c
+  jr nz,CopyData
   ret
 
 INCLUDE "gbsd_musical_scale_tbl.inc"
