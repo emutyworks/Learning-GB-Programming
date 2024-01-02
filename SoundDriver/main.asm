@@ -14,7 +14,7 @@
 
 INCLUDE "hardware.inc"
 
-SoundWait EQU 20
+SoundWait EQU 15
 
 SECTION "VBlank Handler",ROM0[$40]
   push af
@@ -45,9 +45,11 @@ Start:
   ldh [hMusicalScalePos1],a
   ldh [hMusicalScalePos2],a
   ldh [hMusicalScalePos3],a
+  ldh [hClockDivider],a
   ldh [hEmptyCnt1],a
   ldh [hEmptyCnt2],a
   ldh [hEmptyCnt3],a
+  ldh [hEmptyCnt4],a
   ld [wVBlankDone],a
   ld [wSoundWait],a
 
@@ -95,11 +97,14 @@ wVBlankDone: ds 1
 wSQ1SoundData: ds 2
 wSQ2SoundData: ds 2
 wWavSoundData: ds 2
+wNoiSoundData: ds 2
 
 SECTION "HRAM Variables",HRAM
 hMusicalScalePos1: ds 1
 hMusicalScalePos2: ds 1
 hMusicalScalePos3: ds 1
+hClockDivider: ds 1
 hEmptyCnt1: ds 1
 hEmptyCnt2: ds 1
 hEmptyCnt3: ds 1
+hEmptyCnt4: ds 1

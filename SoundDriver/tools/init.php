@@ -8,7 +8,7 @@ define('SD_ENVELOPE','C0');
 define('SD_OCTAVE','D');
 define('SD_EMPTY','E');
 define('SD_NOTE','F');
-define('SD_ENDDATA','$FF');
+define('SD_ENDDATA','$CF');
 define('SD_EMPTY_CNT_MAX',16);
 
 function dec2hex($val,$num=2){
@@ -25,6 +25,8 @@ function getPatternsData($key,$d,&$total_bytes){
   for($i=0; $i<count($list); $i++){
     $note = substr($list[$i]['NoteForThisIndex'],1,1);
     $octave = (int)substr($list[$i]['OctaveForThisIndex'],1,1);
+    $effect_code = substr($list[$i]['Effect'][0]['EffectCodeForThisIndex'],0,2);
+    $effect_value = (int)substr($list[$i]['Effect'][0]['EffectValueForThisIndex'],0,2);
 
     if($list[$i]['VolumeForThisIndex']!='ffff'){
       $volume = substr($list[$i]['VolumeForThisIndex'],1,1);
@@ -42,7 +44,7 @@ function getPatternsData($key,$d,&$total_bytes){
       $row = $d['INSTRUMENTS_DATA'][$instrument]['PER_SYSTEM_DATA'];
       $hi = dechex($row['EnvelopeVolume']);
       $low = dechex(($row['EnvelopeDirection'] << 3) + $row['EnvelopeLength']);
-      $hex[] = sprintf("%s,\$%s ; Set Envelope",SD_ENVELOPE,$hi.$low);
+      $hex[] = sprintf("%s,\$%s",SD_ENVELOPE,$hi.$low);
       $total_bytes += 2;
     }
 
@@ -51,14 +53,20 @@ function getPatternsData($key,$d,&$total_bytes){
       $note = '0';
       $octave = $octave + 1;
     }
-    if($octave>=2 && $octave<=7 && $octave_old!=$octave){
-      $hex[] = sprintf("%s%s ; Set Octave",SD_OCTAVE,$octave-2,$octave);
+    if($key=='NOI' && $effect_code=='11'){
+      $hex[] = sprintf("%s%s",SD_OCTAVE,dechex(($octave-2) + ($effect_value << 3)));
       $octave_old = $octave;
       $total_bytes++;
+    }else{
+      if($octave>=2 && $octave<=7 && $octave_old!=$octave){
+        $hex[] = sprintf("%s%s",SD_OCTAVE,$octave-2);
+        $octave_old = $octave;
+        $total_bytes++;
+      }  
     }
-    
+
     // Set Note
-    if($volume===null || $key=='WAV'){
+    if($volume===null || $key=='WAV' || $key=='NOI'){
       $row = sprintf("%s%s",SD_NOTE,$note);
     }else{
       $row = sprintf("%s%s",$note,$volume);
@@ -71,11 +79,11 @@ function getPatternsData($key,$d,&$total_bytes){
       if($empty_cnt!=-1){
         do{
           if($empty_cnt>=SD_EMPTY_CNT_MAX){
-            $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
+            $hex[] = sprintf("%s%s",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
             $empty_cnt -= SD_EMPTY_CNT_MAX;
             $total_bytes++;
           }else{
-            $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
+            $hex[] = sprintf("%s%s",SD_EMPTY,dechex($empty_cnt));
             $total_bytes++;
             $empty_cnt = -1;
           }
@@ -93,11 +101,11 @@ function getPatternsData($key,$d,&$total_bytes){
   if($empty_cnt!=-1){
     do{
       if($empty_cnt>=SD_EMPTY_CNT_MAX){
-        $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
+        $hex[] = sprintf("%s%s",SD_EMPTY,dechex(SD_EMPTY_CNT_MAX-1));
         $empty_cnt -= SD_EMPTY_CNT_MAX;
         $total_bytes++;
       }else{
-        $hex[] = sprintf("%s%s ; Set Empty",SD_EMPTY,dechex($empty_cnt));
+        $hex[] = sprintf("%s%s",SD_EMPTY,dechex($empty_cnt));
         $total_bytes++;
         $empty_cnt = -1;
       }

@@ -21,6 +21,21 @@ $total_bytes = 0;
 $sq1 = getPatternsData('SQ1',$d,$total_bytes);
 $sq2 = getPatternsData('SQ2',$d,$total_bytes);
 $wav = getPatternsData('WAV',$d,$total_bytes);
+$noi = getPatternsData('NOI',$d,$total_bytes);
+
+/*test
+$list = $d['PATTERNS_DATA']['NOI'][0]['PATTERN_MATRIX'];
+//print_r($list);
+for($i=0; $i<count($list); $i++){
+  printf("%s,%s|%s,%s\n"
+    ,$list[$i]['NoteForThisIndex']
+    ,$list[$i]['OctaveForThisIndex']
+    ,$list[$i]['Effect'][0]['EffectCodeForThisIndex']
+    ,$list[$i]['Effect'][0]['EffectValueForThisIndex']
+  );
+}
+exit;
+*/
 
 $wave_data = null;
 if(isset($d['WAVETABLES_DATA'][0]['WavetableData'])){
@@ -42,6 +57,7 @@ $out = str_replace('{{DATA_SQ1}}',$sq1,$out);
 $out = str_replace('{{DATA_SQ2}}',$sq2,$out);
 $out = str_replace('{{DATA_WAV}}',$wav,$out);
 $out = str_replace('{{DATA_WAVE_DATA}}',$wave_data,$out);
+$out = str_replace('{{DATA_NOI}}',$noi,$out);
 file_put_contents(FN_SOUND_DATA_TBL,$out);
 
 /*
