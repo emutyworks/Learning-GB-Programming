@@ -249,7 +249,7 @@ SetSoundValue:
   ld a,[wJoyPadPos]
   ld e,a
   ld a,[wJoypad]
-  bit JBitRight,a
+  bit JBitLeft,a
   jr nz,.incValue
   ld a,[de]
   dec a
