@@ -123,7 +123,7 @@ Start:
   ld [wSweep],a
   ld a,0
   ld [wShift],a
-  ld a,2
+  ld a,1
   ld [wLFSR],a
   ld a,0
   ld [wDivider],a
