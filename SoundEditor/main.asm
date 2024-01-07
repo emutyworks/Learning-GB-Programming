@@ -68,6 +68,10 @@ Start:
   ldh [rSVBK],a
   ldh [rSCY],a
   ldh [rSCX],a
+  ld [wPosY],a
+  ld [wPosX],a
+  ld [wHex],a
+  ld [wAttr],a
   ld [wJoypad],a
   ld [wJoyPadPos],a
   ld [wJoypadWait],a
@@ -115,18 +119,19 @@ Start:
   ; Set Sound value
   ld a,$3f
   ld [wLengthTimer],a
+  ld [wFF20],a
   ld a,$0f
   ld [wVolume],a
-  ld a,0
-  ld [wEnv],a
   ld a,1
   ld [wSweep],a
-  ld a,0
+  ld a,%11110001
+  ld [wFF21],a
+  xor a
+  ld [wEnv],a
   ld [wShift],a
-  ld a,0
   ld [wLFSR],a
-  ld a,0
   ld [wDivider],a
+  ld [wFF22],a
 
   ;Init audio registers
   ld a,%10000000
@@ -203,7 +208,8 @@ MainLoop:
   ld a,[wDivider]
   and %00000111
   or b
-  ld [rAUD4POLY],a
+  ldh [rAUD4POLY],a
+  ld [wFF22],a
   ;
   ld a,[wVolume]
   and %00001111
@@ -220,6 +226,10 @@ MainLoop:
   and %00000111
   or b
   ldh [rAUD4ENV],a
+  ld [wFF21],a
+  ld a,[wLengthTimer]
+  ldh [rAUD4LEN],a
+  ld [wFF20],a
   ld a,%10000000
   ldh [rAUD4GO],a
   jr ViewSoundValue
@@ -289,37 +299,43 @@ SSEL6:
 ViewSoundValue:
   ld hl,wShadowOAM
   ld de,wSValueTbl
-  ld b,SValueY
+  ld a,SValueY
+  ld [wPosY],a
+  ld a,SValueX
+  ld [wPosX],a
+  xor a
+  ld [wAttr],a
   ld c,SValueMax
 
 .loop
-  ;0x
-  ld a,b
-  ld [hli],a ; Y Position
-  ld a,SValueX+4
-  ld [hli],a ; X Position
   ld a,[de]
-  and %00001111
-  ld [hli],a ; Tile Index
-  ld a,0
-  ld [hli],a ; Attributes/Flags
-  ;x0
-  ld a,b
-  ld [hli],a
-  ld a,SValueX
-  ld [hli],a
-  ld a,[de]
-  and %11110000
-  swap a
-  ld [hli],a
-  ld a,0
-  ld [hli],a
+  ld [wHex],a
+  call SetHexSprite
   inc e
-  ld a,b
-  add 8
-  ld b,a
+  ld a,[wPosY]
+  add a,8
+  ld [wPosY],a
   dec c
   jr nz,.loop
+
+  ; view sound registers
+  ld a,SRegPosX
+  ld [wPosX],a
+  ld a,[wFF20]
+  ld [wHex],a
+  ld a,SReg20PosY
+  ld [wPosY],a
+  call SetHexSprite
+  ld a,[wFF21]
+  ld [wHex],a
+  ld a,SReg21PosY
+  ld [wPosY],a
+  call SetHexSprite
+  ld a,[wFF22]
+  ld [wHex],a
+  ld a,SReg22PosY
+  ld [wPosY],a
+  call SetHexSprite
 
   ;selected
   ld hl,wShadowOAM+3
@@ -351,6 +367,31 @@ SetOAM:
 
   mSetOAM
   jp MainLoop
+
+SetHexSprite:
+  ;0x
+  ld a,[wPosY]
+  ld [hli],a ; Y Position
+  ld a,[wPosX]
+  add a,4
+  ld [hli],a ; X Position
+  ld a,[wHex]
+  and %00001111
+  ld [hli],a ; Tile Index
+  ld a,[wAttr]
+  ld [hli],a ; Attributes/Flags
+  ;x0
+  ld a,[wPosY]
+  ld [hli],a
+  ld a,[wPosX]
+  ld [hli],a
+  ld a,[wHex]
+  and %11110000
+  swap a
+  ld [hli],a
+  ld a,[wAttr]
+  ld [hli],a
+  ret
 
 SetPalette:
 .loop
