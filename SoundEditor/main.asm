@@ -184,13 +184,23 @@ MainLoop:
 .jUp
   ld a,[wJoyPadPos]
   dec a
-  and %0000111
+  cp $ff
+  jr z,.setPos
   ld [wJoyPadPos],a
   jp ViewSoundValue
 .jDown
   ld a,[wJoyPadPos]
   inc a
-  and %0000111
+  cp 7
+  jr z,.resetPos
+  ld [wJoyPadPos],a
+  jp ViewSoundValue
+.setPos
+  ld a,6
+  ld [wJoyPadPos],a
+  jp ViewSoundValue
+.resetPos
+  xor a
   ld [wJoyPadPos],a
   jp ViewSoundValue
 .playSound
