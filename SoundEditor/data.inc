@@ -1,12 +1,12 @@
 SECTION "Data",ROM0[$2000]
-SoundSelectTbl:
-  dw SSEL0
-  dw SSEL1
-  dw SSEL2
-  dw SSEL3
-  dw SSEL4
-  dw SSEL5
-  dw SSEL6
+SoundRegCalcTbl:
+  db %00111111 ; FF20 %xx543210 Initial length timer
+  db %00001111 ; FF21 %7654xxxx Initial volume
+  db %00000001 ;      %xxxx3xxx Env dir
+  db %00000111 ;      %xxxxx210 Sweep pace
+  db %00001111 ; FF22 %7654xxxx Clock shift
+  db %00000001 ;      %xxxx3xxx LFSR width
+  db %00000111 ;      %xxxxx210 Clock divider
 
 BGPalette:
   dw 0

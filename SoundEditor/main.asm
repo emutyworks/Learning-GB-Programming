@@ -136,13 +136,10 @@ Start:
   ;Init audio registers
   ld a,%10000000
   ldh [rAUDENA],a    ; All sound on/off
-  ldh [rAUD3ENA],a   ; Sound on/off
   ld a,%01110111
   ldh [rAUDVOL],a    ; -LLL-RRR Output level
   ld a,%11111111
   ldh [rAUDTERM],a   ; Sound output terminal
-  ld a,%00111111
-  ldh [rAUD4LEN],a   ;Sound length
   xor a
   ldh [rAUD4ENV],a
 
@@ -183,63 +180,28 @@ MainLoop:
   jp ViewSoundValue
 .jUp
   ld a,[wJoyPadPos]
-  dec a
-  cp $ff
-  jr z,.setPos
-  ld [wJoyPadPos],a
-  jp ViewSoundValue
+  cp 0
+  jr nz,.decPos
+  ld a,SValueMax-1
+  jr .setPos
 .jDown
   ld a,[wJoyPadPos]
-  inc a
-  cp 7
-  jr z,.resetPos
-  ld [wJoyPadPos],a
-  jp ViewSoundValue
-.setPos
-  ld a,6
-  ld [wJoyPadPos],a
-  jp ViewSoundValue
-.resetPos
+  cp SValueMax-1
+  jr nz,.incPos
   xor a
+  jr .setPos
+.decPos
+  dec a
+  jr .setPos
+.incPos
+  inc a
+.setPos
   ld [wJoyPadPos],a
   jp ViewSoundValue
 .playSound
-  ld a,[wShift]
-  and %00001111
-  swap a
-  ld b,a
-  ld a,[wLFSR]
-  and %00000001
-  rlca
-  rlca
-  rlca
-  or b
-  ld b,a
-  ld a,[wDivider]
-  and %00000111
-  or b
-  ldh [rAUD4POLY],a
-  ld [wFF22],a
-  ;
-  ld a,[wVolume]
-  and %00001111
-  swap a
-  ld b,a
-  ld a,[wEnv]
-  and %00000001
-  rlca
-  rlca
-  rlca
-  or b
-  ld b,a
-  ld a,[wSweep]
-  and %00000111
-  or b
-  ldh [rAUD4ENV],a
-  ld [wFF21],a
-  ld a,[wLengthTimer]
-  ldh [rAUD4LEN],a
-  ld [wFF20],a
+  call SetSRegFF20
+  call SetSRegFF21
+  call SetSRegFF22
   ld a,%10000000
   ldh [rAUD4GO],a
   jr ViewSoundValue
@@ -253,57 +215,18 @@ SetSoundValue:
   jr nz,.incValue
   ld a,[de]
   dec a
-  ld [de],a
-  jr .jp
+  jr .calc
 .incValue
   ld a,[de]
   inc a
-  ld [de],a
-.jp
-  ld b,HIGH(SoundSelectTbl)
+.calc
+  ld b,a
+  ld h,HIGH(SoundRegCalcTbl)
   ld a,[wJoyPadPos]
-  rlca
-  ld c,a
-  ld a,[bc]
   ld l,a
-  inc c
-  ld a,[bc]
-  ld h,a
-	jp hl
-
-SSEL0:
-  ld a,[de]
-  and %00111111
-  ld [de],a
-  jr ViewSoundValue
-SSEL1:
-  ld a,[de]
-  and %00001111
-  ld [de],a
-  jr ViewSoundValue
-SSEL2:
-  ld a,[de]
-  and %00000001
-  ld [de],a
-  jr ViewSoundValue
-SSEL3:
-  ld a,[de]
-  and %00000011
-  ld [de],a
-  jr ViewSoundValue
-SSEL4:
-  ld a,[de]
-  and %00001111
-  ld [de],a
-  jr ViewSoundValue
-SSEL5:
-  ld a,[de]
-  and %00000001
-  ld [de],a
-  jr ViewSoundValue
-SSEL6:
-  ld a,[de]
-  and %00000011
+  ld c,[hl]
+  ld a,b
+  and c
   ld [de],a
 
 ViewSoundValue:
@@ -366,6 +289,50 @@ ViewSoundValue:
   ld a,1
   ld [wMainLoopFlg],a
   jp MainLoop
+
+SetSRegFF20:
+  ld a,[wLengthTimer]
+  ldh [rAUD4LEN],a
+  ld [wFF20],a
+  ret
+
+SetSRegFF21:
+  ld a,[wVolume]
+  and %00001111
+  swap a
+  ld b,a
+  ld a,[wEnv]
+  and %00000001
+  rlca
+  rlca
+  rlca
+  or b
+  ld b,a
+  ld a,[wSweep]
+  and %00000111
+  or b
+  ldh [rAUD4ENV],a
+  ld [wFF21],a
+  ret
+
+SetSRegFF22:
+  ld a,[wShift]
+  and %00001111
+  swap a
+  ld b,a
+  ld a,[wLFSR]
+  and %00000001
+  rlca
+  rlca
+  rlca
+  or b
+  ld b,a
+  ld a,[wDivider]
+  and %00000111
+  or b
+  ldh [rAUD4POLY],a
+  ld [wFF22],a
+  ret
 
 SetOAM:
   ld a,[wVBlankDone]
