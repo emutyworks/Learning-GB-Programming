@@ -61,3 +61,24 @@ MACRO mCopyDMARoutine
   dec b
   jr nz,.loop\@
 ENDM
+
+MACRO mResetShadowOAM
+  ld a,l
+  rrca
+  rrca
+  ld c,a
+  ld a,UseMaxOAM
+  sub c
+  cp 0
+  jr z,.skip\@
+  ld c,a
+  xor a
+.loop\@
+  ld [hli],a
+  ld [hli],a
+  inc l
+  inc l
+  dec c
+  jr nz,.loop\@
+.skip\@
+ENDM

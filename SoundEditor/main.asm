@@ -67,16 +67,19 @@ Start:
   ldh [rSTAT],a
   ldh [rSVBK],a
   ldh [rSCY],a
-  ldh [rSCX],a
   ld [wPosY],a
   ld [wPosX],a
   ld [wHex],a
-  ld [wAttr],a
   ld [wJoypad],a
-  ld [wJoyPadPos],a
   ld [wJoypadWait],a
   ld [wVBlankDone],a
   ld [wMainLoopFlg],a
+  ld [wMode],a
+
+  xor a
+  ldh [rWY],a
+  ld a,8*8-1
+  ldh [rWX],a
 
 	; Set Sprites/Tiles data
 	ld hl,_VRAM8000
@@ -95,14 +98,22 @@ Start:
 	ld de,BgTileMap1
 	ld bc,BgTileMap1End - BgTileMap1
 	call CopyData
+	ld hl,_SCRN1
+	ld de,BgTileMapWin1
+	ld bc,BgTileMapWin1End - BgTileMapWin1
+	call CopyData
 	xor a
 	ldh [rVBK],a ; Tile Indexes
 	ld hl,_SCRN0
 	ld de,BgTileMap0
 	ld bc,BgTileMap0End - BgTileMap0
 	call CopyData
+	ld hl,_SCRN1
+	ld de,BgTileMapWin0
+	ld bc,BgTileMapWin0End - BgTileMapWin0
+	call CopyData
 
-  ld a,LCDCF_ON|LCDCF_OBJON|LCDCF_BGON
+  ld a,LCDCF_ON|LCDCF_OBJON|LCDCF_BGON|LCDCF_WINON|LCDCF_WIN9C00
   ldh [rLCDC],a
 
   mInitwShadowOAM
@@ -118,30 +129,55 @@ Start:
 
   ; Set Sound value
   ld a,$3f
-  ld [wLengthTimer],a
-  ld [wFF20],a
+  ld [wLengthTimer0],a
   ld a,$0f
-  ld [wVolume],a
+  ld [wVolume0],a
   ld a,1
-  ld [wSweep],a
-  ld a,%11110001
-  ld [wFF21],a
+  ld [wSweep0],a
   xor a
-  ld [wEnv],a
-  ld [wShift],a
-  ld [wLFSR],a
-  ld [wDivider],a
-  ld [wFF22],a
+  ld [wEnv0],a
+  ld [wShift0],a
+  ld [wLFSR0],a
+  ld [wDivider0],a
+  call SetSRegFF20
+  call SetSRegFF21
+  call SetSRegFF22
+  ;
+  xor a
+  ld a,3
+  ld [wOctave1],a
+  ld a,$f
+  ld [wVolume1],a
+  ld a,2
+  ld [wDuty1],a
+  ld a,7
+  ld [wSweep1],a
+  ld a,$3f
+  ld [wLengthTimer1],a
+  xor a
+  ld [wPace1],a
+  ld [wDir1],a
+  ld [wStep1],a
+  ld [wEnv1],a
+  ld [wNote1],a
+  call SetSRegFF10
+  call SetSRegFF11
+  call SetSRegFF12
+  call SetSRegFF1314
 
   ;Init audio registers
   ld a,%10000000
   ldh [rAUDENA],a    ; All sound on/off
   ld a,%01110111
   ldh [rAUDVOL],a    ; -LLL-RRR Output level
-  ld a,%11111111
-  ldh [rAUDTERM],a   ; Sound output terminal
   xor a
+  ldh [rAUDTERM],a   ; Sound output terminal
+  ldh [rAUD1SWEEP],a
+  ldh [rAUD1LEN],a
+  ldh [rAUD1ENV],a
   ldh [rAUD4ENV],a
+
+  call SetMode
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -161,32 +197,53 @@ MainLoop:
   mCheckJoypad
 
   ld a,[wJoypad]
-  bit JBitButtonA,a
-  jr nz,.playSound
-  bit JBitButtonB,a
-  jr nz,.stopSound
   bit JBitUp,a
   jr nz,.jUp
   bit JBitDown,a
   jr nz,.jDown
   bit JBitRight,a
+  ld c,a
+  and %00100001
+  cp $21
+  jr z,.setMode1
+  ld a,c
+  and %00100010
+  cp $22
+  jr z,.setMode0
+  ld a,c
+  bit JBitButtonA,a
+  jr nz,PlaySound
+  bit JBitButtonB,a
+  jr nz,.stopSound
   and %00000011
   jr nz,SetSoundValue
   jp ViewSoundValue
-
+.setMode0
+  xor a
+  ld [wMode],a
+  call SetMode
+  jp ViewSoundValue
+.setMode1
+  ld a,1
+  ld [wMode],a
+  call SetMode
+  jp ViewSoundValue
 .stopSound
   xor a
+  ldh [rAUD1ENV],a
   ldh [rAUD4ENV],a
   jp ViewSoundValue
 .jUp
   ld a,[wJoyPadPos]
   cp 0
   jr nz,.decPos
-  ld a,SValueMax-1
+  ld a,[wSValueMax]
   jr .setPos
 .jDown
+  ld a,[wSValueMax]
+  ld c,a
   ld a,[wJoyPadPos]
-  cp SValueMax-1
+  cp c
   jr nz,.incPos
   xor a
   jr .setPos
@@ -198,7 +255,24 @@ MainLoop:
 .setPos
   ld [wJoyPadPos],a
   jp ViewSoundValue
-.playSound
+
+PlaySound:
+  ld a,[wMode]
+  cp 0
+  jr z,.playMode0
+  ;.playMode1
+  ld a,%00010001
+  ldh [rAUDTERM],a
+  call SetSRegFF10
+  call SetSRegFF11
+  call SetSRegFF12
+  call SetSRegFF1314
+  ld a,[wFF14]
+  ldh [rAUD1HIGH],a
+  jr ViewSoundValue
+.playMode0
+  ld a,%10001000
+  ldh [rAUDTERM],a
   call SetSRegFF20
   call SetSRegFF21
   call SetSRegFF22
@@ -207,8 +281,12 @@ MainLoop:
   jr ViewSoundValue
 
 SetSoundValue:
-  ld d,HIGH(wSValueTbl)
+  ld a,[wSValueTbl]
+  ld d,a
+  ld a,[wSValueTbl+1]
+  ld e,a
   ld a,[wJoyPadPos]
+  add a,e
   ld e,a
   ld a,[wJoypad]
   bit JBitLeft,a
@@ -221,8 +299,52 @@ SetSoundValue:
   inc a
 .calc
   ld b,a
-  ld h,HIGH(SoundRegCalcTbl)
+  ld a,[wMode]
+  cp 0
+  jr z,.calcMode0
   ld a,[wJoyPadPos]
+  cp 8
+  jr c,.calcMode0
+  jr z,.calcOvtave
+  ;Note
+  ld a,b
+  cp $FF
+  jr z,.setNote6
+  cp 7
+  jr z,.setNote0
+  ld [de],a
+  jr ViewSoundValue
+.setNote0
+  xor a
+  ld [de],a
+  jr ViewSoundValue
+.setNote6
+  ld a,6
+  ld [de],a
+  jr ViewSoundValue
+.calcOvtave
+  ld a,b
+  cp 1
+  jr z,.setOctave7
+  cp 8
+  jr z,.setOctave2
+  ld [de],a
+  jr ViewSoundValue
+.setOctave2
+  ld a,2
+  ld [de],a
+  jr ViewSoundValue
+.setOctave7
+  ld a,7
+  ld [de],a
+  jr ViewSoundValue
+.calcMode0
+  ld a,[wSRegCalcTbl]
+  ld h,a
+  ld a,[wSRegCalcTbl+1]
+  ld l,a
+  ld a,[wJoyPadPos]
+  add a,l
   ld l,a
   ld c,[hl]
   ld a,b
@@ -231,16 +353,23 @@ SetSoundValue:
 
 ViewSoundValue:
   ld hl,wShadowOAM
-  ld de,wSValueTbl
+  ld a,[wSValueTbl]
+  ld d,a
+  ld a,[wSValueTbl+1]
+  ld e,a
   ld a,SValueY
   ld [wPosY],a
   ld a,SValueX
   ld [wPosX],a
-  xor a
-  ld [wAttr],a
-  ld c,SValueMax
-
-.loop
+  ld a,[wSValueMax]
+  inc a
+  ld c,a
+  ; view sound registers
+  ld a,[wMode]
+  cp 0
+  jp z,.setMode0
+  dec c
+.setMode1
   ld a,[de]
   ld [wHex],a
   call SetHexSprite
@@ -249,28 +378,98 @@ ViewSoundValue:
   add a,8
   ld [wPosY],a
   dec c
-  jr nz,.loop
-
-  ; view sound registers
-  ld a,SRegPosX
+  jr nz,.setMode1
+  ;Note
+  ld a,SValueY+8*9
+  ld [wPosY],a
+  ld a,SValueX
+  ld [wPosX],a
+  call SetNoteSprite
+  ld b,SValueY
+  ld c,SValueX+8*7
+  ld d,33
+  call setRegAddrSprite
+  ld b,SValueY+24
+  ld d,34
+  call setRegAddrSprite
+  ld b,SValueY+40
+  ld d,35
+  call setRegAddrSprite
+  ld b,SValueY+64
+  ld d,41
+  call setRegAddrSprite
+  ld b,SValueY+72
+  ld d,42
+  call setRegAddrSprite
+  ld a,SValueY
+  ld [wPosY],a
+  ld a,SValueX+8*9
+  ld [wPosX],a
+  ld a,[wFF10]
+  ld [wHex],a
+  call SetHexSprite
+  ld a,SValueY+24
+  ld [wPosY],a
+  ld a,[wFF11]
+  ld [wHex],a
+  call SetHexSprite
+  ld a,SValueY+40
+  ld [wPosY],a
+  ld a,[wFF12]
+  ld [wHex],a
+  call SetHexSprite
+  ld a,SValueY+64
+  ld [wPosY],a
+  ld a,[wFF13]
+  ld [wHex],a
+  call SetHexSprite
+  ld a,SValueY+72
+  ld [wPosY],a
+  ld a,[wFF14]
+  ld [wHex],a
+  call SetHexSprite
+  jr .selected
+.setMode0
+  ld a,[de]
+  ld [wHex],a
+  call SetHexSprite
+  inc e
+  ld a,[wPosY]
+  add a,8
+  ld [wPosY],a
+  dec c
+  jr nz,.setMode0
+  ld b,SValueY
+  ld c,SValueX+8*7
+  ld d,38
+  call setRegAddrSprite
+  ld b,SValueY+8
+  ld d,39
+  call setRegAddrSprite
+  ld b,SValueY+32
+  ld d,40
+  call setRegAddrSprite
+  ld a,SValueY
+  ld [wPosY],a
+  ld a,SValueX+8*9
   ld [wPosX],a
   ld a,[wFF20]
   ld [wHex],a
-  ld a,SReg20PosY
-  ld [wPosY],a
   call SetHexSprite
+  ld a,SValueY+8
+  ld [wPosY],a
   ld a,[wFF21]
   ld [wHex],a
-  ld a,SReg21PosY
-  ld [wPosY],a
   call SetHexSprite
+  ld a,SValueY+32
+  ld [wPosY],a
   ld a,[wFF22]
   ld [wHex],a
-  ld a,SReg22PosY
-  ld [wPosY],a
   call SetHexSprite
 
-  ;selected
+  mResetShadowOAM
+
+.selected
   ld hl,wShadowOAM+3
   ld a,[wJoyPadPos]
   rlca
@@ -290,44 +489,154 @@ ViewSoundValue:
   ld [wMainLoopFlg],a
   jp MainLoop
 
-SetSRegFF20:
-  ld a,[wLengthTimer]
-  ldh [rAUD4LEN],a
-  ld [wFF20],a
+SetMode:
+  xor a
+  ld [wJoyPadPos],a
+
+  ld a,[wMode]
+  cp 0
+  jr z,.setMode0
+  ;setMode1
+  ld a,SValueX+8*6
+  ldh [rSCX],a
+  ld a,9 ; max-1
+  ld [wSValueMax],a
+  ld a,HIGH(wSValue1Tbl)
+  ld [wSValueTbl],a
+  ld a,LOW(wSValue1Tbl)
+  ld [wSValueTbl+1],a
+  ld a,HIGH(SRegCalc1Tbl)
+  ld [wSRegCalcTbl],a
+  ld a,LOW(SRegCalc1Tbl)
+  ld [wSRegCalcTbl+1],a
+  ret
+.setMode0
+  xor a
+  ldh [rSCX],a
+  ld a,6 ; max-1
+  ld [wSValueMax],a
+  ld a,HIGH(wSValue0Tbl)
+  ld [wSValueTbl],a
+  ld a,LOW(wSValue0Tbl)
+  ld [wSValueTbl+1],a
+  ld a,HIGH(SRegCalc0Tbl)
+  ld [wSRegCalcTbl],a
+  ld a,LOW(SRegCalc0Tbl)
+  ld [wSRegCalcTbl+1],a
   ret
 
-SetSRegFF21:
-  ld a,[wVolume]
-  and %00001111
-  swap a
+SetSRegFF10:
+  ld a,[wPace1]
+  and %00000111
+  rlca
+  rlca
+  rlca
+  rlca
   ld b,a
-  ld a,[wEnv]
+  ld a,[wDir1]
   and %00000001
   rlca
   rlca
   rlca
   or b
   ld b,a
-  ld a,[wSweep]
+  ld a,[wStep1]
+  and %00000111
+  or b
+  ldh [rAUD1SWEEP],a
+  ld [wFF10],a
+  ret
+SetSRegFF11:
+  ld a,[wDuty1]
+  and %00000011
+  rrca
+  rrca
+  ld b,a
+  ld a,[wLengthTimer1]
+  and %00111111
+  or b
+  ldh [rAUD1LEN],a
+  ld [wFF11],a
+  ret
+SetSRegFF12:
+  ld a,[wVolume1]
+  and %00001111
+  rlca
+  rlca
+  rlca
+  rlca
+  ld b,a
+  ld a,[wEnv1]
+  and %00000001
+  rlca
+  rlca
+  rlca
+  or b
+  ld b,a
+  ld a,[wSweep1]
+  and %00000111
+  or b
+  ldh [rAUD1ENV],a
+  ld [wFF12],a
+  ret
+SetSRegFF1314:
+  ld hl,MusicalScalePosTbl
+  ld a,[wOctave1]
+  sub 2
+  add a,l
+  ld l,a
+  ld a,[hl]
+  ld hl,MusicalScaleTbl
+  add a,l
+  ld l,a
+  ld a,[wNote1]
+  rlca
+  add a,l
+  ld l,a
+  ld a,[hli]
+  ldh [rAUD1LOW],a
+  ld [wFF13],a
+  ld a,[hl]
+  or %10000000
+  ld [wFF14],a
+  ret
+
+SetSRegFF20:
+  ld a,[wLengthTimer0]
+  ldh [rAUD4LEN],a
+  ld [wFF20],a
+  ret
+SetSRegFF21:
+  ld a,[wVolume0]
+  and %00001111
+  swap a
+  ld b,a
+  ld a,[wEnv0]
+  and %00000001
+  rlca
+  rlca
+  rlca
+  or b
+  ld b,a
+  ld a,[wSweep0]
   and %00000111
   or b
   ldh [rAUD4ENV],a
   ld [wFF21],a
   ret
-
 SetSRegFF22:
-  ld a,[wShift]
+  ld a,[wShift0]
   and %00001111
   swap a
   ld b,a
-  ld a,[wLFSR]
+  ld a,[wLFSR0]
   and %00000001
   rlca
   rlca
   rlca
   or b
   ld b,a
-  ld a,[wDivider]
+  ld a,[wDivider0]
   and %00000111
   or b
   ldh [rAUD4POLY],a
@@ -345,6 +654,27 @@ SetOAM:
   mSetOAM
   jp MainLoop
 
+setRegAddrSprite:
+  ld a,b
+  ld [hli],a
+  ld a,c
+  ld [hli],a
+  ld a,32 ; FF
+  ld [hli],a
+  xor a
+  ld [hli],a
+  ;
+  ld a,b
+  ld [hli],a
+  ld a,c
+  add a,8
+  ld [hli],a
+  ld a,d
+  ld [hli],a
+  xor a
+  ld [hli],a
+  ret
+
 SetHexSprite:
   ;0x
   ld a,[wPosY]
@@ -355,7 +685,7 @@ SetHexSprite:
   ld a,[wHex]
   and %00001111
   ld [hli],a ; Tile Index
-  ld a,[wAttr]
+  xor a
   ld [hli],a ; Attributes/Flags
   ;x0
   ld a,[wPosY]
@@ -366,7 +696,28 @@ SetHexSprite:
   and %11110000
   swap a
   ld [hli],a
-  ld a,[wAttr]
+  xor a
+  ld [hli],a
+  ret
+SetNoteSprite:
+  ;0x
+  ld a,[wPosY]
+  ld [hli],a
+  ld a,[wPosX]
+  add a,4
+  ld [hli],a
+  ld a,[de]
+  add a,$10
+  ld [hli],a
+  xor a
+  ld [hli],a
+  ;x0
+  ld a,[wPosY]
+  ld [hli],a
+  ld a,[wPosX]
+  ld [hli],a
+  xor a
+  ld [hli],a
   ld [hli],a
   ret
 
