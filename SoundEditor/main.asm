@@ -269,7 +269,7 @@ PlaySound:
   call SetSRegFF1314
   ld a,[wFF14]
   ldh [rAUD1HIGH],a
-  jr ViewSoundValue
+  jp ViewSoundValue
 .playMode0
   ld a,%10001000
   ldh [rAUDTERM],a
@@ -317,10 +317,20 @@ SetSoundValue:
 .setNote0
   xor a
   ld [de],a
+  ld a,[wOctave1]
+  inc a
+  cp 8
+  jr z,ViewSoundValue
+  ld [wOctave1],a
   jr ViewSoundValue
 .setNote6
   ld a,6
   ld [de],a
+  ld a,[wOctave1]
+  dec a
+  cp 1
+  jr z,ViewSoundValue
+  ld [wOctave1],a
   jr ViewSoundValue
 .calcOvtave
   ld a,b
@@ -367,123 +377,111 @@ ViewSoundValue:
   ; view sound registers
   ld a,[wMode]
   cp 0
-  jp z,.setMode0
+  jp z,.mode0
   dec c
-.setMode1
+.mode1
   ld a,[de]
   ld [wHex],a
-  call SetHexSprite
+  ld a,c
+  cp 5
+  jr nz,.mode1SetSprite0x
+  call SetHexSprite00
+  jr .mode1Next
+.mode1SetSprite0x
+  call SetHexSprite0x
+.mode1Next
   inc e
   ld a,[wPosY]
   add a,8
   ld [wPosY],a
   dec c
-  jr nz,.setMode1
+  jr nz,.mode1
   ;Note
   ld a,SValueY+8*9
   ld [wPosY],a
   ld a,SValueX
   ld [wPosX],a
   call SetNoteSprite
-  ld b,SValueY
-  ld c,SValueX+8*7
-  ld d,33
-  call setRegAddrSprite
-  ld b,SValueY+24
-  ld d,34
-  call setRegAddrSprite
-  ld b,SValueY+40
-  ld d,35
-  call setRegAddrSprite
-  ld b,SValueY+64
-  ld d,41
-  call setRegAddrSprite
-  ld b,SValueY+72
-  ld d,42
-  call setRegAddrSprite
   ld a,SValueY
   ld [wPosY],a
   ld a,SValueX+8*9
   ld [wPosX],a
   ld a,[wFF10]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+24
   ld [wPosY],a
   ld a,[wFF11]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+40
   ld [wPosY],a
   ld a,[wFF12]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+64
   ld [wPosY],a
   ld a,[wFF13]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+72
   ld [wPosY],a
   ld a,[wFF14]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   jr .selected
-.setMode0
+.mode0
   ld a,[de]
   ld [wHex],a
-  call SetHexSprite
+  ld a,c
+  cp 7
+  jr nz,.mode0SetSprite0x
+  call z,SetHexSprite00
+  jr .mode0Next
+.mode0SetSprite0x
+  call SetHexSprite0x
+.mode0Next
   inc e
   ld a,[wPosY]
   add a,8
   ld [wPosY],a
   dec c
-  jr nz,.setMode0
-  ld b,SValueY
-  ld c,SValueX+8*7
-  ld d,38
-  call setRegAddrSprite
-  ld b,SValueY+8
-  ld d,39
-  call setRegAddrSprite
-  ld b,SValueY+32
-  ld d,40
-  call setRegAddrSprite
+  jr nz,.mode0
   ld a,SValueY
   ld [wPosY],a
   ld a,SValueX+8*9
   ld [wPosX],a
   ld a,[wFF20]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+8
   ld [wPosY],a
   ld a,[wFF21]
   ld [wHex],a
-  call SetHexSprite
+  call SetHexSprite00
   ld a,SValueY+32
   ld [wPosY],a
   ld a,[wFF22]
   ld [wHex],a
-  call SetHexSprite
-
-  mResetShadowOAM
+  call SetHexSprite00
 
 .selected
-  ld hl,wShadowOAM+3
+  ld a,SValueY
+  ld c,a
   ld a,[wJoyPadPos]
   rlca
   rlca
   rlca
-  add a,l
-  ld l,a
-  ld a,1
-  ld [hl],a
-  ld a,l
-  add a,4
-  ld l,a
-  ld a,1
-  ld [hl],a
+  add a,c
+  ld [hli],a
+  ld a,SValueX
+  ld [hli],a
+  ld a,23
+  ld [hli],a
+  xor a
+  ld [hli],a
+
+  mResetShadowOAM
 
   ld a,1
   ld [wMainLoopFlg],a
@@ -509,6 +507,35 @@ SetMode:
   ld [wSRegCalcTbl],a
   ld a,LOW(SRegCalc1Tbl)
   ld [wSRegCalcTbl+1],a
+
+  call ResetWin
+  xor a
+	ldh [rVBK],a
+	ld hl,RegAddrPos
+  ld a,0
+  ld [hli],a
+  ld a,1
+  ld [hl],a
+	ld hl,RegAddrPos+32*3
+  ld a,0
+  ld [hli],a
+  ld a,2
+  ld [hl],a
+	ld hl,RegAddrPos+32*5
+  ld a,0
+  ld [hli],a
+  ld a,3
+  ld [hl],a
+	ld hl,RegAddrPos+32*8
+  ld a,0
+  ld [hli],a
+  ld a,4
+  ld [hl],a
+	ld hl,RegAddrPos+32*9
+  ld a,0
+  ld [hli],a
+  ld a,5
+  ld [hl],a
   ret
 .setMode0
   xor a
@@ -523,6 +550,38 @@ SetMode:
   ld [wSRegCalcTbl],a
   ld a,LOW(SRegCalc0Tbl)
   ld [wSRegCalcTbl+1],a
+
+  call ResetWin
+  xor a
+	ldh [rVBK],a
+	ld hl,RegAddrPos
+  ld a,0
+  ld [hli],a
+  ld a,8
+  ld [hl],a
+	ld hl,RegAddrPos+32
+  ld a,0
+  ld [hli],a
+  ld a,9
+  ld [hl],a
+	ld hl,RegAddrPos+32*4
+  ld a,0
+  ld [hli],a
+  ld a,10
+  ld [hl],a
+  ret
+
+ResetWin:
+  ld a,47
+  ld de,31
+  ld c,10
+  ld hl,RegAddrPos
+.loop
+  ld [hli],a
+  ld [hl],a
+  add hl,de
+  dec c
+  jr nz,.loop
   ret
 
 SetSRegFF10:
@@ -654,47 +713,27 @@ SetOAM:
   mSetOAM
   jp MainLoop
 
-setRegAddrSprite:
-  ld a,b
-  ld [hli],a
-  ld a,c
-  ld [hli],a
-  ld a,32 ; FF
-  ld [hli],a
-  xor a
-  ld [hli],a
-  ;
-  ld a,b
-  ld [hli],a
-  ld a,c
-  add a,8
-  ld [hli],a
-  ld a,d
-  ld [hli],a
-  xor a
-  ld [hli],a
-  ret
-
-SetHexSprite:
-  ;0x
-  ld a,[wPosY]
-  ld [hli],a ; Y Position
-  ld a,[wPosX]
-  add a,4
-  ld [hli],a ; X Position
-  ld a,[wHex]
-  and %00001111
-  ld [hli],a ; Tile Index
-  xor a
-  ld [hli],a ; Attributes/Flags
+SetHexSprite00:
   ;x0
   ld a,[wPosY]
   ld [hli],a
   ld a,[wPosX]
+  sub 4
   ld [hli],a
   ld a,[wHex]
   and %11110000
   swap a
+  ld [hli],a
+  xor a
+  ld [hli],a
+SetHexSprite0x:
+  ;0x
+  ld a,[wPosY]
+  ld [hli],a
+  ld a,[wPosX]
+  ld [hli],a
+  ld a,[wHex]
+  and %00001111
   ld [hli],a
   xor a
   ld [hli],a
@@ -704,20 +743,11 @@ SetNoteSprite:
   ld a,[wPosY]
   ld [hli],a
   ld a,[wPosX]
-  add a,4
   ld [hli],a
   ld a,[de]
   add a,$10
   ld [hli],a
   xor a
-  ld [hli],a
-  ;x0
-  ld a,[wPosY]
-  ld [hli],a
-  ld a,[wPosX]
-  ld [hli],a
-  xor a
-  ld [hli],a
   ld [hli],a
   ret
 
