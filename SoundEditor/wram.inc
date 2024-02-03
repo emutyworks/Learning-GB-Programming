@@ -17,6 +17,10 @@ wFF11: ds 1
 wFF12: ds 1
 wFF13: ds 1
 wFF14: ds 1
+wFF1B: ds 1
+wFF1C: ds 1
+wFF1D: ds 1
+wFF1E: ds 1
 wFF20: ds 1
 wFF21: ds 1
 wFF22: ds 1
@@ -25,6 +29,7 @@ wFF22: ds 1
 wSValueTbl: ds 2
 wSRegCalcTbl: ds 2
 wSValueMax: ds 1
+wPlayFlg: ds 1
 
 wSValue0Tbl:
 wLengthTimer0: ds 1
@@ -46,6 +51,19 @@ wEnv1: ds 1
 wSweep1: ds 1
 wOctave1: ds 1
 wNote1: ds 1
+
+wSValue2Tbl:
+wLengthTimer2: ds 1
+wLevel2: ds 1
+wOctave2: ds 1
+wNote2: ds 1
+wWaveCur: ds 1
+wWave2GraphAddrL: ds 1
+
+SECTION "Wave Num",WRAM0[$C1E0]
+wWave2Num: ds Wave2NumMax
+SECTION "Wave Graph",WRAM0[$C200]
+wWave2Graph: ds Wave2GraphMax
 
 SECTION "HRAM Variables",HRAM
 hOAMDMA:

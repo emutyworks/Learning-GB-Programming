@@ -82,3 +82,39 @@ MACRO mResetShadowOAM
   jr nz,.loop\@
 .skip\@
 ENDM
+
+MACRO mSetWaveGraphDot
+  ;left dot
+  ld a,[de]
+  bit 0,a
+  jr nz,.upperLDot\@
+  ld b,%00000100
+  jr .setLdot\@
+.upperLDot\@
+  ld b,%00001000
+.setLdot\@
+  and %00001110
+  rrca
+  add a,l
+  ld l,a
+  ld [hl],b
+  ;right dot
+  inc e
+  ld a,[wWave2GraphAddrL]
+  ld l,a
+  ld a,[de]
+  bit 0,a
+  jr nz,.upperRDot\@
+  ld b,%00000001
+  jr .setRdot\@
+.upperRDot\@
+  ld b,%00000010
+.setRdot\@
+  and %00001110
+  rrca
+  add a,l
+  ld l,a
+  ld a,[hl]
+  or b
+  ld [hl],a
+ENDM

@@ -16,6 +16,9 @@ SRegCalc1Tbl:
   db %00001111 ; FF12 %7654xxxx Initial volume
   db %00000001 ;      %xxxx3xxx Env dir
   db %00000111 ;      %xxxxx210 Sweep pace
+SRegCalc2Tbl:
+  db %11111111 ; FF1B %76543210 Initial length timer
+  db %00000011 ; FF1C %x65xxxxx Output level
 
 MusicalScaleTbl:
   db %00101100,%000 ; C2
@@ -94,9 +97,17 @@ MusicalScaleTbl:
 MusicalScalePosTbl:
   db 0,14,28,42,56,70
 
+WaveInitData:
+  db $7d,$b8,$bd,$a7,$bf,$d8,$ab,$73,$7c,$73,$46,$20,$37,$41,$36,$31
+
 BGPalette:
   dw 0
   dw 31
+  dw 25492
+  dw 32767
+
+  dw 0
+  dw 1023
   dw 25492
   dw 32767
 
@@ -119,6 +130,12 @@ Tiles:
   INCBIN "tiles.bin"
 TilesEnd:
 
+; - This data creation command.
+; php conv.php
+;
+; <input> map_editor.txt (https://github.com/emutyworks/GBCMapEditor/wiki)
+; <output> bg_tile0.inc, bg_tile1.inc
+;
 BgTileMap0: ; Tile Indexes
   INCLUDE "bg_tile0.inc"
 BgTileMap0End:
@@ -126,6 +143,11 @@ BgTileMap1: ; BG Map Attributes
   INCLUDE "bg_tile1.inc"
 BgTileMap1End:
 
+; php conv.php _win
+;
+; <input> map_editor_win.txt (https://github.com/emutyworks/GBCMapEditor/wiki)
+; <output> bg_tile_win0.inc, bg_tile_win1.inc
+;
 BgTileMapWin0:
   INCLUDE "bg_tile_win0.inc"
 BgTileMapWin0End:
