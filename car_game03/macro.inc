@@ -114,22 +114,22 @@ REPT ScrollBgSize
 ENDR
 ENDM
 
-;MACRO mCalcWRoadY
-;  ld hl,wRoadYUD
-;  ld de,wRoadY
-;REPT ScrollRoadSize-1
-;  ld c,[hl]
-;  ld a,[de]
-;  add a,c
-;  ld [de],a
-;  inc l
-;  inc e
-;ENDR
-;  ld c,[hl]
-;  ld a,[de]
-;  add a,c
-;  ld [de],a
-;ENDM
+MACRO mCalcWRoadY
+  ld hl,wRoadYUD
+  ld de,wRoadY
+REPT ScrollRoadSize-1
+  ld c,[hl]
+  ld a,[de]
+  add a,c
+  ld [de],a
+  inc l
+  inc e
+ENDR
+  ld c,[hl]
+  ld a,[de]
+  add a,c
+  ld [de],a
+ENDM
 
 MACRO mCalcWSCX
   ld de,wRoadX
@@ -269,11 +269,11 @@ MACRO mSetEngineSound
   add a,l
   ld l,a
   ld a,[hli]
-  ldh [$FF1C],a ; Output level
+  ldh [rAUD3LEVEL],a ; Output level
   ld a,[hli]
-  ldh [$FF1D],a ; Frequency low
+  ldh [rAUD3LOW],a ; Frequency low
   ld a,[hl]
-  ldh [$FF1E],a ; Frequency hi
+  ldh [rAUD3HIGH],a ; Frequency hi
 .exit\@
 ENDM
 
@@ -288,4 +288,27 @@ MACRO mSetRivalCarSprite
   ld [wRivalPal],a
   call SetRivalCarSprite
 .skip\@
+ENDM
+
+MACRO mSetPalette
+  ld a,[hli]
+  ld [de],a
+  ld a,[hli]
+  ld [de],a
+ENDM
+
+MACRO mJpScenario
+  ld a,[wSPoint]
+  ld l,a
+  ld a,[wSPoint+1]
+  ld h,a
+  jp hl
+ENDM
+
+MACRO mSetLCDC
+  ld a,LCDCF_ON|LCDCF_OBJON|LCDCF_BGON|LCDCF_WIN9C00|LCDCF_OBJ16
+ENDM
+
+MACRO mSetLCDCWin
+  ld a,LCDCF_ON|LCDCF_OBJON|LCDCF_BGON|LCDCF_WINON|LCDCF_WIN9C00|LCDCF_OBJ16
 ENDM

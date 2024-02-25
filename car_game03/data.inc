@@ -28,25 +28,6 @@ ScrollPosTbl:
   db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
   db S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1,S0
 
-;SECTION "HBlank Scroll Up/Down Table",ROM0[$2100]
-;ScrollUpDnTbl:
-;  ;0
-;  db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-;  db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-;  ;1
-;  db -1,-2,-3,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-1,-1,-1
-;  db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
-;  ;2
-;  db -1,-2,-3,-4,-5,-6,-7,-8,-8,-8,-8,-7,-7,-6,-6,-5
-;  db -5,-4,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0
-;  ;3
-;  db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-12,-12,-12,-11
-;  db -11,-10,-9,-8,-7,-6,-5,-5,-3,-3,-2,-2,-1,-1,0,0
-;  ;4
-;  db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
-;  db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
-;  ;96
-
 SECTION "HBlank Scroll Left Table",ROM0[$2100]
 ScrollLeftTbl:
   ;0
@@ -241,9 +222,34 @@ CounterDBGTbl:
   db 76,70 ;9
   ;236
 
-SECTION "Scenario Table",ROM0[$2700]
+SECTION "BG Palette Table1",ROM0[$2800]
+BGPaletteTbl1:
+  dw $5b9e,$7ab4,$4ede,$01f9 ,$5b9e,$16de,$16de,$01f9
+  dw $5b7f,$7ada,$4ede,$01f9 ,$5b7f,$16de,$16de,$01f9
+  dw $675f,$6ade,$4ede,$01f9 ,$675f,$16de,$16de,$01f9
+  dw $6b5c,$4e37,$4ede,$01f9 ,$6b5c,$16de,$16de,$01f9
+  dw $5af9,$460c,$4ede,$01f9 ,$5af9,$16de,$16de,$01f9
+  dw $0000,$0000,$0000,$0000 ,$0000,$16de,$16de,$0000
+  ;160
+
+SECTION "BG Palette Table2",ROM0[$2900]
+BGPaletteTbl2:
+  dw $5b9e,$7ab4,$4ede,$01f9 ,$675b,$7fff,$56b5,$4e73
+  dw $5b7f,$7ada,$4ede,$01f9 ,$56d7,$7fff,$56b5,$4e73
+  dw $675f,$6ade,$4ede,$01f9 ,$4a74,$7fff,$56b5,$4e73
+  dw $6b5c,$4e37,$4ede,$01f9 ,$39f4,$7fff,$56b5,$4e73
+  dw $5af9,$460c,$4ede,$01f9 ,$254b,$7fff,$56b5,$4e73
+  dw $0000,$0000,$0000,$0000 ,$0000,$7fff,$56b5,$0000
+  ;160
+
+SECTION "Scenario Table",ROM0[$3000]
 ;Scenario Pattern
 SPRC EQU SetSPRivalCar   ; Set Rival Car
+SPPL EQU SetSPPalette    ; Set BG/Obj Set Palette 
+SPP1 EQU SetSPPalChange1 ; Set BG/Obj Palette Change Bright->Dark
+SPP2 EQU SetSPPalChange2 ;
+SPP3 EQU SetSPPalChange3 ;
+SPP4 EQU SetSPPalChange4 ; Set BG/Obj Palette Change Dark->Bright
 ;Road Pattern
 RPTL EQU SetRoadPLeft    ; Turn Left
 RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
@@ -252,38 +258,145 @@ RPRS EQU SetRoadPRightSt ; Turn Right->Straight
 RPBU EQU SetRoadPBgUp    ; BG Up
 RPBD EQU SetRoadPBgDown  ; BG Down
 RPWT EQU SetRoadPWait    ; Wait
-;RPUD EQU SetRoadPUpDown ; Up/Down
 
 ScenarioTbl:
-  ;SPRC: addr,palette(H8)|x(L8) + $01
-  ;RPxx: addr,wait(16)|cnt(16)
-  dw RPWT,$3001
-  dw RPWT,$6401 ;start
+  ;SPRC: addr,palette(H8)|x(L8)|$01
+  ;SPPL: addr,palette(16)|$01
+  ;SPPA,RPxx: addr,wait(16)|cnt(16)
+
+  ; Set Palette Test
+  ;dw RPWT,$2001
+  ;dw SPPL,$0101 ;start
+  ;dw RPWT,$2001
+  ;dw SPPL,$0001
+
+  ; Turn Test
+  ;dw RPWT,$1001
+  ;dw RPTR,$0430 ;start
+  ;dw RPRS,$0408
+  ;dw RPWT,$7f01
+
+  ;Palette Change Test 1
+  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
+  ;dw SPPL,$0101
+  ;dw RPWT,$6001
+  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
+  ;dw SPP2,$0500+SPP23Cnt
+  ;dw RPWT,$ff01
+  ;dw SPPL,$0101
+  ;dw SPP3,$0500+SPP23Cnt
+
+  ;Palette Change Test 2
+  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
+  ;dw SPPL,$0101
+  ;dw RPWT,$6001
+  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
+  ;dw SPP2,$0500+SPP23Cnt
+  ;dw RPWT,$ff01
+  ;dw SPPL,$0001
+  ;dw SPP3,$0500+SPP23Cnt
+  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
+  ;dw RPWT,$ff01
+  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
+  ;dw SPP2,$0500+SPP23Cnt
+  ;dw RPWT,$ff01
+  ;dw RPWT,$0301
+  ;dw SPPL,$0101
+  ;dw SPP3,$0500+SPP23Cnt
+
+
+
+  dw RPWT,$0101
+  dw SPPL,$0001 ;start
+  dw RPWT,$ff01
   dw SPRC,$1601
-  dw RPWT,$6401
+  dw RPWT,$ff01
+  dw SPRC,$1C01
   dw RPTL,$0450
   dw RPLS,$0408
-  dw SPRC,$1C01
   dw SPRC,$0601
+  dw RPWT,$7f01
+
   dw RPTR,$0450
   dw RPRS,$0408
-  dw SPRC,$1C01
-  dw SPRC,$0801
   dw RPBD,$0a18
+  dw SPP1,$3200+SPP14Cnt ;SPPADark
+  dw SPP2,$0500+SPP23Cnt
+  dw RPWT,$1001
   dw SPRC,$1901
+  dw RPWT,$6401
+  dw SPRC,$0601
+  dw RPWT,$6401
+
+  dw SPRC,$1C01
+  dw RPWT,$ff01
+  dw SPPL,$0101
+  dw SPP3,$0500+SPP23Cnt
+  dw SPP4,$3200+SPP14Cnt ;SPPABright
+  dw RPWT,$3001
+  dw SPRC,$1C01
+  dw RPTL,$0450
+  dw RPLS,$0408
+  dw RPWT,$3001 ;30
+
   dw SPRC,$0C01
-  dw RPBU,$0a18
+  dw RPTR,$0450
+  dw RPRS,$0408
+  dw RPWT,$3001
+  dw SPP1,$3200+SPP14Cnt ;SPPADark
+  dw SPP2,$0500+SPP23Cnt
+  dw RPWT,$1001
+  dw SPRC,$1C01
+  dw RPWT,$6401
+  dw SPRC,$0401
+
+  dw RPWT,$6401
+  dw SPRC,$1901
+  dw RPWT,$ff01
+  dw SPPL,$0001
+  dw SPP3,$0500+SPP23Cnt
+  dw SPP4,$3200+SPP14Cnt ;SPPABright
+  dw RPWT,$3001
+  dw SPRC,$0C01
+  dw RPBU,$0a03
+  dw RPWT,$1001
+
+  dw RPBU,$0a03
+  dw RPWT,$1001
+  dw RPBU,$0a03
+  dw RPWT,$1001
+  dw RPBU,$0a04
+  dw RPWT,$1001
+  dw RPBU,$0a05
+  dw RPWT,$1001
+  dw RPBU,$0a06
+  dw RPWT,$1001 ;60
+
+  dw RPWT,$3001
+  dw RPWT,$0101
+  dw RPWT,$0101
+  dw RPWT,$0101
 
 BGPalette:
-  dw 23454
-  dw 31412
-  dw 5854
-  dw 505
+	dw 0
+	dw 0
+	dw 0
+	dw 0
 
-  dw 23454
-  dw 31412
-  dw 5854
-  dw 20190
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+
+	dw 0
+	dw 0
+	dw 0
+	dw 0
+
+	dw 0
+	dw 0
+	dw 0
+	dw 0
 
   dw 0
   dw 32767
@@ -294,11 +407,6 @@ BGPalette:
   dw 15680
   dw 25492
   dw 32767
-
-  dw 0
-  dw 8456
-  dw 32767
-  dw 1023
 
 ObjPalette:
   dw 15134
@@ -341,3 +449,16 @@ BgTileMap0End:
 BgTileMap1: ; BG Map Attributes
   INCBIN "bg_tile1_comp.bin"
 BgTileMap1End:
+
+; php conv.php _win
+;
+; <input> map_editor_win.txt (https://github.com/emutyworks/GBCMapEditor/wiki)
+; <output> bg_tile_win0.inc, bg_tile_win1.inc
+;
+;BgTileMapWin0:
+;  INCLUDE "bg_tile_win0.inc"
+;BgTileMapWin0End:
+;
+;BgTileMapWin1:
+;  INCLUDE "bg_tile_win1.inc"
+;BgTileMapWin1End:

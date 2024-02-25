@@ -7,8 +7,11 @@ wJoypadWait: ds 1
 wRoadPTbl: ds 1
 wRoadPCnt: ds 1
 wRoadPWait: ds 1
+wRoadPWork: ds 1
 wRoadPLRCnt: ds 1
 wRoadPos: ds 1
+wRoadPPalH: ds 1
+wRoadPPalL: ds 1
 wSPoint: ds 2
 wSParam: ds 1
 wJoypad: ds 1
@@ -47,13 +50,17 @@ wRivalTblX: ds 4
 wRivalTblPal: ds 4
 ;244
 
+;SECTION "rWY Table",WRAM0[$C200]
+;wWY: ds 154
+;102
+
 SECTION "rSCY Table",WRAM0[$C200]
 wSCY: ds 55
 wBgY: ds ScrollBgSize ;24
 wRoadY: ds ScrollRoadSize ;32
 ds 43 ;154
 
-;wRoadYUD: ds ScrollRoadSize ;32
+wRoadYUD: ds ScrollRoadSize ;32
 ;70
 
 SECTION "rSCX Table",WRAM0[$C300]

@@ -14,10 +14,10 @@ $in_rows = explode("\n",$in_file);
 $out = null;
 $out_flg = false;
 for($i=0; $i<count($in_rows); $i++){
-  if(mb_strpos($in_rows[$i],"ShowGrid")!=false){
+  if(strpos($in_rows[$i],"ShowGrid")!=false){
     $out_flg = true;
   }elseif($out_flg){
-    if(mb_strpos($in_rows[$i],"AttributesTbl")!=false){
+    if(strpos($in_rows[$i],"AttributesTbl")!=false){
       $out_array = explode(",",$out);
       $bin = null;
       for($j=0; $j<count($out_array)-1; $j++){

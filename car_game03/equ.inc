@@ -22,6 +22,7 @@ GearLow        EQU 0
 GearLowY       EQU 145
 GearLowShift   EQU 4
 
+;StartBgScrollY EQU -8*4
 StartBgScrollY EQU 0
 JoypadWait     EQU 7
 JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
@@ -31,5 +32,9 @@ ScrollBgSize   EQU 8*3
 ScrollRoadSize EQU 8*4
 ScrollMaxSize  EQU 154
 
-BGPaletteCnt   EQU 4*5
-ObjPaletteCnt  EQU 4*2
+;Scenario Pattern
+SPP14Cnt       EQU 7
+SPP23Cnt       EQU 16
+
+;SideWinhidden  EQU 8*5+3
+;SideWinHeight  EQU ScrollMaxSize-SideWinhidden

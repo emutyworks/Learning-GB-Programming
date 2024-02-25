@@ -40,10 +40,14 @@ HBlankHandler:
   push hl
   ldh a,[rLY]
   ld l,a
+  ;ld h,HIGH(wWY)
+  ;ld a,[hl]
+  ;ldh [rLCDC],a
   ld h,HIGH(wSCY)
+  ;inc h ;wSCY
   ld a,[hl]
   ldh [rSCY],a
-  ld h,HIGH(wSCX)
+  inc h ;wSCX
   ld a,[hl]
   ldh [rSCX],a
   pop hl
@@ -67,17 +71,22 @@ Start:
   mWaitVBlank
 
   ; Set BG Palette
-  ld a,%10000000 ; Palette 0, Auto increment after writing
+  ld a,%10000000
   ldh [rBCPS],a
-  ld c,BGPaletteCnt
-  ld hl,BGPalette
+  ld c,4*2
+  ld hl,BGPaletteTbl1
   ld de,rBCPD
+  call SetPalette
+  ld a,%10010000
+  ldh [rBCPS],a
+  ld c,4*6
+  ld hl,BGPalette
   call SetPalette
 
   ; Set Object Palette
   ld a,%10000000
   ldh [rOCPS],a
-  ld c,ObjPaletteCnt
+  ld c,4*2
   ld hl,ObjPalette
   ld de,rOCPD
   call SetPalette
@@ -90,14 +99,19 @@ Start:
   ldh [rSVBK],a
   ldh [rSCY],a
   ldh [rSCX],a
+  ldh [rWY],a
+  ldh [rWX],a
   ld [wJoypad],a
   ld [wJoyPadPos],a
   ld [wJoypadWait],a
   ld [wRoadPTbl],a
   ld [wRoadPCnt],a
   ld [wRoadPWait],a
+  ld [wRoadPWork],a
   ld [wRoadPLRCnt],a
   ld [wRoadPos],a
+  ld [wRoadPPalH],a
+  ld [wRoadPPalL],a
   ld [wSPoint],a
   ld [wSPoint+1],a
   ld [wSParam],a
@@ -147,14 +161,22 @@ Start:
   ld de,BgTileMap1
   ld bc,BgTileMap1End-1
   call CopyDecompressionData
+  ;ld hl,_SCRN1
+  ;ld de,BgTileMapWin1
+  ;ld bc,BgTileMapWin1End - BgTileMapWin1
+  ;call CopyData
   xor a
   ldh [rVBK],a ; Tile Indexes
   ld hl,_SCRN0
   ld de,BgTileMap0
   ld bc,BgTileMap0End-1
   call CopyDecompressionData
+  ;ld hl,_SCRN1
+  ;ld de,BgTileMapWin0
+  ;ld bc,BgTileMapWin0End - BgTileMapWin0
+  ;call CopyData
 
-  ld a,LCDCF_ON|LCDCB_BLKS|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
+  mSetLCDC
   ldh [rLCDC],a
 
   mInitwShadowOAM
@@ -178,9 +200,9 @@ Start:
   ld hl,wSCX
   ld c,ScrollMaxSize
   call SetWRam
-  ;ld hl,wRoadYUD
-  ;ld c,ScrollRoadSize
-  ;call SetWRam
+  ld hl,wRoadYUD
+  ld c,ScrollRoadSize
+  call SetWRam
   ld hl,wRoadXLR
   ld c,ScrollRoadSize
   call SetWRam
@@ -190,6 +212,14 @@ Start:
   ld hl,wRivalTblZ
   ld c,4*3
   call SetWRam
+  ;mSetLCDCWin
+  ;ld hl,wWY
+  ;ld c,SideWinHeight
+  ;call SetWRam
+  ;mSetLCDC
+  ;ld hl,wWY+SideWinHeight
+  ;ld c,SideWinhidden
+  ;call SetWRam
 
   ; Set Work RAM
   ld a,StartBgScrollY
@@ -208,12 +238,12 @@ Start:
   call SetWRam
 
   ; Set Sound
-  ld a,%00010001 ; -LLL-RRR Channel volume
-  ldh [$FF24],a
-  ld a,%11111111 ; Channel Sound output terminal
-  ldh [$FF25],a
-  ld a,%10000000 ; Sound on/off
-  ldh [$FF26],a
+  ld a,%00010001 ; -LLL-RRR Output level
+  ldh [rAUDVOL],a
+  ld a,%11111111 ; Sound output terminal
+  ldh [rAUDTERM],a
+  ld a,%10000000 ; All sound on/off
+  ldh [rAUDENA],a
 
   ; Set Wave Data
   ld hl,$FF30
@@ -221,15 +251,24 @@ Start:
   ld bc,WaveDataEnd - WaveData
   call CopyData
 
-  ld a,%10000000 ; Wave Output on/off
-  ldh [$FF1A],a
+  ld a,%10000000 ; Wave sound on/off
+  ldh [rAUD3ENA],a
   ld a,$FF ; Sound Length
-  ldh [$FF1B],a
+  ldh [rAUD3LEN],a
 
   ld a,GearHiY
   ld [wCarGearY],a
   ld a,GearHi
   ld [wCarGear],a
+
+  ;debug
+  ;ld a,5
+  ;ld [wCarShift],a
+  ;
+  ;ld a,8*10
+  ;ldh [rWY],a
+  ;ld a,SBX+8*11
+  ;ldh [rWX],a
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -358,11 +397,7 @@ SetSpeed:
   ld [wCarCForce],a
 
   mInitWRoadXLR
-  ld a,[wSPoint]
-  ld l,a
-  ld a,[wSPoint+1]
-  ld h,a
-  jp hl
+  mJpScenario
 
 SetSPRivalCar:
   ld a,[wRivalTbl]
@@ -392,21 +427,103 @@ SetSPRivalCar:
   ld [hl],a ;pal
   jp SetRoadPos
 
+SetSPPalChange2:
+  ld b,2
+  jr SetSPPalChange23
+SetSPPalChange3:
+  ld b,3
+SetSPPalChange23:
+  ld a,[wRoadPCnt]
+  cp 0
+  jr z,.exit
+  ld a,[wRoadPWork]
+  ld c,a
+  ld hl,wRoadYUD
+  add a,l
+  ld l,a
+  ld a,b
+  cp 2
+  jr z,.set2
+  xor a
+  ld [hl],a
+  dec c
+  jr .next
+.set2
+  ld a,-1
+  sub c
+  ld [hl],a
+  inc c
+.next
+  ld a,c
+  ld [wRoadPWork],a
+  jp SetRoadPWait
+.exit
+  ld a,b
+  cp 2
+  jr z,.exit2
+  ld a,SPP14Cnt-2
+  jr .setWork
+.exit2
+  ld a,SPP14Cnt-2
+  ld [wRoadPPalL],a
+  ld a,SPP23Cnt-2
+.setWork
+  ld [wRoadPWork],a
+  jp SetRoadPWait
+
+SetSPPalette:
+  ld b,0
+  ld a,[wSParam]
+  add a,HIGH(BGPaletteTbl1)
+  ld [wRoadPPalH],a
+  jr SetSPSetPalette
+SetSPPalChange1:
+  ld b,1
+  jr SetSPPalChange14
+SetSPPalChange4:
+  ld b,4
+SetSPPalChange14:
+  ld a,[wRoadPCnt]
+  cp 0
+  jr z,ResetWRoadPWork
+SetSPSetPalette:
+  ld a,[wRoadPPalH]
+  ld h,a
+  ld a,[wRoadPPalL]
+  ld c,a
+  rlca
+  rlca
+  rlca
+  rlca
+  ld l,a
+  ld a,%10000000
+  ldh [rBCPS],a
+  ld de,rBCPD
+REPT 8
+  mSetPalette
+ENDR
+  ld a,b
+  cp 0
+  jp z,SetRoadPos
+  cp 1
+  jr z,.inc
+  dec c
+  jr .next
+.inc
+  inc c
+.next
+  ld a,c
+  ld [wRoadPPalL],a
+  jr SetRoadPWait
+
+ResetWRoadPWork:
+  xor a
+  ld [wRoadPWork],a
+  ld [wRoadPPalL],a
 SetRoadPWait:
   ld a,[wSParam]
   ld [wRoadPWait],a
   jp SetRoadPos
-
-;SetRoadPUpDown:
-;  ld a,[wRoadPNum]
-;  rrca
-;  rrca
-;  rrca
-;  ld h,HIGH(ScrollUpDnTbl)
-;  ld l,a
-;  ld de,wRoadYUD
-;  mCopyScrollRoad
-;  jr SetRoadPWait
 
 SetRoadPLeft:
   mSetCarCForceL
@@ -497,7 +614,8 @@ SetRoadPBgDown:
 SetScenarioTbl:
   ld a,[wRoadPTbl]
   inc a
-  and %00001111
+  ;and %00011111 ;debug
+  and %00111111
   ld [wRoadPTbl],a
   rlca
   rlca
@@ -522,7 +640,7 @@ SetRoadPos:
   ld l,a
   ld de,wRoadY
   mCopyScrollRoad
-  ;mCalcWRoadY
+  mCalcWRoadY
 
   xor a
   ld [wAddScroll],a
@@ -621,7 +739,7 @@ CheckButton:
   ld a,[wCarShift]
   cp 0
   jr z,.setShift
-  dec a
+  dec a ;debug
   ld [wCarShift],a
   jr .setShift
 
@@ -939,10 +1057,7 @@ SetWRam:
 
 SetPalette:
 .loop
-  ld a,[hli]
-  ld [de],a
-  ld a,[hli]
-  ld [de],a
+  mSetPalette
   dec c
   jr nz,.loop
   ret
