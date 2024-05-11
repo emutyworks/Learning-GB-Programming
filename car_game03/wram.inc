@@ -1,7 +1,8 @@
 SECTION "Shadow OAM",WRAM0[$C000]
 wShadowOAM: ds 4*40 ; This is the buffer we'll write sprite data to
 
-;State
+State:
+wJoypad: ds 1
 wJoyPadPos: ds 1
 wJoypadWait: ds 1
 wRoadPTbl: ds 1
@@ -14,7 +15,6 @@ wRoadPPalH: ds 1
 wRoadPPalL: ds 1
 wSPoint: ds 2
 wSParam: ds 1
-wJoypad: ds 1
 wVBlankDone: ds 1
 wMainLoopFlg: ds 1
 wCarSprite: ds 1
@@ -43,16 +43,13 @@ wRivalCnt: ds 1
 wLapTimeMS: ds 1
 wLapTimeS: ds 1
 wLapTimeM: ds 1
+StateEnd:
 
 SECTION "Rival Car Scenario Table",WRAM0[$C100]
 wRivalTblZ: ds 4
 wRivalTblX: ds 4
 wRivalTblPal: ds 4
 ;244
-
-;SECTION "rWY Table",WRAM0[$C200]
-;wWY: ds 154
-;102
 
 SECTION "rSCY Table",WRAM0[$C200]
 wSCY: ds 55
@@ -65,9 +62,9 @@ wRoadYUD: ds ScrollRoadSize ;32
 
 SECTION "rSCX Table",WRAM0[$C300]
 wSCX: ds 55
-wBgX: ds ScrollBgSize
-wRoadX: ds ScrollRoadSize
-ds 43
+wBgX: ds ScrollBgSize ;24
+wRoadX: ds ScrollRoadSize ;32
+ds 43 ;154
 ;102
 
 SECTION "RoadXLR",WRAM0[$C400]

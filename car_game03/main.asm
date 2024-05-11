@@ -40,11 +40,7 @@ HBlankHandler:
   push hl
   ldh a,[rLY]
   ld l,a
-  ;ld h,HIGH(wWY)
-  ;ld a,[hl]
-  ;ldh [rLCDC],a
   ld h,HIGH(wSCY)
-  ;inc h ;wSCY
   ld a,[hl]
   ldh [rSCY],a
   inc h ;wSCX
@@ -101,48 +97,6 @@ Start:
   ldh [rSCX],a
   ldh [rWY],a
   ldh [rWX],a
-  ld [wJoypad],a
-  ld [wJoyPadPos],a
-  ld [wJoypadWait],a
-  ld [wRoadPTbl],a
-  ld [wRoadPCnt],a
-  ld [wRoadPWait],a
-  ld [wRoadPWork],a
-  ld [wRoadPLRCnt],a
-  ld [wRoadPos],a
-  ld [wRoadPPalH],a
-  ld [wRoadPPalL],a
-  ld [wSPoint],a
-  ld [wSPoint+1],a
-  ld [wSParam],a
-  ld [wVBlankDone],a
-  ld [wMainLoopFlg],a
-  ld [wCarSprite],a
-  ld [wCarSmoke],a
-  ld [wCarSpeed],a
-  ld [wCarSpeedWait],a
-  ld [wCarGear],a
-  ld [wCarGearY],a
-  ld [wCarShift],a
-  ld [wCarShiftWait],a
-  ld [wCarCForce],a
-  ld [wCarCForceWait],a
-  ld [wCarScroll],a
-  ld [wAddScroll],a
-  ld [wEngineSound],a
-  ld [wSmokeTbl],a
-  ld [wRivalY],a
-  ld [wRivalX],a
-  ld [wRivalWaitDef],a
-  ld [wRivalWait],a
-  ld [wRivalPosZ],a
-  ld [wRivalPosX],a
-  ld [wRivalPal],a
-  ld [wRivalTbl],a
-  ld [wRivalCnt],a
-  ld [wLapTimeMS],a
-  ld [wLapTimeS],a
-  ld [wLapTimeM],a
 
   ; Set Sprites/Tiles data
   ld hl,_VRAM ;$8000
@@ -161,20 +115,12 @@ Start:
   ld de,BgTileMap1
   ld bc,BgTileMap1End-1
   call CopyDecompressionData
-  ;ld hl,_SCRN1
-  ;ld de,BgTileMapWin1
-  ;ld bc,BgTileMapWin1End - BgTileMapWin1
-  ;call CopyData
   xor a
   ldh [rVBK],a ; Tile Indexes
   ld hl,_SCRN0
   ld de,BgTileMap0
   ld bc,BgTileMap0End-1
   call CopyDecompressionData
-  ;ld hl,_SCRN1
-  ;ld de,BgTileMapWin0
-  ;ld bc,BgTileMapWin0End - BgTileMapWin0
-  ;call CopyData
 
   mSetLCDC
   ldh [rLCDC],a
@@ -194,6 +140,9 @@ Start:
 
   ; Init Work RAM
   xor a
+  ld hl,State
+  ld c,StateEnd - State 
+  call SetWRam
   ld hl,wSCY
   ld c,ScrollMaxSize
   call SetWRam
@@ -212,14 +161,6 @@ Start:
   ld hl,wRivalTblZ
   ld c,4*3
   call SetWRam
-  ;mSetLCDCWin
-  ;ld hl,wWY
-  ;ld c,SideWinHeight
-  ;call SetWRam
-  ;mSetLCDC
-  ;ld hl,wWY+SideWinHeight
-  ;ld c,SideWinhidden
-  ;call SetWRam
 
   ; Set Work RAM
   ld a,StartBgScrollY
@@ -262,13 +203,8 @@ Start:
   ld [wCarGear],a
 
   ;debug
-  ;ld a,5
+  ;ld a,1
   ;ld [wCarShift],a
-  ;
-  ;ld a,8*10
-  ;ldh [rWY],a
-  ;ld a,SBX+8*11
-  ;ldh [rWX],a
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -614,8 +550,7 @@ SetRoadPBgDown:
 SetScenarioTbl:
   ld a,[wRoadPTbl]
   inc a
-  ;and %00011111 ;debug
-  and %00111111
+  and %00111111 ;debug
   ld [wRoadPTbl],a
   rlca
   rlca
@@ -907,10 +842,10 @@ SetOAM:
   mSetOAM
 
 SetDashboardBG:
-DBG1  EQU $99C0 ;14
-DBG2  EQU $99E0 ;15
-DBG3  EQU $9A00 ;16
-DBG4  EQU $9A20 ;17
+DBG1  EQU $99C0 ;Y14
+DBG2  EQU $99E0 ; 15
+DBG3  EQU $9A00 ; 16
+DBG4  EQU $9A20 ; 17
 BGNUM EQU 86
 
   xor a
@@ -927,11 +862,11 @@ BGNUM EQU 86
   ld e,a
   xor d
   add a,BGNUM
-  ld [DBG3+4],a ;01
+  ld [DBG3+4],a ;x0
   ld a,e
   swap a
   add a,BGNUM
-  ld [DBG3+3],a ;10
+  ld [DBG3+3],a ;1x
   ;ms
   ld a,[wLapTimeMS]
   ld d,a
@@ -939,11 +874,11 @@ BGNUM EQU 86
   ld e,a
   xor d
   add a,BGNUM
-  ld [DBG3+6],a ;01
+  ld [DBG3+6],a ;x0
   ld a,e
   swap a
   add a,BGNUM
-  ld [DBG3+5],a ;10
+  ld [DBG3+5],a ;1x
 
   ; Set Rival Car count
   ld a,[wRivalCnt]
@@ -973,6 +908,10 @@ SetRivalCarSprite:
   ld a,[wRivalPosZ]
   ld c,a
   push hl
+  ld h,HIGH(wRoadYUD)
+  ld l,a
+  ld a,[hl]
+  ld [wRivalY],a
   ld a,[wRivalPosX]
   ld d,a
   and %00000111
@@ -1007,7 +946,12 @@ SetRivalCarSprite:
   ld bc,RivalCarTbl
   add a,c
   ld c,a
+
+  ;ld a,[wRivalY]
+  ;ld a,-10
+  ;ld d,a
   ld a,[bc]
+  ;sub d
   ld [wRivalY],a
   inc c
   ld a,[bc]

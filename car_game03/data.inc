@@ -3,30 +3,14 @@ S0 EQU 128
 S1 EQU 80
 
 ScrollPosTbl:
-  ;0
-  db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0,S0
-  db S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1
-  ;1
-  db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
-  db S0,S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1
-  ;2
-  db S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1
-  db S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1
-  ;3
-  db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1
-  db S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1
-  ;4
-  db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1
-  db S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1
-  ;5
-  db S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0,S0
-  db S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0
-  ;6
-  db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
-  db S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S1,S0,S0
-  ;7
-  db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S0
-  db S1,S1,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1,S0
+  db S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1
+  db S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1
+  db S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1
+  db S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1
+  db S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1
+  db S1,S0,S1,S0,S1,S0,S1,S1,S0,S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0
+  db S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0,S0
+  db S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S0
 
 SECTION "HBlank Scroll Left Table",ROM0[$2100]
 ScrollLeftTbl:
@@ -137,17 +121,18 @@ ScrollLRCenterTbl:
 SECTION "Car Speed/Smoke Table",ROM0[$2500]
 CarSpeedTbl:
   ;shift wait,loop wait,ScrollRoadSize,RivalWait
-  db 10,0,0,0
-  db 60,3,ScrollRoadSize,0
-  db 50,2,ScrollRoadSize,3
+  db 10,0,0,13
+  db 60,3,ScrollRoadSize,12
+  db 50,2,ScrollRoadSize,10
   db 50,1,ScrollRoadSize,8
-  db 50,0,ScrollRoadSize,50
-  db 30,0,ScrollRoadSize*2,7 ;24
+  db 50,0,ScrollRoadSize,8
+  db 30,0,ScrollRoadSize*2,3 ;24
+
 CarSmokeTbl:
   ;0:skip,1:right,2:left,3:left/right
   ;  L               C             R
   ;  0 1 2 3 4 5 6 7 8 9 101112131415
-  db 3,3,3,3,3,3,2,0,0,0,1,3,3,3,3,3 ;16
+  db 3,3,3,3,3,2,0,0,0,0,0,1,3,3,3,3 ;16
 CarSpriteTbl:
   ;Tile Index,Attributes/Flags,Tile Index,Attributes/Flags
   db 0,0,0,0|OAMF_XFLIP ;0 straight
@@ -222,7 +207,7 @@ CounterDBGTbl:
   db 76,70 ;9
   ;236
 
-SECTION "BG Palette Table1",ROM0[$2800]
+SECTION "BG Palette Table1",ROM0[$2700]
 BGPaletteTbl1:
   dw $5b9e,$7ab4,$4ede,$01f9 ,$5b9e,$16de,$16de,$01f9
   dw $5b7f,$7ada,$4ede,$01f9 ,$5b7f,$16de,$16de,$01f9
@@ -232,7 +217,7 @@ BGPaletteTbl1:
   dw $0000,$0000,$0000,$0000 ,$0000,$16de,$16de,$0000
   ;160
 
-SECTION "BG Palette Table2",ROM0[$2900]
+SECTION "BG Palette Table2",ROM0[$2800]
 BGPaletteTbl2:
   dw $5b9e,$7ab4,$4ede,$01f9 ,$675b,$7fff,$56b5,$4e73
   dw $5b7f,$7ada,$4ede,$01f9 ,$56d7,$7fff,$56b5,$4e73
@@ -242,7 +227,7 @@ BGPaletteTbl2:
   dw $0000,$0000,$0000,$0000 ,$0000,$7fff,$56b5,$0000
   ;160
 
-SECTION "Scenario Table",ROM0[$3000]
+SECTION "Scenario Table",ROM0[$2900]
 ;Scenario Pattern
 SPRC EQU SetSPRivalCar   ; Set Rival Car
 SPPL EQU SetSPPalette    ; Set BG/Obj Set Palette 
@@ -264,47 +249,11 @@ ScenarioTbl:
   ;SPPL: addr,palette(16)|$01
   ;SPPA,RPxx: addr,wait(16)|cnt(16)
 
-  ; Set Palette Test
+  ;debug
   ;dw RPWT,$2001
-  ;dw SPPL,$0101 ;start
+  ;dw RPWT,$ff01
+  ;dw SPRC,$1801
   ;dw RPWT,$2001
-  ;dw SPPL,$0001
-
-  ; Turn Test
-  ;dw RPWT,$1001
-  ;dw RPTR,$0430 ;start
-  ;dw RPRS,$0408
-  ;dw RPWT,$7f01
-
-  ;Palette Change Test 1
-  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
-  ;dw SPPL,$0101
-  ;dw RPWT,$6001
-  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
-  ;dw SPP2,$0500+SPP23Cnt
-  ;dw RPWT,$ff01
-  ;dw SPPL,$0101
-  ;dw SPP3,$0500+SPP23Cnt
-
-  ;Palette Change Test 2
-  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
-  ;dw SPPL,$0101
-  ;dw RPWT,$6001
-  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
-  ;dw SPP2,$0500+SPP23Cnt
-  ;dw RPWT,$ff01
-  ;dw SPPL,$0001
-  ;dw SPP3,$0500+SPP23Cnt
-  ;dw SPP4,$3200+SPP14Cnt ;SPPABright
-  ;dw RPWT,$ff01
-  ;dw SPP1,$3200+SPP14Cnt ;SPPADark
-  ;dw SPP2,$0500+SPP23Cnt
-  ;dw RPWT,$ff01
-  ;dw RPWT,$0301
-  ;dw SPPL,$0101
-  ;dw SPP3,$0500+SPP23Cnt
-
-
 
   dw RPWT,$0101
   dw SPPL,$0001 ;start
@@ -378,25 +327,25 @@ ScenarioTbl:
   dw RPWT,$0101
 
 BGPalette:
-	dw 0
-	dw 0
-	dw 0
-	dw 0
+  dw 0
+  dw 0
+  dw 0
+  dw 0
 
-	dw 0
-	dw 0
-	dw 0
-	dw 0
+  dw 0
+  dw 0
+  dw 0
+  dw 0
 
-	dw 0
-	dw 0
-	dw 0
-	dw 0
+  dw 0
+  dw 0
+  dw 0
+  dw 0
 
-	dw 0
-	dw 0
-	dw 0
-	dw 0
+  dw 0
+  dw 0
+  dw 0
+  dw 0
 
   dw 0
   dw 32767
@@ -450,15 +399,22 @@ BgTileMap1: ; BG Map Attributes
   INCBIN "bg_tile1_comp.bin"
 BgTileMap1End:
 
-; php conv.php _win
-;
-; <input> map_editor_win.txt (https://github.com/emutyworks/GBCMapEditor/wiki)
-; <output> bg_tile_win0.inc, bg_tile_win1.inc
-;
-;BgTileMapWin0:
-;  INCLUDE "bg_tile_win0.inc"
-;BgTileMapWin0End:
-;
-;BgTileMapWin1:
-;  INCLUDE "bg_tile_win1.inc"
-;BgTileMapWin1End:
+;test
+;SECTION "HBlank Scroll Up/Down Table"
+ScrollUpDnTbl:
+	;0
+	;db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;1
+	;db -1,-2,-3,-4,-4,-4,-4,-3,-3,-3,-2,-2,-2,-1,-1,-1
+	;db 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0
+	;2
+	db -1,-2,-3,-4,-5,-6,-7,-8,-8,-8,-8,-7,-7,-6,-6,-5
+	db -5,-4,-3,-2,-1,0,0,0,0,0,0,0,0,0,0,0
+	;3
+	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-12,-12,-12,-11
+	db -11,-10,-9,-8,-7,-6,-5,-5,-3,-3,-2,-2,-1,-1,0,0
+	;4
+	db -1,-2,-3,-4,-5,-6,-7,-8,-9,-10,-11,-12,-13,-14,-15,-16
+	db -15,-13,-11,-10,-8,-8,-8,-8,-8,-8,-8,-7,-5,-3,-1,0
+

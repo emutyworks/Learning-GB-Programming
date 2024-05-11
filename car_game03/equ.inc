@@ -35,6 +35,3 @@ ScrollMaxSize  EQU 154
 ;Scenario Pattern
 SPP14Cnt       EQU 7
 SPP23Cnt       EQU 16
-
-;SideWinhidden  EQU 8*5+3
-;SideWinHeight  EQU ScrollMaxSize-SideWinhidden
