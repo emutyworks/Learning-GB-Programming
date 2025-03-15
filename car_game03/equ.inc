@@ -1,37 +1,37 @@
-JBitRight      EQU 0
-JBitLeft       EQU 1
-JBitUp         EQU 2
-JBitDown       EQU 3
-JBitButtonA    EQU 4
-JBitButtonB    EQU 5
+DEF JBitRight      EQU 0
+DEF JBitLeft       EQU 1
+DEF JBitUp         EQU 2
+DEF JBitDown       EQU 3
+DEF JBitButtonA    EQU 4
+DEF JBitButtonB    EQU 5
 
-SBY            EQU 16 ; Screen Base Y
-SBX            EQU 8 ; Screen Base X
-UseMaxOAM      EQU 16
-CarPosY        EQU SBY+8*12
-CarPosX        EQU SBX+8*9
-CarShiftMax    EQU 5
-CarCForceWait  EQU 10
-CarCForceLeft  EQU 1
-CarCForceRight EQU 2
+DEF SBY            EQU 16 ; Screen Base Y
+DEF SBX            EQU 8 ; Screen Base X
+DEF UseMaxOAM      EQU 16
+DEF CarPosY        EQU SBY+8*12
+DEF CarPosX        EQU SBX+8*9
+DEF CarShiftMax    EQU 5
+DEF CarCForceWait  EQU 10
+DEF CarCForceLeft  EQU 1
+DEF CarCForceRight EQU 2
 
-GearHi         EQU 1
-GearHiY        EQU 128
-GearHiShift    EQU 3
-GearLow        EQU 0
-GearLowY       EQU 145
-GearLowShift   EQU 4
+DEF GearHi         EQU 1
+DEF GearHiY        EQU 128
+DEF GearHiShift    EQU 3
+DEF GearLow        EQU 0
+DEF GearLowY       EQU 145
+DEF GearLowShift   EQU 4
 
 ;StartBgScrollY EQU -8*4
-StartBgScrollY EQU 0
-JoypadWait     EQU 7
-JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
+DEF StartBgScrollY EQU 0
+DEF JoypadWait     EQU 7
+DEF JoyPadPos      EQU 8 ; L 1-7|8|9-15 R
 
-ScrollSize     EQU 8*18
-ScrollBgSize   EQU 8*3
-ScrollRoadSize EQU 8*4
-ScrollMaxSize  EQU 154
+DEF ScrollSize     EQU 8*18
+DEF ScrollBgSize   EQU 8*3
+DEF ScrollRoadSize EQU 8*4
+DEF ScrollMaxSize  EQU 154
 
 ;Scenario Pattern
-SPP14Cnt       EQU 7
-SPP23Cnt       EQU 16
+DEF SPP14Cnt       EQU 7
+DEF SPP23Cnt       EQU 16

@@ -149,9 +149,9 @@ Start:
   call InitSetCar
 
   ; Init Rival Car Data
-  ld a,2
+  ld a,0
   ld [wRCarTbl],a
-  ld a,SBX+8*10
+  ld a,RCarPosX
   ld [wRCarTbl+1],a ; Rcar X Pos
 
 MainLoop:
@@ -167,10 +167,22 @@ MainLoop:
   and %00000010
   ld [wCarTireRef],a
 
+  ;test: Set Rival Car Y Position
+  ld a,[wRCarTblCnt]
+  inc a
+  and %00000011
+  ld [wRCarTblCnt],a
+  cp 0
+  jr nz,SetRoadScroll
+  ld a,[wRCarTbl]
+  inc a
+  and %00011111
+  ld [wRCarTbl],a
+
 SetRoadScroll:
   ld a,[wRoadCnt]
   inc a
-  and %00000000 ; Scroll Speed
+  and %00000001 ; Scroll Speed
   ld [wRoadCnt],a
   cp 0
   jp nz,SetCarSprite
@@ -193,6 +205,7 @@ SetRoadScroll:
 
 SetCarSprite:
   mSetCarTire
+  ;ld hl,wShadowOAM;test
 
   ld a,[wRCarTbl]
   rlca

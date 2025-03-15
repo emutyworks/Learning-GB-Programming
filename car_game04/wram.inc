@@ -12,11 +12,15 @@ wCarTireRef: ds 1
 wRoadCnt: ds 1
 wRoadHi: ds 1
 wRoadLo: ds 1
+
+wRCarTblCnt: ds 1;test
 StateEnd:
 
 SECTION "Rival Car Table",WRAM0[$C100]
 ;RCarSpriteTbl Pos, X Pos
 wRCarTbl: ds 2
+
+
 
 SECTION "rSCY Table",WRAM0[$C200]
 wSCY: ds 8*7-1

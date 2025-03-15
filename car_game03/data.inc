@@ -1,6 +1,6 @@
 SECTION "HBlank Scroll Position Table",ROM0[$2000]
-S0 EQU 128
-S1 EQU 80
+DEF S0 EQU 128
+DEF S1 EQU 80
 
 ScrollPosTbl:
   db S0,S1,S0,S1,S1,S0,S1,S1,S0,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S1,S1,S1,S1,S0,S0,S0,S1,S1,S1,S1,S1
@@ -229,20 +229,20 @@ BGPaletteTbl2:
 
 SECTION "Scenario Table",ROM0[$2900]
 ;Scenario Pattern
-SPRC EQU SetSPRivalCar   ; Set Rival Car
-SPPL EQU SetSPPalette    ; Set BG/Obj Set Palette 
-SPP1 EQU SetSPPalChange1 ; Set BG/Obj Palette Change Bright->Dark
-SPP2 EQU SetSPPalChange2 ;
-SPP3 EQU SetSPPalChange3 ;
-SPP4 EQU SetSPPalChange4 ; Set BG/Obj Palette Change Dark->Bright
+DEF SPRC EQU SetSPRivalCar   ; Set Rival Car
+DEF SPPL EQU SetSPPalette    ; Set BG/Obj Set Palette 
+DEF SPP1 EQU SetSPPalChange1 ; Set BG/Obj Palette Change Bright->Dark
+DEF SPP2 EQU SetSPPalChange2 ;
+DEF SPP3 EQU SetSPPalChange3 ;
+DEF SPP4 EQU SetSPPalChange4 ; Set BG/Obj Palette Change Dark->Bright
 ;Road Pattern
-RPTL EQU SetRoadPLeft    ; Turn Left
-RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
-RPTR EQU SetRoadPRight   ; Turn Right
-RPRS EQU SetRoadPRightSt ; Turn Right->Straight
-RPBU EQU SetRoadPBgUp    ; BG Up
-RPBD EQU SetRoadPBgDown  ; BG Down
-RPWT EQU SetRoadPWait    ; Wait
+DEF RPTL EQU SetRoadPLeft    ; Turn Left
+DEF RPLS EQU SetRoadPLeftSt  ; Turn Left->Straight
+DEF RPTR EQU SetRoadPRight   ; Turn Right
+DEF RPRS EQU SetRoadPRightSt ; Turn Right->Straight
+DEF RPBU EQU SetRoadPBgUp    ; BG Up
+DEF RPBD EQU SetRoadPBgDown  ; BG Down
+DEF RPWT EQU SetRoadPWait    ; Wait
 
 ScenarioTbl:
   ;SPRC: addr,palette(H8)|x(L8)|$01
