@@ -1,5 +1,5 @@
-;DEF JBitRight      EQU 0
-;DEF JBitLeft       EQU 1
+DEF JBitRight      EQU 0
+DEF JBitLeft       EQU 1
 ;DEF JBitUp         EQU 2
 ;DEF JBitDown       EQU 3
 ;DEF JBitButtonA    EQU 4
@@ -8,7 +8,7 @@
 DEF SBY            EQU 16 ; Screen Base Y
 DEF SBX            EQU 8 ; Screen Base X
 DEF ScrollBaseX    EQU 8*6
-DEF CarPosY        EQU SBY+8*16
+DEF CarPosY        EQU SBY+8*15+4+1
 DEF CarPosX        EQU SBX+8*8
 
 DEF ScrollBgSize   EQU 8*3
@@ -17,13 +17,14 @@ DEF ScrollMaxSize  EQU 154
 
 DEF SOAMCarTire    EQU 4*2+2
 
+DEF JoypadWait     EQU 5
+
 ;HBlank Scroll Position Table
 DEF S0             EQU 0
 DEF S1             EQU 8*8
 
 ;Rival Car Sprite Table
 DEF RCarPosY       EQU SBY+8*10
-DEF RCarPosX       EQU SBX+8*8
 DEF RY00           EQU RCarPosY+0
 DEF RY01           EQU RCarPosY+1
 DEF RY02           EQU RCarPosY+2

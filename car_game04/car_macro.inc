@@ -8,39 +8,45 @@ ENDR
   ld [de],a
 ENDM
 
-MACRO mSetCarTire
-  ld hl,wShadowOAM + SOAMCarTire
-  ld a,[wCarTireRef]
-  ld e,a
-  ld [hli],a ; Tile Index 0/2
-  ld a,l
-  add a,3
-  ld l,a
-  ld a,e
-  ld [hli],a ; Tile Index 0/2
-  inc l
-ENDM
-
-MACRO mInitSetCar
-  ld e,4
-.loop\@
-  ld a,[wPosY]
+MACRO mSetCar
+  ld hl,wShadowOAM
+  ld a,CarPosX
+  ld d,a
+REPT 3
+  ld a,CarPosY
   ld [hli],a ; Y Position
   ld a,[bc]
   add a,d
   ld [hli],a ; X Position
   inc c
+  ld a,[wCarTireRef]
+  ld e,a
   ld a,[bc]
+  or e
   ld [hli],a ; Tile Index
   inc c
   ld a,[bc]
   ld [hli],a ; Attributes/Flags
   inc c
-  dec e
-  jr nz,.loop\@
+ENDR
+  ld a,CarPosY
+  ld [hli],a
+  ld a,[bc]
+  add a,d
+  ld [hli],a
+  inc c
+  ld a,[wCarTireRef]
+  ld e,a
+  ld a,[bc]
+  or e
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
 ENDM
 
 MACRO mSetRCar
+  ld hl,wShadowOAM + 4*4
   ld a,[bc]
   ld [hli],a ; Y Position
   inc c
@@ -62,42 +68,55 @@ MACRO mSetRCar
   ld [hli],a
   inc c
   ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
+;
+  inc b
+  ld a,[wRCarSpriteTblLo]
+  ld c,a
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  add a,d
+  ld [hli],a
+  inc c
+  ld a,[wCarTireRef]
+  ld e,a
+  ld a,[bc]
+  or e
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  add a,d
+  ld [hli],a
+  inc c
+  ld a,[wCarTireRef]
+  ld e,a
+  ld a,[bc]
+  or e
   ld [hli],a
   inc c
   ld a,[bc]
   ld [hli],a
 ENDM
 
-MACRO mSetRCarTire
-  ld a,[bc]
-  ld [hli],a ; Y Position
-  inc c
-  ld a,[bc]
-  add a,d
-  ld [hli],a ; X Position
-  inc c
-  ld a,[wCarTireRef]
-  ld e,a
-  ld a,[bc]
-  or e
-  ld [hli],a ; Tile Index
-  inc c
-  ld a,[bc]
-  ld [hli],a ; Attributes/Flags
-  inc c
-  ld a,[bc]
-  ld [hli],a
-  inc c
-  ld a,[bc]
-  add a,d
-  ld [hli],a
-  inc c
-  ld a,[wCarTireRef]
-  ld e,a
-  ld a,[bc]
-  or e
-  ld [hli],a
-  inc c
-  ld a,[bc]
-  ld [hli],a
+MACRO mJoypadWait
+  ld a,[wJoypadWait]
+  cp 0
+  jr z,.next\@
+  dec a
+  ld [wJoypadWait],a
+  jp SetRoadScroll
+.next\@
+  ld a,JoypadWait
+  ld [wJoypadWait],a
 ENDM

@@ -1,5 +1,5 @@
-SECTION "HBlank Scroll Position Table",ROM0[$2000]
-RoadPosTbl:
+SECTION "HBlank Road Y Position Table",ROM0[$2000]
+RoadYPosTbl:
   db S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1
   db S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1
   db S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1,S1,S1,S0,S0,S0,S0,S1,S1
@@ -11,11 +11,10 @@ RoadPosTbl:
 
 SECTION "Car Sprite Table",ROM0[$2200]
 CarSpriteTbl:
-  ;X Pos,Tile Index,Attributes/Flags
-  db  8,28,$01
-  db 16,28,$21
-  db  1, 0,$00
-  db 23, 0,$20
+  ;X Pos,Tile Index,Attributes/Flags * 3 + 0,0,0,0
+  db  8,28,$01, 16,28,$21, 1, 0,$00, 23, 0,$20, 0,0,0,0 ; Center
+  db  8,40,$01, 16,44,$01, 1,32,$00, 23,36,$20, 0,0,0,0 ; Right
+  db  8,44,$21, 16,40,$21, 1,36,$00, 23,32,$20, 0,0,0,0 ; Left
 
 SECTION "Rival Car Sprite Table",ROM0[$2300]
 RCarSpriteTbl:
@@ -53,9 +52,7 @@ RCarSpriteTbl:
   db RY30,8,28,$03, RY30,16,28,$23
   db RY31,8,28,$03, RY31,16,28,$23
 
-SECTION "Rival Car Tire Table",ROM0[$2400]
-RCarTireTbl:
-  ;Y Pos,Add X Pos,Tile Index,Attributes/Flags * 2
+  ;"Rival Car Tire Table",ROM0[$2400]
   db RY00,8,26,$03, RY00,16,26,$23
   db RY01,8,26,$03, RY01,16,26,$23
   db RY02,8,22,$03, RY02,16,22,$23
@@ -141,7 +138,7 @@ ObjPalette:
 ; bg_tile1_comp.bin | bg_tile1.bin  | map_editor.txt | GBCMapEditor
 ;
 ; - Compressed data creation command.
-; php convBin.php 
+; php convBin.php
 ; *RunLengthEncoder.php is executed inside convBin.php.
 ;
 ; - Related documents
@@ -165,3 +162,43 @@ BgTileMap0End:
 BgTileMap1: ; BG Map Attributes
   INCBIN "bg_tile1_comp.bin"
 BgTileMap1End:
+
+;===================================================================================
+;
+;adress                      ;[wJoyPadPos]
+;RoadXPosTbl:
+;$4000                       ;L 1-7|8|9-15 R
+;$4040 %0100 0000 %0100 0000 ;%00 01 ;1
+;$4080 %0100 0000 %1000 0000 ;%00 10 ;2
+;$40c0 %0100 0000 %1100 0000 ;%00 11 ;3
+;$4100 %0100 0001 %0000 0000 ;%01 00 ;4
+;$4140 %0100 0001 %0100 0000 ;%01 01 ;5
+;$4180 %0100 0001 %1000 0000 ;%01 10 ;6
+;$41c0 %0100 0001 %1100 0000 ;%01 11 ;7
+;-
+;$4200 %0100 1000 %1000 0000 ;%10 00 ;8
+;-
+;$4240 %0100 0010 %0100 0000 ;%10 01 ;9
+;$4280 %0100 0010 %1000 0000 ;%10 10 ;10
+;$42c0 %0100 0010 %1100 0000 ;%10 11 ;11
+;$4300 %0100 0011 %0000 0000 ;%11 00 ;12
+;$4340 %0100 0011 %0100 0000 ;%11 01 ;13
+;$4380 %0100 0011 %1000 0000 ;%11 10 ;14
+;$43c0 %0100 0011 %1100 0000 ;%11 11 ;15
+;
+;RCarXPosTbl:
+;$4400 %0100 0100
+;$4500 %0100 0101
+;$4600 %0100 0110
+;$4700 %0100 0111
+;
+; - "road_x.inc" data creation command.
+; php createRoadXPosTbl.php > road_x.inc
+;
+;===================================================================================
+
+;SECTION "HBlank Road X Position Table",ROM0[$4000]
+;RoadXPosTbl:
+;SECTION "Rival Car X Position Table",ROM0[$4400]
+;RCarXPosTbl:
+INCLUDE "road_x.inc"

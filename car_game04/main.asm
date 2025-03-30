@@ -35,9 +35,9 @@ HBlankHandler:
   ld l,a
   ld a,[hl]
   ldh [rSCY],a
-;  inc h ;wSCX
-;  ld a,[hl]
-;  ldh [rSCX],a
+  inc h ;wSCX
+  ld a,[hl]
+  ldh [rSCX],a
   pop hl
   pop af
   reti
@@ -87,6 +87,10 @@ Start:
   ld hl,wSCY
   ld c,ScrollMaxSize
   call SetWRam
+  ld a,ScrollBaseX
+  ld hl,wSCX
+  ld c,ScrollMaxSize
+  call SetWRam
 
   ; Set Sprites/Tiles data
   ld hl,_VRAM ;$8000
@@ -128,10 +132,10 @@ Start:
   ldh [rIF],a
 
   ; Init Road data
-  ld a,HIGH(RoadPosTbl)
+  ld a,HIGH(RoadYPosTbl)
   ld [wRoadHi],a
   ld hl,wRoadY
-  ld de,RoadPosTbl
+  ld de,RoadYPosTbl
   ld bc,ScrollRoadSize
   call CopyData
 
@@ -139,20 +143,15 @@ Start:
   ld a,ScrollBaseX
   ldh [rSCX],a
 
-  ; Init Car Data
-  ld a,CarPosY
-  ld [wPosY],a
-  ld a,CarPosX
-  ld d,a
-  ld hl,wShadowOAM
-  ld bc,CarSpriteTbl
-  call InitSetCar
-
-  ; Init Rival Car Data
+  ; test: Init Rival Car Data
   ld a,0
   ld [wRCarTbl],a
-  ld a,RCarPosX
-  ld [wRCarTbl+1],a ; Rcar X Pos
+
+  ; Set Joypad
+  ld a,JoypadWait
+  ld [wJoypadWait],a
+  ld a,8  ; L 1-7|8|9-15 R
+  ld [wJoyPadPos],a
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -173,16 +172,66 @@ MainLoop:
   and %00000011
   ld [wRCarTblCnt],a
   cp 0
-  jr nz,SetRoadScroll
+  jp nz,Joypad
   ld a,[wRCarTbl]
   inc a
   and %00011111
   ld [wRCarTbl],a
 
+  ; Init Car Data
+  xor a
+  ld [wCarPos],a
+
+Joypad:
+  mCheckJoypad
+  ld a,[wJoypad]
+  bit JBitRight,a
+  jp nz,.jRight
+  bit JBitLeft,a
+  jp nz,.jLeft
+  ld a,[wJoyPadPos]
+  jr SetWJoyPadXLR
+
+.jRight
+  ld a,1
+  ld [wCarPos],a
+  mJoypadWait
+  ld a,[wJoyPadPos]
+  cp 15
+  jr z,SetWJoyPadXLR
+  inc a
+  ld [wJoyPadPos],a
+  jr SetWJoyPadXLR
+.jLeft
+  ld a,2
+  ld [wCarPos],a
+  mJoypadWait
+  ld a,[wJoyPadPos]
+  cp 1
+  jr z,SetWJoyPadXLR
+  dec a
+  ld [wJoyPadPos],a
+
+SetWJoyPadXLR:
+  ld d,a
+  and %00001100
+  ld e,a
+  xor d
+  rrca
+  rrca
+  ld l,a
+  ld a,e
+  rrca
+  rrca
+  or %01000000
+  ld h,a
+  ld de,wRoadX
+  mCopyScrollRoad
+
 SetRoadScroll:
   ld a,[wRoadCnt]
   inc a
-  and %00000001 ; Scroll Speed
+  and %00000000 ; Scroll Speed
   ld [wRoadCnt],a
   cp 0
   jp nz,SetCarSprite
@@ -204,24 +253,46 @@ SetRoadScroll:
   mCopyScrollRoad
 
 SetCarSprite:
-  mSetCarTire
-  ;ld hl,wShadowOAM;test
-
-  ld a,[wRCarTbl]
+  ld b,HIGH(CarSpriteTbl)
+  ld a,[wCarPos]
   rlca
   rlca
   rlca
-  ld b,HIGH(RCarTireTbl)
+  rlca
   ld c,a
-  ld a,[wRCarTbl+1] ; Rcar X Pos
-  ld d,a
-  call SetRCarTire
+  mSetCar
 
+  ; Calc Rcar X Pos
   ld a,[wRCarTbl]
   rlca
   rlca
   rlca
+  ld [wRCarSpriteTblLo],a
+  ld c,a
   ld b,HIGH(RCarSpriteTbl)
+  ld a,[bc]
+  sub RCarPosY
+  ld c,a
+
+  ld a,[wJoyPadPos]
+  ld d,a
+  and %00001100
+  ld e,a
+  xor d
+  rrca
+  rrca
+  add a,c
+  ld l,a
+  ld a,e
+  rrca
+  rrca
+  or %01000100
+  ld h,a
+  ld a,[hl]
+  
+  ld d,a ; Rcar X Pos
+  ld b,HIGH(RCarSpriteTbl)
+  ld a,[wRCarSpriteTblLo]
   ld c,a
   call SetRCar
 
@@ -240,16 +311,8 @@ SetCarSprite:
   mSetOAM
   jp MainLoop
 
-SetRCarTire:
-  mSetRCarTire
-  ret
-
 SetRCar:
   mSetRCar
-  ret
-
-InitSetCar:
-  mInitSetCar
   ret
 
 SetPalette:
