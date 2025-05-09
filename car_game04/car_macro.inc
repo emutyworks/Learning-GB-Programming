@@ -10,25 +10,39 @@ ENDM
 
 MACRO mSetCar
   ld hl,wShadowOAM
-  ld a,CarPosX
-  ld d,a
-REPT 3
+  ld d,CarPosX
+.loop\@
   ld a,CarPosY
   ld [hli],a ; Y Position
   ld a,[bc]
   add a,d
   ld [hli],a ; X Position
   inc c
-  ld a,[wCarTireRef]
-  ld e,a
   ld a,[bc]
-  or e
   ld [hli],a ; Tile Index
   inc c
   ld a,[bc]
   ld [hli],a ; Attributes/Flags
   inc c
-ENDR
+  dec e
+  jr nz,.loop\@
+  ;
+  ld a,CarPosY
+  ld [hli],a
+  ld a,[bc]
+  add a,d
+  ld [hli],a
+  inc c
+  ld a,[wCarTireRef]
+  ld e,a
+  ld a,[bc]
+  or e
+  ld [hli],a
+  inc c
+  ld a,[bc]
+  ld [hli],a
+  inc c
+  ;
   ld a,CarPosY
   ld [hli],a
   ld a,[bc]
@@ -46,23 +60,27 @@ ENDR
 ENDM
 
 MACRO mSetRCar
-  ld hl,wShadowOAM + 4*4
-  ld a,[bc]
+  ld a,[wRCarXPos+\1]
+  ld d,a
+REPT 2
+  ld a,[wRCarYPos+\1]
   ld [hli],a ; Y Position
-  inc c
   ld a,[bc]
   add a,d
   ld [hli],a ; X Position
   inc c
+  ld a,[wCarTireRef]
+  ld e,a
   ld a,[bc]
+  or e
   ld [hli],a ; Tile Index
   inc c
   ld a,[bc]
   ld [hli],a ; Attributes/Flags
   inc c
-  ld a,[bc]
+ENDR
+  ld a,[wRCarYPos+\1]
   ld [hli],a
-  inc c
   ld a,[bc]
   add a,d
   ld [hli],a
@@ -72,40 +90,24 @@ MACRO mSetRCar
   inc c
   ld a,[bc]
   ld [hli],a
-;
-  inc b
-  ld a,[wRCarSpriteTblLo]
-  ld c,a
-  ld a,[bc]
-  ld [hli],a
   inc c
+  ;
+  ld a,[wRCarYPos+\1]
+  ld [hli],a
   ld a,[bc]
   add a,d
   ld [hli],a
   inc c
-  ld a,[wCarTireRef]
-  ld e,a
-  ld a,[bc]
-  or e
-  ld [hli],a
-  inc c
   ld a,[bc]
   ld [hli],a
   inc c
   ld a,[bc]
   ld [hli],a
-  inc c
-  ld a,[bc]
-  add a,d
+  ; reset
+  xor a
   ld [hli],a
-  inc c
-  ld a,[wCarTireRef]
-  ld e,a
-  ld a,[bc]
-  or e
   ld [hli],a
-  inc c
-  ld a,[bc]
+  ld [hli],a
   ld [hli],a
 ENDM
 

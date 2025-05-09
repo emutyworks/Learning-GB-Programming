@@ -67,7 +67,7 @@ Start:
   call SetPalette
   ld a,%10000000
   ldh [rOCPS],a
-  ld c,4*4
+  ld c,4*5
   ld hl,ObjPalette
   ld de,rOCPD
   call SetPalette
@@ -87,7 +87,6 @@ Start:
   ld hl,wSCY
   ld c,ScrollMaxSize
   call SetWRam
-  ld a,ScrollBaseX
   ld hl,wSCX
   ld c,ScrollMaxSize
   call SetWRam
@@ -139,19 +138,25 @@ Start:
   ld bc,ScrollRoadSize
   call CopyData
 
-  ; Init Scroll Position
-  ld a,ScrollBaseX
-  ldh [rSCX],a
-
-  ; test: Init Rival Car Data
-  ld a,0
-  ld [wRCarTbl],a
+  ; Init Car data
+  ld a,CarPosCenter
+  ld [wCarPos],a
+  ld a,CarPosWait
+  ld [wCarPosWait],a
 
   ; Set Joypad
   ld a,JoypadWait
   ld [wJoypadWait],a
   ld a,8  ; L 1-7|8|9-15 R
   ld [wJoyPadPos],a
+
+  ; test
+  ;ld a,22
+  ;ld [wRCarYPosTbl],a
+  ;ld a,8*9
+  ;ld [wRCarXPos],a
+  ;ld a,13
+  ;ld [wJoyPadPos],a
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -161,7 +166,7 @@ MainLoop:
   ; Set Tire reflection
   ld a,[wCarTireCnt]
   inc a
-  and %00000011
+  and %00011111
   ld [wCarTireCnt],a
   and %00000010
   ld [wCarTireRef],a
@@ -173,41 +178,90 @@ MainLoop:
   ld [wRCarTblCnt],a
   cp 0
   jp nz,Joypad
-  ld a,[wRCarTbl]
+  ld a,[wRCarYPosTbl]
   inc a
   and %00011111
-  ld [wRCarTbl],a
-
-  ; Init Car Data
-  xor a
-  ld [wCarPos],a
+  ld [wRCarYPosTbl],a
 
 Joypad:
   mCheckJoypad
   ld a,[wJoypad]
   bit JBitRight,a
-  jp nz,.jRight
+  jp nz,SetCarRight
   bit JBitLeft,a
-  jp nz,.jLeft
-  ld a,[wJoyPadPos]
-  jr SetWJoyPadXLR
+  jp nz,SetCarLeft
 
-.jRight
-  ld a,1
+  ; set Car Pos
+  ld a,[wCarPosWait]
+  cp 0
+  jr nz,.decWait
+  ld a,[wCarPos]
+  cp CarPosCenter
+  jr z,.reset
+  jr c,.incPos
+.decPos
+  dec a
+  jr .setPos
+.incPos
+  inc a
+.setPos
   ld [wCarPos],a
+.reset
+  ld a,CarPosWait
+  ld [wCarPosWait],a
+  jr .next
+.decWait
+  dec a
+  ld [wCarPosWait],a
+.next
+  ld a,[wJoyPadPos]
+  jp SetWJoyPadXLR
+
+SetCarRight:
+  ld a,[wCarPosWait]
+  cp 0
+  jr nz,.decWait
+  ld a,[wCarPos]
+  cp CarPosRightMin
+  jr z,.resetWait
+  dec a
+  ld [wCarPos],a
+.resetWait
+  ld a,CarPosWait
+  ld [wCarPosWait],a
+  jr .skip
+.decWait
+  dec a
+  ld [wCarPosWait],a
+.skip
   mJoypadWait
   ld a,[wJoyPadPos]
-  cp 15
+  cp JoypadRightMax
   jr z,SetWJoyPadXLR
   inc a
   ld [wJoyPadPos],a
   jr SetWJoyPadXLR
-.jLeft
-  ld a,2
+
+SetCarLeft:
+  ld a,[wCarPosWait]
+  cp 0
+  jr nz,.decWait
+  ld a,[wCarPos]
+  cp CarPosLeftMax
+  jr z,.resetWait
+  inc a
   ld [wCarPos],a
+.resetWait
+  ld a,CarPosWait
+  ld [wCarPosWait],a
+  jr .skip
+.decWait
+  dec a
+  ld [wCarPosWait],a
+.skip
   mJoypadWait
   ld a,[wJoyPadPos]
-  cp 1
+  cp JoypadLeftMin
   jr z,SetWJoyPadXLR
   dec a
   ld [wJoyPadPos],a
@@ -236,7 +290,8 @@ SetRoadScroll:
   cp 0
   jp nz,SetCarSprite
   ld a,[wRoadLo]
-  add a,$40
+  ;add a,$40
+  add a,$80
   ld [wRoadLo],a
   cp 0
   jr nz,.setRoad
@@ -254,47 +309,70 @@ SetRoadScroll:
 
 SetCarSprite:
   ld b,HIGH(CarSpriteTbl)
+  ld e,3 ; draw OAM cnt
   ld a,[wCarPos]
+  cp CarPosCenter
+  jr z,.setCar0
   rlca
   rlca
   rlca
   rlca
   ld c,a
+  ld a,[wCarTireRef]
+  cp 0
+  jr z,.setCar
+  ld a,3
+  add a,c
+  ld c,a
+  dec e
+  jr .setCar
+
+.setCar0
+  dec e
+  rlca
+  rlca
+  rlca
+  rlca
+  ld c,a
+
+.setCar
   mSetCar
 
   ; Calc Rcar X Pos
-  ld a,[wRCarTbl]
-  rlca
-  rlca
-  rlca
-  ld [wRCarSpriteTblLo],a
+  ld a,[wRCarYPosTbl]
   ld c,a
-  ld b,HIGH(RCarSpriteTbl)
-  ld a,[bc]
-  sub RCarPosY
-  ld c,a
-
   ld a,[wJoyPadPos]
   ld d,a
-  and %00001100
+  and %00001000
   ld e,a
   xor d
-  rrca
-  rrca
+  swap a
+  rlca
   add a,c
-  ld l,a
-  ld a,e
-  rrca
-  rrca
-  or %01000100
-  ld h,a
-  ld a,[hl]
-  
-  ld d,a ; Rcar X Pos
-  ld b,HIGH(RCarSpriteTbl)
-  ld a,[wRCarSpriteTblLo]
   ld c,a
-  call SetRCar
+  ld a,e
+  swap a
+  rlca
+  or %00100000
+  ld b,a
+  ld a,[bc]
+  ld [wRCarXPos],a
+
+  ld b,HIGH(RCarYPosTbl)
+  ld a,[wRCarYPosTbl]
+  rlca
+  ld c,a
+  ld a,[bc]
+  ld [wRCarYPos],a
+  inc c
+  ld a,[bc]
+  rlca
+  rlca
+  rlca
+  rlca
+  inc b
+  ld c,a
+  mSetRCar 0
 
   ld a,1
   ld [wMainLoopFlg],a
@@ -310,10 +388,6 @@ SetCarSprite:
 
   mSetOAM
   jp MainLoop
-
-SetRCar:
-  mSetRCar
-  ret
 
 SetPalette:
   mSetPalette

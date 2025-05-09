@@ -6,14 +6,14 @@
 // https://en.wikipedia.org/wiki/Bresenham%27s_line_algorithm
 //==========================================================
 
-$scrollBaseX = 8*6;
+$scrollBaseX = 0;
 $rCarPosX = 8*9;
 
 $y0 = 0;
 $y1 = 8*8;
 
 $int_x = 9;
-$x0 = 8*6;
+$x0 = $scrollBaseX;
 $x1_list = [      //L 1-7|8|9-15 R
   0,              //-
   $x0 - $int_x*7, //1
@@ -57,7 +57,7 @@ for($i=0; $i<=15; $i++){
   }
 }
 
-echo "\nSECTION \"Rival Car X Position Table\",ROM0[$4400]\n";
+echo "\nSECTION \"Rival Car X Position Table\",ROM0[$2000]\n";
 echo "RCarXPosTbl:\n";
 
 $int_x = 11;
@@ -81,10 +81,15 @@ $x1_list = [      //L 1-7|8|9-15 R
   $x0 - $int_x*7  //15
 ];
 
+$rCarYPosTbl = [
+   0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,13,15,17,19,
+  21,23,25,27,29,31,33,36,39,42,45,48,51,54,57,60
+];
+
 for($i=0; $i<=15; $i++){
   if($x1_list[$i]==0){
     $hex = [];
-    for($j=0; $j<64; $j++){
+    for($j=0; $j<32; $j++){
       $hex[] = sprintf("$%02x", $rCarPosX);
     }
     printf("  db %s\n",implode(",", $hex));
@@ -92,6 +97,7 @@ for($i=0; $i<=15; $i++){
     $x1 = $x1_list[$i];
     $out = calcRoadLine($y0,$x0,$y1,$x1);
     $hex = [];
+    $hex2 = [];
     foreach($out as $key=>$val){
       if($val < 0){
         $hex[] = sprintf("$%02x", 256 + $val);
@@ -99,7 +105,10 @@ for($i=0; $i<=15; $i++){
         $hex[] = sprintf("$%02x", $val);
       }
     }
-    printf("  db %s\n",implode(",", $hex));
+    for($k=0; $k<count($rCarYPosTbl); $k++){
+      $hex2[] = $hex[ $rCarYPosTbl[$k] ];
+    }
+    printf("  db %s\n",implode(",", $hex2));
   }
 }
 
