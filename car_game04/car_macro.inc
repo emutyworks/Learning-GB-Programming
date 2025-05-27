@@ -122,3 +122,9 @@ MACRO mJoypadWait
   ld a,JoypadWait
   ld [wJoypadWait],a
 ENDM
+
+MACRO mSetWBG
+REPT ScrollBgSize
+  ld [hli],a
+ENDR
+ENDM

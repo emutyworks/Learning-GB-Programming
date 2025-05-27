@@ -237,9 +237,17 @@ SetCarRight:
   mJoypadWait
   ld a,[wJoyPadPos]
   cp JoypadRightMax
-  jr z,SetWJoyPadXLR
+  jp z,SetWJoyPadXLR
   inc a
   ld [wJoyPadPos],a
+  ; Scroll BG
+  ld d,a
+  ld a,[wBgX]
+  inc a
+  ;inc a
+  ld hl,wBgX
+  mSetWBG
+  ld a,d
   jr SetWJoyPadXLR
 
 SetCarLeft:
@@ -265,6 +273,14 @@ SetCarLeft:
   jr z,SetWJoyPadXLR
   dec a
   ld [wJoyPadPos],a
+  ; Scroll BG
+  ld d,a
+  ld a,[wBgX]
+  dec a
+  ;dec a
+  ld hl,wBgX
+  mSetWBG
+  ld a,d
 
 SetWJoyPadXLR:
   ld d,a
