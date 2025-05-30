@@ -170,19 +170,19 @@ ObjPalette:
 ;===================================================================================
 
 Sprites:
-  INCBIN "sprites_comp.bin"
+  INCBIN "resource/sprites_comp.bin"
 SpritesEnd:
 
 Tiles:
-  INCBIN "tiles_comp.bin"
+  INCBIN "resource/tiles_comp.bin"
 TilesEnd:
 
 BgTileMap0: ; Tile Indexes
-  INCBIN "bg_tile0_comp.bin"
+  INCBIN "resource/bg_tile0_comp.bin"
 BgTileMap0End:
 
 BgTileMap1: ; BG Map Attributes
-  INCBIN "bg_tile1_comp.bin"
+  INCBIN "resource/bg_tile1_comp.bin"
 BgTileMap1End:
 
 SECTION "HBlank Road Y Position Table",ROM0[$3000]
