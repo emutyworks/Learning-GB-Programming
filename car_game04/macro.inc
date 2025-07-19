@@ -76,17 +76,6 @@ MACRO mSetWRam
   jr nz,.loop\@
 ENDM
 
-MACRO mCopyData
-.loop\@
-  ld a,[de]
-  ld [hli],a
-  inc de
-  dec bc
-  ld a,b
-  or c
-  jr nz,.loop\@
-ENDM
-
 MACRO mSetPalette
 .loop\@
   ld a,[hli]
@@ -136,4 +125,31 @@ MACRO mCopyDecompressionData
   ld a,c
   cp e
   jr nc,.start\@
+ENDM
+
+MACRO mCopyData
+.loop\@
+  ld a,[de]
+  ld [hli],a
+  inc de
+  dec bc
+  ld a,b
+  or c
+  jr nz,.loop\@
+ENDM
+
+MACRO mCopyHlToDe
+REPT \1
+  ld a,[hli]
+  ld [de],a
+  inc e
+ENDR
+  ld a,[hl]
+  ld [de],a
+ENDM
+
+MACRO mFillHl
+REPT \1
+  ld [hli],a
+ENDR
 ENDM

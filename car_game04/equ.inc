@@ -26,6 +26,8 @@ DEF ScrollMaxSize  EQU 154
 
 DEF SOAMCarTire    EQU 4*2+2
 
+DEF FinishLineCnt  EQU 255
+
 ;HBlank Scroll Position Table
 DEF S0             EQU 0
 DEF S1             EQU 8*8

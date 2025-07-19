@@ -38,6 +38,28 @@ HBlankHandler:
   inc h ;wSCX
   ld a,[hl]
   ldh [rSCX],a
+
+  ; Set Palette
+  ld a,%10000000+2
+  ldh [rBCPS],a
+
+  inc h ;wSCP
+  ld a,[hl]
+  cp 1
+  jr nz,.roadPalette
+
+.linePalette
+  ld hl,rBCPD
+  ld [hl],$ff
+  ld [hl],$03
+  jr .reset
+
+.roadPalette
+  ld hl,rBCPD
+  ld [hl],$8c
+  ld [hl],$31
+
+.reset
   pop hl
   pop af
   reti
@@ -85,10 +107,13 @@ Start:
   ld c,StateEnd - State
   call SetWRam
   ld hl,wSCY
-  ld c,ScrollMaxSize
+  ld c,$ff
   call SetWRam
   ld hl,wSCX
-  ld c,ScrollMaxSize
+  ld c,$ff
+  call SetWRam
+  ld hl,wSCP
+  ld c,$ff
   call SetWRam
 
   ; Set Sprites/Tiles data
@@ -151,12 +176,20 @@ Start:
   ld [wJoyPadPos],a
 
   ; test
-  ;ld a,22
-  ;ld [wRCarYPosTbl],a
-  ;ld a,8*9
-  ;ld [wRCarXPos],a
+  ;ld a,0
+  ;ld a,2
+  ;ld a,6
+  ;ld a,9
   ;ld a,13
+  ;ld a,18
+  ;ld a,23
+  ;ld [wRCarYPosTbl],a
+  ;ld a,1
   ;ld [wJoyPadPos],a
+  ld a,8
+  ld [wRCarXPos],a
+  ;ld a,2
+  ;ld [wCarPos],a
 
 MainLoop:
   ld a,[wMainLoopFlg]
@@ -172,16 +205,73 @@ MainLoop:
   ld [wCarTireRef],a
 
   ;test: Set Rival Car Y Position
-  ld a,[wRCarTblCnt]
+  ld a,[wRCarTblWait]
   inc a
   and %00000011
-  ld [wRCarTblCnt],a
+  ld [wRCarTblWait],a
   cp 0
-  jp nz,Joypad
+  jp nz,SetFinishLine
   ld a,[wRCarYPosTbl]
   inc a
-  and %00011111
+  and %00111111
   ld [wRCarYPosTbl],a
+
+SetFinishLine: ;test
+  ld a,[wFinishLineCnt]
+  cp 0
+  jp nz,.decCnt
+
+  ld a,[wFinishLineWait]
+  inc a
+  and %00000011
+  ld [wFinishLineWait],a
+  cp 0
+  jp nz,Joypad
+  ld a,[wFinishLinePos]
+  inc a
+  cp 13
+  jr c,.setPos1
+  inc a
+  and %00111111
+  ld [wFinishLinePos],a
+  cp 0
+  jr z,.resetCnt
+
+  ld hl,wRoadP
+  add a,l
+  ld l,a
+  xor a
+  ld [hli],a
+  ld [hli],a
+  ld a,1
+  ld [hli],a
+  ld [hli],a
+  jr Joypad
+
+.setPos1
+  and %00111111
+  ld [wFinishLinePos],a
+  cp 63
+  jr z,.resetCnt
+
+  ld hl,wRoadP
+  add a,l
+  ld l,a
+  xor a
+  ld [hli],a
+  ld [hli],a
+  ld a,1
+  ld [hli],a
+  jr Joypad
+
+.resetCnt
+  ld a,FinishLineCnt
+  ld [wFinishLineCnt],a
+  jr Joypad
+
+.decCnt
+  dec a
+  ld [wFinishLineCnt],a
 
 Joypad:
   mCheckJoypad
@@ -191,7 +281,7 @@ Joypad:
   bit JBitLeft,a
   jp nz,SetCarLeft
 
-  ; set Car Pos
+  ; Set Car Pos
   ld a,[wCarPosWait]
   cp 0
   jr nz,.decWait
@@ -240,13 +330,18 @@ SetCarRight:
   jp z,SetWJoyPadXLR
   inc a
   ld [wJoyPadPos],a
-  ; Scroll BG
   ld d,a
-  ld a,[wBgX]
-  inc a
-  ;inc a
+  ; Scroll BG
   ld hl,wBgX
-  mSetWBG
+  ld a,[hl]
+  inc a
+  mFillHl 8
+  ld a,[hl]
+  add a,2
+  mFillHl 8
+  ld a,[hl]
+  add a,4
+  mFillHl 8
   ld a,d
   jr SetWJoyPadXLR
 
@@ -273,13 +368,18 @@ SetCarLeft:
   jr z,SetWJoyPadXLR
   dec a
   ld [wJoyPadPos],a
-  ; Scroll BG
   ld d,a
-  ld a,[wBgX]
-  dec a
-  ;dec a
+  ; Scroll BG
   ld hl,wBgX
-  mSetWBG
+  ld a,[hl]
+  dec a
+  mFillHl 8
+  ld a,[hl]
+  sub 2
+  mFillHl 8
+  ld a,[hl]
+  sub 4
+  mFillHl 8
   ld a,d
 
 SetWJoyPadXLR:
@@ -296,7 +396,7 @@ SetWJoyPadXLR:
   or %01000000
   ld h,a
   ld de,wRoadX
-  mCopyScrollRoad
+  mCopyHlToDe ScrollRoadSize-1
 
 SetRoadScroll:
   ld a,[wRoadCnt]
@@ -321,14 +421,14 @@ SetRoadScroll:
   ld a,[wRoadLo]
   ld l,a
   ld de,wRoadY
-  mCopyScrollRoad
+  mCopyHlToDe ScrollRoadSize-1
 
 SetCarSprite:
   ld b,HIGH(CarSpriteTbl)
-  ld e,3 ; draw OAM cnt
+  ld e,3 ; Draw OAM cnt
   ld a,[wCarPos]
   cp CarPosCenter
-  jr z,.setCar0
+  jr z,.setCenter
   rlca
   rlca
   rlca
@@ -343,7 +443,7 @@ SetCarSprite:
   dec e
   jr .setCar
 
-.setCar0
+.setCenter
   dec e
   rlca
   rlca
@@ -353,41 +453,6 @@ SetCarSprite:
 
 .setCar
   mSetCar
-
-  ; Calc Rcar X Pos
-  ld a,[wRCarYPosTbl]
-  ld c,a
-  ld a,[wJoyPadPos]
-  ld d,a
-  and %00001000
-  ld e,a
-  xor d
-  swap a
-  rlca
-  add a,c
-  ld c,a
-  ld a,e
-  swap a
-  rlca
-  or %00100000
-  ld b,a
-  ld a,[bc]
-  ld [wRCarXPos],a
-
-  ld b,HIGH(RCarYPosTbl)
-  ld a,[wRCarYPosTbl]
-  rlca
-  ld c,a
-  ld a,[bc]
-  ld [wRCarYPos],a
-  inc c
-  ld a,[bc]
-  rlca
-  rlca
-  rlca
-  rlca
-  inc b
-  ld c,a
   mSetRCar 0
 
   ld a,1
