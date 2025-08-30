@@ -108,7 +108,6 @@ CopyDecompressionData:
 	ld a,[de]
 	inc de
 	sub 2
-	cp 0
 	jr z,.skip
 	ld c,a
 	ld a,b
