@@ -40,13 +40,6 @@ MACRO mWaitVBlank
   jr nz,.loop\@
 ENDM
 
-MACRO mSetOAM
-  ; Call the DMA subroutine we copied to HRAM
-  ; Which then copies the bytes to the OAM and sprites begin to draw
-  ld a,HIGH(wShadowOAM)
-  call hOAMDMA
-ENDM
-
 MACRO mInitwShadowOAM
   ld hl,wShadowOAM
   ld c,4*40
@@ -109,7 +102,6 @@ MACRO mCopyDecompressionData
   ld a,[de]
   inc de
   sub 2
-  cp 0
   jr z,.skip\@
   ld c,a
   ld a,b
@@ -139,7 +131,7 @@ MACRO mCopyData
 ENDM
 
 MACRO mCopyHlToDe
-REPT \1
+REPT \1-1
   ld a,[hli]
   ld [de],a
   inc e
@@ -152,4 +144,9 @@ MACRO mFillHl
 REPT \1
   ld [hli],a
 ENDR
+ENDM
+
+MACRO mSetRomBank
+  ld a,\1
+  ld [rROMB0],a
 ENDM

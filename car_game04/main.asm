@@ -18,16 +18,18 @@ INCLUDE "hardware.inc"
 INCLUDE "equ.inc"
 INCLUDE "macro.inc"
 INCLUDE "car_macro.inc"
+INCLUDE "road_pattern_macro.inc"
 
 SECTION "VBlank Handler",ROM0[$40]
   push af
-  ld a,1
-  ld [wVBlankDone],a
+  ; Call the DMA subroutine we copied to HRAM
+  ; Which then copies the bytes to the OAM and sprites begin to draw
+  ld a,HIGH(wShadowOAM)
+  call hOAMDMA
   pop af
   reti
 
 SECTION  "HBlank Handler",ROM0[$48]
-HBlankHandler:
   push af
   push hl
   ld h,HIGH(wSCY)
@@ -35,31 +37,9 @@ HBlankHandler:
   ld l,a
   ld a,[hl]
   ldh [rSCY],a
-  inc h ;wSCX
+  inc h ; wSCX
   ld a,[hl]
   ldh [rSCX],a
-
-  ; Set Palette
-  ld a,%10000000+2
-  ldh [rBCPS],a
-
-  inc h ;wSCP
-  ld a,[hl]
-  cp 1
-  jr nz,.roadPalette
-
-.linePalette
-  ld hl,rBCPD
-  ld [hl],$ff
-  ld [hl],$03
-  jr .reset
-
-.roadPalette
-  ld hl,rBCPD
-  ld [hl],$8c
-  ld [hl],$31
-
-.reset
   pop hl
   pop af
   reti
@@ -80,7 +60,7 @@ Start:
   mCopyDMARoutine ; Move DMA subroutine to HRAM
   mWaitVBlank
 
-  ; Set Palette
+  ; Init Palette
   ld a,%10000000
   ldh [rBCPS],a
   ld c,4*4
@@ -89,7 +69,7 @@ Start:
   call SetPalette
   ld a,%10000000
   ldh [rOCPS],a
-  ld c,4*5
+  ld c,4*3
   ld hl,ObjPalette
   ld de,rOCPD
   call SetPalette
@@ -98,7 +78,6 @@ Start:
   ldh [rLCDC],a
   ldh [rIE],a
   ldh [rIF],a
-  ldh [rSTAT],a
   ldh [rSVBK],a
   ldh [rSCY],a
   ldh [rSCX],a
@@ -112,11 +91,10 @@ Start:
   ld hl,wSCX
   ld c,$ff
   call SetWRam
-  ld hl,wSCP
-  ld c,$ff
-  call SetWRam
 
-  ; Set Sprites/Tiles data
+  ;mSetRomBank 2
+
+  ; Init Sprites/Tiles data
   ld hl,_VRAM ;$8000
   ld de,Sprites
   ld bc,SpritesEnd-1
@@ -126,9 +104,9 @@ Start:
   ld bc,TilesEnd-1
   call CopyDecompressionData
 
-  ; Set Map data
+  ; Init Map data
   ld a,1
-  ldh [rVBK],a ; BG Map Attributes
+  ldh [rVBK],a ; BG Map Attr
   ld hl,_SCRN0
   ld de,BgTileMap1
   ld bc,BgTileMap1End-1
@@ -140,11 +118,13 @@ Start:
   ld bc,BgTileMap0End-1
   call CopyDecompressionData
 
+  ;mSetRomBank 1
+
   ld a,LCDCF_ON|LCDCF_OBJON|LCDCF_BGON|LCDCF_OBJ16
   ldh [rLCDC],a
   mInitwShadowOAM
 
-  ; Set up the lcdc int
+  ; Init up the lcdc int
   ld a,STATF_LYC|STATF_MODE00
   ldh [rSTAT],a
 
@@ -162,116 +142,33 @@ Start:
   ld de,RoadYPosTbl
   ld bc,ScrollRoadSize
   call CopyData
+  ld a,ScrollWait
+  ld [wScrollWait],a
+  ld [wRoadCnt],a
+  ld a,TurnPosCenter
+  ld [wTurnPos],a
 
   ; Init Car data
+  call SetCarSpriteTbl
   ld a,CarPosCenter
   ld [wCarPos],a
   ld a,CarPosWait
   ld [wCarPosWait],a
 
-  ; Set Joypad
+  ; Init Joypad
   ld a,JoypadWait
   ld [wJoypadWait],a
-  ld a,8  ; L 1-7|8|9-15 R
+  ld a,8 ; L 1-7|8|9-15 R
   ld [wJoyPadPos],a
 
-  ; test
-  ;ld a,0
-  ;ld a,2
-  ;ld a,6
-  ;ld a,9
-  ;ld a,13
-  ;ld a,18
-  ;ld a,23
-  ;ld [wRCarYPosTbl],a
-  ;ld a,1
-  ;ld [wJoyPadPos],a
-  ld a,8
-  ld [wRCarXPos],a
-  ;ld a,2
-  ;ld [wCarPos],a
-
 MainLoop:
-  ld a,[wMainLoopFlg]
-  cp 1
-  jp z,SetOAM
+  mRoadPCnt
 
-  ; Set Tire reflection
-  ld a,[wCarTireCnt]
-  inc a
-  and %00011111
-  ld [wCarTireCnt],a
-  and %00000010
-  ld [wCarTireRef],a
+SetRoadPTbl:
+  mSetRoadPTbl
 
-  ;test: Set Rival Car Y Position
-  ld a,[wRCarTblWait]
-  inc a
-  and %00000011
-  ld [wRCarTblWait],a
-  cp 0
-  jp nz,SetFinishLine
-  ld a,[wRCarYPosTbl]
-  inc a
-  and %00111111
-  ld [wRCarYPosTbl],a
-
-SetFinishLine: ;test
-  ld a,[wFinishLineCnt]
-  cp 0
-  jp nz,.decCnt
-
-  ld a,[wFinishLineWait]
-  inc a
-  and %00000011
-  ld [wFinishLineWait],a
-  cp 0
-  jp nz,Joypad
-  ld a,[wFinishLinePos]
-  inc a
-  cp 13
-  jr c,.setPos1
-  inc a
-  and %00111111
-  ld [wFinishLinePos],a
-  cp 0
-  jr z,.resetCnt
-
-  ld hl,wRoadP
-  add a,l
-  ld l,a
-  xor a
-  ld [hli],a
-  ld [hli],a
-  ld a,1
-  ld [hli],a
-  ld [hli],a
-  jr Joypad
-
-.setPos1
-  and %00111111
-  ld [wFinishLinePos],a
-  cp 63
-  jr z,.resetCnt
-
-  ld hl,wRoadP
-  add a,l
-  ld l,a
-  xor a
-  ld [hli],a
-  ld [hli],a
-  ld a,1
-  ld [hli],a
-  jr Joypad
-
-.resetCnt
-  ld a,FinishLineCnt
-  ld [wFinishLineCnt],a
-  jr Joypad
-
-.decCnt
-  dec a
-  ld [wFinishLineCnt],a
+NextLoop:
+  mTireReflection
 
 Joypad:
   mCheckJoypad
@@ -281,7 +178,7 @@ Joypad:
   bit JBitLeft,a
   jp nz,SetCarLeft
 
-  ; Set Car Pos
+SetCarPos:
   ld a,[wCarPosWait]
   cp 0
   jr nz,.decWait
@@ -295,7 +192,7 @@ Joypad:
 .incPos
   inc a
 .setPos
-  ld [wCarPos],a
+  ld [wCarPos],a ;test
 .reset
   ld a,CarPosWait
   ld [wCarPosWait],a
@@ -327,10 +224,9 @@ SetCarRight:
   mJoypadWait
   ld a,[wJoyPadPos]
   cp JoypadRightMax
-  jp z,SetWJoyPadXLR
-  inc a
+  jp z,WaitScrollBG
+  inc a ;test
   ld [wJoyPadPos],a
-  ld d,a
   ; Scroll BG
   ld hl,wBgX
   ld a,[hl]
@@ -342,7 +238,6 @@ SetCarRight:
   ld a,[hl]
   add a,4
   mFillHl 8
-  ld a,d
   jr SetWJoyPadXLR
 
 SetCarLeft:
@@ -365,11 +260,10 @@ SetCarLeft:
   mJoypadWait
   ld a,[wJoyPadPos]
   cp JoypadLeftMin
-  jr z,SetWJoyPadXLR
-  dec a
+  jp z,WaitScrollBG
+  dec a ;test
   ld [wJoyPadPos],a
-  ld d,a
-  ; Scroll BG
+  ; Scroll BG ;248
   ld hl,wBgX
   ld a,[hl]
   dec a
@@ -380,9 +274,9 @@ SetCarLeft:
   ld a,[hl]
   sub 4
   mFillHl 8
-  ld a,d
 
-SetWJoyPadXLR:
+SetWJoyPadXLR: ;1236
+  ld a,[wJoyPadPos]
   ld d,a
   and %00001100
   ld e,a
@@ -393,27 +287,32 @@ SetWJoyPadXLR:
   ld a,e
   rrca
   rrca
-  or %01000000
+  or %01111100
   ld h,a
-  ld de,wRoadX
-  mCopyHlToDe ScrollRoadSize-1
+  ld de,wJoyPadXLR
+  mCopyHlToDe ScrollRoadSize
+  jr SetRoadScroll
+
+WaitScrollBG:
+  ld a,119 ; 12*119+60=1488
+  call AdjustWaitA
 
 SetRoadScroll:
   ld a,[wRoadCnt]
-  inc a
-  and %00000000 ; Scroll Speed
+  dec a
   ld [wRoadCnt],a
   cp 0
   jp nz,SetCarSprite
+  ld a,[wScrollWait]
+  ld [wRoadCnt],a
   ld a,[wRoadLo]
-  ;add a,$40
-  add a,$80
+  add a,$40
   ld [wRoadLo],a
   cp 0
   jr nz,.setRoad
   ld a,[wRoadHi]
   inc a
-  and %11110001
+  and %01111001 ; $78-$79
   ld [wRoadHi],a
 .setRoad
   ld a,[wRoadHi]
@@ -421,54 +320,23 @@ SetRoadScroll:
   ld a,[wRoadLo]
   ld l,a
   ld de,wRoadY
-  mCopyHlToDe ScrollRoadSize-1
+  mCopyHlToDe ScrollRoadSize ;test
 
 SetCarSprite:
-  ld b,HIGH(CarSpriteTbl)
-  ld e,3 ; Draw OAM cnt
+  ld b,HIGH(wCarSpriteTbl)
   ld a,[wCarPos]
-  cp CarPosCenter
-  jr z,.setCenter
-  rlca
-  rlca
-  rlca
-  rlca
+  rrca
+  rrca
+  rrca
   ld c,a
-  ld a,[wCarTireRef]
-  cp 0
-  jr z,.setCar
-  ld a,3
-  add a,c
-  ld c,a
-  dec e
-  jr .setCar
-
-.setCenter
-  dec e
-  rlca
-  rlca
-  rlca
-  rlca
-  ld c,a
-
-.setCar
   mSetCar
-  mSetRCar 0
+  mCalcWSCX
 
-  ld a,1
-  ld [wMainLoopFlg],a
   jp MainLoop
 
-  SetOAM:
-  ld a,[wVBlankDone]
-  cp 1
-  jp nz,MainLoop
-  xor a
-  ld [wVBlankDone],a
-  ld [wMainLoopFlg],a
-
-  mSetOAM
-  jp MainLoop
+SetCarSpriteTbl:
+  mSetCarSpriteTbl
+  ret
 
 SetPalette:
   mSetPalette
@@ -495,5 +363,13 @@ CopyDecompressionData:
   mCopyDecompressionData
   ret
 
+  ;ld a,5 ;8
+  ;call AdjustWaitA ;24
+AdjustWaitA:
+  dec a ;4
+  jr nz,AdjustWaitA ;12/8 ; 1 loop = 4+8
+  ret ;16 ; 8+24+12+16 = 60
+
+INCLUDE "road_pattern.inc"
 INCLUDE "data.inc"
 INCLUDE "wram.inc"

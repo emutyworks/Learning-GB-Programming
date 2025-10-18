@@ -12,7 +12,7 @@ $rCarPosX = 8*9;
 $y0 = 0;
 $y1 = 8*8;
 
-$int_x = 9;
+$int_x = 11;
 $x0 = $scrollBaseX;
 $x1_list = [      //L 1-7|8|9-15 R
   0,              //-
