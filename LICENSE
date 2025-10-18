@@ -136,5 +136,20 @@ express Statement of Purpose.
  * Date: 2021-03-02T17:08Z
  */
 
+---------------------------------------------------------------------------------
+
+;*
+;* Game Boy Hardware definitions
+;* https://github.com/gbdev/hardware.inc
+;*
+;* Based on Jones' hardware.inc
+;* And based on Carsten Sorensen's ideas.
+;*
+;* To the extent possible under law, the authors of this work have
+;* waived all copyright and related or neighboring rights to the work.
+;* See https://creativecommons.org/publicdomain/zero/1.0/ for details.
+;*
+;* SPDX-License-Identifier: CC0-1.0
+;*
 
 
