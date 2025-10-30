@@ -2,7 +2,7 @@
 //==========================================================
 // Run-length Encoder
 //
-// https://en.wikipedia.org/wiki/Run-length_encoding
+// https://github.com/emutyworks/Learning-GB-Programming/wiki/RunLengthEncodeDecode
 //==========================================================
 
 if(count($argv)<3){
