@@ -1,5 +1,5 @@
 ;
-; I used this Website/Document as a reference to create it.
+; - Reference
 ;
 ; Run-length encoding
 ; https://en.wikipedia.org/wiki/Run-length_encoding
@@ -45,6 +45,10 @@ Start:
 	ldh [rSCY],a
 	ldh [rSCX],a
 
+	ld hl,State
+	ld c,StateEnd - State
+	call SetWRam
+
 	; Set Tiles data
 	ld hl,_VRAM+$1000 ;$9000
 	ld de,Tiles
@@ -78,6 +82,30 @@ Start:
 	;ld de,BgTileMap0
 	;ld bc,BgTileMap0End - BgTileMap0
 	;call CopyData
+
+;debug: Check if the extracted data matches.
+CompareData: 
+	ld hl,_SCRN0
+	ld de,CompData
+	ld bc,CompDataEnd - CompData
+.loop
+  ld a,[de]
+  ld b,[hl]
+	cp b
+	jr nz,.error
+  inc de
+  inc hl
+  dec bc
+  ld a,b
+  or c
+  jr nz,.loop
+	jr .ok
+.error
+	ld a,h
+	ld [wCompDataAddr],a
+	ld a,l
+	ld [wCompDataAddr+1],a
+.ok
 
 	ld a,LCDCF_ON|LCDCF_BGON
 	ldh [rLCDC],a
@@ -152,6 +180,13 @@ CopyData:
 	jr nz,CopyData
 	ret
 
+SetWRam:
+.loop
+  ld [hli],a
+  dec c
+  jr nz,.loop
+  ret
+
 BGPalette:
 	dw 0
 	dw 8456
@@ -177,3 +212,14 @@ BgTileMap1End:
 Tiles:
 	INCBIN "tiles.bin"
 TilesEnd:
+
+;debug
+SECTION "Compare Data",ROM0[$4000]
+CompData: ; Tile Indexes
+	INCBIN "bg_tile0_1024.bin" ; 1024 bytes
+CompDataEnd:
+
+SECTION "State",WRAM0[$C000]
+State:
+wCompDataAddr: ds 2
+StateEnd:
