@@ -9,10 +9,10 @@ if(count($argv)<3){
   echo "Usage: php RunLengthEncoder.php <input filename(bin)> <output filename(compression)>\n";
   exit;
 }
-$inpit_file = $argv[1];
+$input_file = $argv[1];
 $output_file = $argv[2];
 
-$in_array = str_split(bin2hex(file_get_contents($inpit_file)),2);
+$in_array = str_split(bin2hex(file_get_contents($input_file)),2);
 
 $val_past = array_shift($in_array);
 $val_next = null;
